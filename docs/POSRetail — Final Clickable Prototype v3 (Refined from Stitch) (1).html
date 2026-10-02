@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>POSRetail — Clickable MVP Prototype v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red-900:#7f0000; --red-700:#b71c1c; --red-600:#c62828; --red-500:#d32f2f; --red-100:#fdecea;
+    --white:#ffffff; --surface:#ffffff; --bg:#f6f5f4; --ink:#1c1b1f; --ink-soft:#5f6368; --line:#e2e0de;
+    --green:#2e7d32; --green-bg:#e8f5e9; --amber:#b26a00; --amber-bg:#fff3e0;
+    --radius-s:4px; --radius-m:8px;
+    --shadow-1:0 1px 2px rgba(0,0,0,.08), 0 1px 3px rgba(0,0,0,.06);
+    --shadow-2:0 2px 6px rgba(0,0,0,.12), 0 1px 2px rgba(0,0,0,.08);
+    --sidebar-w:240px; --sidebar-w-collapsed:64px;
+    box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  :root:not([data-theme="light"]) { @media (prefers-color-scheme: dark) {
+    --surface:#241f1f; --bg:#171414; --ink:#f2eeee; --ink-soft:#b9b0b0; --line:#3a3232; --red-100:#3a1f1f; --green-bg:#123018; --amber-bg:#3a2a10;
+  }}
+  :root[data-theme="dark"] { --surface:#241f1f; --bg:#171414; --ink:#f2eeee; --ink-soft:#b9b0b0; --line:#3a3232; --red-100:#3a1f1f; --green-bg:#123018; --amber-bg:#3a2a10; }
+  html { scroll-padding-top: env(safe-area-inset-top,0px); }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:'Roboto',Arial,sans-serif; background:var(--bg); color:var(--ink); height:100%; -webkit-font-smoothing:antialiased; }
+  html, body { height:100%; }
+  .mono { font-family:'Roboto Mono', ui-monospace, monospace; }
+  button { font-family:inherit; cursor:pointer; }
+  .hidden { display:none !important; }
+
+  /* FULLSCREEN GATE SCREENS (Login / Shift Open / Shift Close / 403 / 404) */
+  .fullscreen { position:fixed; inset:0; background:var(--bg); display:flex; align-items:center; justify-content:center; z-index:40; padding:20px;
+    padding-top:calc(20px + env(safe-area-inset-top,0px)); padding-bottom:calc(20px + env(safe-area-inset-bottom,0px)); }
+  .gate-card { background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-m); box-shadow:var(--shadow-2); padding:32px; width:340px; text-align:center; }
+  .gate-logo { width:44px; height:44px; border-radius:10px; background:var(--red-700); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:18px; margin:0 auto 14px; }
+  .gate-card h2 { margin:0 0 4px; font-size:18px; font-weight:500; }
+  .gate-card p.sub { color:var(--ink-soft); font-size:13px; margin:0 0 20px; }
+  .gate-card .field { text-align:left; }
+  .gate-error { color:var(--red-600); font-size:12px; margin-top:-6px; margin-bottom:12px; display:none; }
+  .gate-error.show { display:block; }
+  .status-icon { width:56px; height:56px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 14px; }
+  .status-icon.warn { background:var(--amber-bg); color:var(--amber); }
+  .status-icon.neutral { background:var(--red-100); color:var(--red-700); }
+  .role-switch { display:flex; gap:6px; justify-content:center; margin-top:16px; }
+  .role-switch button { font-size:11px; padding:6px 10px; border-radius:20px; border:1px solid var(--line); background:var(--surface); color:var(--ink-soft); }
+  .role-switch button.active { background:var(--red-700); color:#fff; border-color:var(--red-700); }
+
+  .app { display:flex; height:100%; }
+
+  /* SIDEBAR */
+  .sidebar { width:var(--sidebar-w); background:var(--red-700); color:#fff; flex-shrink:0; display:flex; flex-direction:column; transition:width .18s ease; padding-top:env(safe-area-inset-top,0px); }
+  .sidebar.collapsed { width:var(--sidebar-w-collapsed); }
+  .sidebar-header { display:flex; align-items:center; gap:10px; padding:16px; border-bottom:1px solid rgba(255,255,255,.15); }
+  .brand { display:flex; align-items:center; gap:10px; overflow:hidden; }
+  .brand-mark { width:30px; height:30px; border-radius:7px; background:#fff; color:var(--red-700); display:flex; align-items:center; justify-content:center; font-weight:700; flex-shrink:0; }
+  .brand-name { font-weight:700; font-size:15px; white-space:nowrap; }
+  .sidebar.collapsed .brand-name { display:none; }
+  #toggleSidebar { margin-left:auto; background:none; border:none; color:#fff; opacity:.85; padding:6px; border-radius:6px; display:flex; }
+  #toggleSidebar:hover { background:rgba(255,255,255,.12); }
+  .sidebar.collapsed .sidebar-header { justify-content:center; }
+  .sidebar.collapsed #toggleSidebar { margin-left:0; }
+  nav.nav { padding:10px 8px; flex:1; overflow-y:auto; }
+  .nav-item { width:100%; display:flex; align-items:center; gap:14px; padding:11px 12px; margin-bottom:2px; background:transparent; border:none; color:rgba(255,255,255,.88); border-radius:var(--radius-s); font-size:14px; text-align:left; white-space:nowrap; overflow:hidden; }
+  .nav-item svg { flex-shrink:0; }
+  .nav-item:hover { background:rgba(255,255,255,.10); }
+  .nav-item.active { background:rgba(255,255,255,.18); color:#fff; font-weight:500; }
+  .sidebar.collapsed .nav-item { justify-content:center; padding:11px 0; }
+  .sidebar.collapsed .nav-label { display:none; }
+  .sidebar-footer { padding:8px; border-top:1px solid rgba(255,255,255,.15); }
+
+  /* MAIN */
+  .main { flex:1; display:flex; flex-direction:column; min-width:0; }
+  .topbar { height:60px; flex-shrink:0; background:var(--surface); border-bottom:1px solid var(--line); display:flex; align-items:center; padding:0 24px; gap:16px; position:sticky; top:0; z-index:5; }
+  .topbar h1 { font-size:18px; font-weight:500; margin:0; flex:1; }
+  .user-chip { display:flex; align-items:center; gap:10px; font-size:13px; color:var(--ink-soft); }
+  .avatar { width:30px; height:30px; border-radius:50%; background:var(--red-600); color:#fff; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; }
+  .user-chip span { font-weight:500; color:var(--ink); }
+  .topbar-btn { background:none; border:none; color:var(--ink-soft); font-size:12.5px; padding:6px 8px; border-radius:6px; display:flex; align-items:center; gap:5px; }
+  .topbar-btn:hover { background:var(--red-100); color:var(--red-700); }
+
+  .content { flex:1; overflow-y:auto; padding:24px; }
+  .view { display:none; max-width:1200px; margin:0 auto; }
+  .view.active { display:block; }
+
+  .card { background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-m); box-shadow:var(--shadow-1); }
+  .grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+  .grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  @media (max-width:900px){ .grid-4,.grid-3{ grid-template-columns:repeat(2,1fr);} }
+  .stat-card { padding:18px 20px; }
+  .stat-label { font-size:12.5px; color:var(--ink-soft); margin-bottom:6px; }
+  .stat-value { font-size:26px; font-weight:700; font-family:'Roboto Mono',monospace; }
+  .stat-sub { font-size:12px; color:var(--green); margin-top:4px; }
+  .stat-sub.warn { color:var(--amber); }
+
+  .section-title { font-size:15px; font-weight:500; margin:28px 0 12px; }
+  table { width:100%; border-collapse:collapse; font-size:13.5px; }
+  thead th { text-align:left; font-weight:500; color:var(--ink-soft); font-size:12px; padding:10px 14px; border-bottom:1px solid var(--line); }
+  tbody td { padding:12px 14px; border-bottom:1px solid var(--line); }
+  tbody tr:hover { background:var(--red-100); cursor:default; }
+  tbody tr.clickable:hover { cursor:pointer; }
+  tbody tr:last-child td { border-bottom:none; }
+  .badge { display:inline-block; padding:3px 9px; border-radius:20px; font-size:11.5px; font-weight:500; }
+  .badge.low { background:var(--amber-bg); color:var(--amber); }
+  .badge.ok { background:var(--green-bg); color:var(--green); }
+  .badge.done { background:var(--green-bg); color:var(--green); }
+  .badge.inactive { background:var(--line); color:var(--ink-soft); }
+
+  .btn { border:none; border-radius:var(--radius-s); padding:9px 18px; font-size:13.5px; font-weight:500; display:inline-flex; align-items:center; gap:8px; }
+  .btn-primary { background:var(--red-700); color:#fff; box-shadow:var(--shadow-1); }
+  .btn-primary:hover { background:var(--red-900); }
+  .btn-secondary { background:transparent; color:var(--red-700); border:1px solid var(--red-700); }
+  .btn-secondary:hover { background:var(--red-100); }
+  .btn-text { background:transparent; color:var(--ink-soft); }
+  .btn-text:hover { color:var(--ink); }
+  .btn-icon { background:transparent; border:none; padding:6px; border-radius:6px; color:var(--ink-soft); display:inline-flex; }
+  .btn-icon:hover { background:var(--red-100); color:var(--red-700); }
+  .btn-danger { background:#c62828; color:#fff; }
+  .btn:disabled { opacity:.45; cursor:not-allowed; }
+
+  .tabs { display:flex; gap:4px; margin-bottom:16px; border-bottom:1px solid var(--line); }
+  .tab-btn { background:none; border:none; padding:10px 4px; margin-right:20px; font-size:13.5px; color:var(--ink-soft); border-bottom:2px solid transparent; }
+  .tab-btn.active { color:var(--red-700); border-bottom-color:var(--red-700); font-weight:500; }
+
+  .toolbar { display:flex; align-items:center; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
+  .search-input, .select, .text-input { border:1px solid var(--line); border-radius:var(--radius-s); padding:9px 12px; font-size:13.5px; background:var(--surface); color:var(--ink); }
+  .search-input { flex:1; min-width:200px; }
+  .spacer { flex:1; }
+
+  .field { margin-bottom:16px; }
+  .field label { display:block; font-size:12.5px; color:var(--ink-soft); margin-bottom:5px; font-weight:500; }
+  .field input, .field select { width:100%; border:1px solid var(--line); border-radius:var(--radius-s); padding:10px 12px; font-size:14px; background:var(--surface); color:var(--ink); }
+  .field input:focus, .field select:focus, .search-input:focus { outline:2px solid var(--red-500); outline-offset:0; border-color:var(--red-500); }
+  .field-error input, .field-error select { border-color:#c62828; }
+  .field-error-msg { color:#c62828; font-size:12px; margin-top:4px; display:none; }
+  .field-error .field-error-msg { display:block; }
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:0 16px; }
+  @media (max-width:700px){ .form-grid{ grid-template-columns:1fr; } }
+
+  .empty-state { text-align:center; padding:60px 20px; color:var(--ink-soft); }
+  .empty-state .ic { margin-bottom:10px; opacity:.5; }
+
+  .pos-toolbar-row { display:flex; gap:10px; margin-bottom:14px; align-items:center; }
+  .cart-btn { flex-shrink:0; }
+  .cart-btn span:first-of-type { background:rgba(255,255,255,.25); border-radius:10px; padding:1px 7px; font-size:12px; }
+  .product-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:12px; }
+  .product-grid-full { max-height:calc(100vh - 60px - 130px); overflow-y:auto; padding-right:4px; }
+  .cart-modal { width:400px; max-width:92vw; max-height:82vh; padding:0; display:flex; flex-direction:column; }
+  .wf-badge-like { font-size:11px; background:var(--red-100); color:var(--red-700); padding:2px 8px; border-radius:20px; font-weight:500; }
+  .pos-tile { background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-m); padding:14px 12px; text-align:left; }
+  .pos-tile:hover { border-color:var(--red-500); box-shadow:var(--shadow-1); }
+  .pos-tile .name { font-size:13.5px; font-weight:500; margin-bottom:4px; }
+  .pos-tile .price { font-size:13px; color:var(--red-700); font-weight:700; font-family:'Roboto Mono',monospace; }
+  .pos-tile .stk { font-size:11px; color:var(--ink-soft); margin-top:2px; }
+  .cat-chip { padding:7px 14px; border-radius:20px; border:1px solid var(--line); background:var(--surface); font-size:12.5px; }
+  .cat-chip.active { background:var(--red-700); color:#fff; border-color:var(--red-700); }
+  .cart-panel { display:flex; flex-direction:column; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-m); box-shadow:var(--shadow-1); min-height:0; }
+  .cart-head { padding:16px; border-bottom:1px solid var(--line); font-weight:500; display:flex; justify-content:space-between; align-items:center; }
+  .cart-items { flex:1; overflow-y:auto; padding:8px 16px; }
+  .cart-row { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--line); }
+  .cart-row:last-child { border-bottom:none; }
+  .cart-row .nm { flex:1; font-size:13px; }
+  .cart-row .nm .sub { color:var(--ink-soft); font-size:11.5px; }
+  .qty-ctrl { display:flex; align-items:center; gap:6px; }
+  .qty-ctrl button { width:22px; height:22px; border:1px solid var(--line); background:var(--surface); border-radius:4px; font-size:14px; line-height:1; color:var(--ink); }
+  .qty-ctrl span { min-width:16px; text-align:center; font-size:13px; font-family:'Roboto Mono',monospace; }
+  .cart-row .amt { width:64px; text-align:right; font-size:13px; font-family:'Roboto Mono',monospace; }
+  .cart-foot { padding:16px; border-top:1px solid var(--line); }
+  .row-between { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:13.5px; }
+  .row-total { font-size:19px; font-weight:700; font-family:'Roboto Mono',monospace; }
+
+  .payment-wrap { max-width:460px; margin:0 auto; }
+  .method-row { display:flex; gap:10px; margin-bottom:20px; }
+  .method-btn { flex:1; border:1.5px solid var(--line); border-radius:var(--radius-m); padding:14px 10px; text-align:center; background:var(--surface); font-size:13px; }
+  .method-btn.active { border-color:var(--red-700); background:var(--red-100); color:var(--red-700); font-weight:500; }
+  .change-box { background:var(--green-bg); border-radius:var(--radius-m); padding:16px; text-align:center; margin-top:14px; }
+  .change-box .lbl { font-size:12px; color:var(--ink-soft); }
+  .change-box .val { font-size:24px; font-weight:700; color:var(--green); font-family:'Roboto Mono',monospace; }
+  .change-box.error { background:#fdecea; }
+  .change-box.error .val { color:#c62828; }
+
+  .success-wrap { max-width:420px; margin:40px auto; text-align:center; }
+  .success-icon { width:64px; height:64px; border-radius:50%; background:var(--green-bg); color:var(--green); display:flex; align-items:center; justify-content:center; margin:0 auto 16px; }
+  .receipt { text-align:left; background:var(--surface); border:1px dashed var(--line); border-radius:var(--radius-m); padding:18px; margin:20px 0; font-family:'Roboto Mono',monospace; font-size:12.5px; }
+  .receipt .rrow { display:flex; justify-content:space-between; padding:3px 0; }
+  .receipt hr { border:none; border-top:1px dashed var(--line); margin:8px 0; }
+
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center; z-index:50; }
+  .modal-overlay.hidden { display:none; }
+  .modal { background:var(--surface); border-radius:var(--radius-m); padding:22px; width:360px; box-shadow:var(--shadow-2); }
+  .modal h3 { margin:0 0 8px; font-size:16px; }
+  .modal p { color:var(--ink-soft); font-size:13.5px; margin:0 0 20px; }
+  .modal-actions { display:flex; justify-content:flex-end; gap:10px; }
+
+  .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#2e2b2b; color:#fff; padding:11px 20px; border-radius:var(--radius-s); font-size:13.5px; box-shadow:var(--shadow-2); z-index:60; opacity:0; pointer-events:none; transition:opacity .2s; }
+  .toast.show { opacity:1; }
+
+  .flow-note { font-size:11.5px; color:var(--ink-soft); background:var(--red-100); border-radius:var(--radius-s); padding:8px 12px; margin-bottom:18px; }
+  .detail-row { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--line); font-size:13.5px; }
+  .detail-row:last-child { border-bottom:none; }
+  .detail-row .lbl { color:var(--ink-soft); }
+  @media (prefers-reduced-motion: reduce) { * { transition:none !important; } }
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN (gate) ============ -->
+<div class="fullscreen" id="screen-login">
+  <div class="gate-card">
+    <div class="gate-logo">R</div>
+    <h2>RetailPOS</h2>
+    <p class="sub">Sign in to continue</p>
+    <div class="field" style="text-align:left;"><label>Username</label><input id="loginUser" value="siti"></div>
+    <div class="field" style="text-align:left;"><label>Password</label><input id="loginPass" type="password" value="••••••"></div>
+    <div class="gate-error" id="loginError">Incorrect username or password.</div>
+    <button class="btn btn-primary" id="loginBtn" style="width:100%; justify-content:center;">Log In</button>
+    <div style="font-size:11px; color:var(--ink-soft); margin-top:14px;">Demo: choose the role to sign in as</div>
+    <div class="role-switch" id="loginRoleSwitch">
+      <button data-role="admin" class="active">Admin</button>
+      <button data-role="manager">Manager</button>
+      <button data-role="cashier">Cashier</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SHIFT OPEN (gate, cashier only) ============ -->
+<div class="fullscreen hidden" id="screen-shift-open">
+  <div class="gate-card">
+    <h2>Start Your Shift</h2>
+    <p class="sub">Enter the starting cash in your drawer to begin.</p>
+    <div class="field" style="text-align:left;"><label>Starting Cash (Rp)</label><input id="shiftStartCash" type="number" placeholder="0" value="300000"></div>
+    <button class="btn btn-primary" id="startShiftBtn" style="width:100%; justify-content:center;">Start Shift</button>
+  </div>
+</div>
+
+<!-- ============ SHIFT CLOSE (gate, cashier only) ============ -->
+<div class="fullscreen hidden" id="screen-shift-close">
+  <div class="gate-card">
+    <h2>Close Your Shift</h2>
+    <p class="sub">Count your drawer and enter the total.</p>
+    <div class="field" style="text-align:left;"><label>Counted Cash (Rp)</label><input id="shiftCountedCash" type="number" placeholder="0"></div>
+    <div class="card" style="padding:14px; margin-bottom:16px; text-align:left; font-size:13px;">
+      <div class="detail-row"><span class="lbl">Expected (starting + sales)</span><span class="mono" id="shiftExpected">Rp 0</span></div>
+      <div class="detail-row"><span class="lbl">Actual (counted)</span><span class="mono" id="shiftActual">Rp 0</span></div>
+      <div class="detail-row"><span class="lbl">Variance</span><span class="mono" id="shiftVariance">Rp 0</span></div>
+    </div>
+    <button class="btn btn-primary" id="confirmCloseShiftBtn" style="width:100%; justify-content:center;">Confirm &amp; Close Shift</button>
+  </div>
+</div>
+
+<!-- ============ 403 (gate) ============ -->
+<div class="fullscreen hidden" id="screen-403">
+  <div class="gate-card">
+    <div class="status-icon warn">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v5M12 16h.01"/></svg>
+    </div>
+    <h2>You don't have access</h2>
+    <p class="sub">Your current role doesn't have permission to view that page.</p>
+    <button class="btn btn-primary" id="back403Btn" style="width:100%; justify-content:center;">Back to Dashboard</button>
+  </div>
+</div>
+
+<!-- ============ 404 (gate) ============ -->
+<div class="fullscreen hidden" id="screen-404">
+  <div class="gate-card">
+    <div class="status-icon neutral">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-3.6-3.6"/></svg>
+    </div>
+    <h2>Page not found</h2>
+    <p class="sub">That link doesn't lead anywhere in this prototype.</p>
+    <button class="btn btn-primary" id="back404Btn" style="width:100%; justify-content:center;">Back to Dashboard</button>
+  </div>
+</div>
+
+<!-- ============ APP SHELL ============ -->
+<div class="app hidden" id="appRoot">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="brand"><div class="brand-mark">R</div><div class="brand-name">RetailPOS</div></div>
+      <button id="toggleSidebar" title="Toggle sidebar" aria-label="Toggle sidebar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+    </div>
+    <nav class="nav" id="navList"></nav>
+    <div class="sidebar-footer">
+      <button class="nav-item" id="logoutBtn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+        <span class="nav-label">Logout</span>
+      </button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <h1 id="pageTitle">Dashboard</h1>
+      <div class="user-chip">
+        <div class="avatar" id="avatarInitials">FZ</div>
+        <span id="userNameLabel">Fawzy Admin</span>
+      </div>
+    </header>
+
+    <main class="content" id="content">
+
+      <!-- DASHBOARD -->
+      <section class="view active" id="view-dashboard">
+        <div class="grid-4">
+          <div class="card stat-card"><div class="stat-label">Today's Sales</div><div class="stat-value">Rp 2.4jt</div><div class="stat-sub">18 transactions</div></div>
+          <div class="card stat-card"><div class="stat-label">Transactions Today</div><div class="stat-value">18</div><div class="stat-sub">Avg Rp 133k / sale</div></div>
+          <div class="card stat-card"><div class="stat-label">Total Products</div><div class="stat-value">86</div><div class="stat-sub">6 categories</div></div>
+          <div class="card stat-card"><div class="stat-label">Low Stock Items</div><div class="stat-value">4</div><div class="stat-sub warn">Needs restock</div></div>
+        </div>
+        <div style="display:flex; gap:10px; margin-top:20px;">
+          <button class="btn btn-primary" data-goto="pos"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>New Sale</button>
+          <button class="btn btn-secondary" data-goto="products">View Products</button>
+        </div>
+        <div class="section-title">Low stock — needs attention</div>
+        <div class="card"><table><thead><tr><th>Product</th><th>SKU</th><th>Stock</th><th>Status</th></tr></thead><tbody id="lowStockBody"></tbody></table></div>
+        <div class="section-title">Recent transactions</div>
+        <div class="card"><table><thead><tr><th>Receipt</th><th>Time</th><th>Cashier</th><th>Total</th><th>Status</th></tr></thead><tbody id="recentTxBody"></tbody></table></div>
+      </section>
+
+      <!-- POS -->
+      <section class="view" id="view-pos">
+        <div class="pos-toolbar-row">
+          <input class="search-input" id="posSearch" placeholder="Search product name or scan barcode…">
+          <button class="btn btn-primary cart-btn" id="openCartBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h2l2.4 12.2a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.6L21 7H6"/></svg>
+            <span id="cartBtnCount">0</span>&nbsp;·&nbsp;<span id="cartBtnTotal" class="mono">Rp 0</span>
+          </button>
+        </div>
+        <div class="toolbar" id="catChips"></div>
+        <div class="product-grid product-grid-full" id="posGrid"></div>
+      </section>
+
+      <!-- CURRENT SALE MODAL (opens over POS) -->
+      <div class="modal-overlay hidden" id="cartModal">
+        <div class="modal cart-modal">
+          <div class="cart-head">
+            <span>Current Sale &nbsp;<span class="wf-badge-like" id="cartModalCount">0 items</span></span>
+            <div style="display:flex; align-items:center; gap:4px;">
+              <button class="btn-text" id="clearCartBtn" style="font-size:12px;">Clear</button>
+              <button class="btn-icon" id="closeCartBtn" title="Close">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="cart-items" id="cartItems"></div>
+          <div class="cart-foot">
+            <div class="field" style="margin-bottom:10px;"><label>Discount (Rp)</label><input type="number" id="discountInput" value="0" min="0"></div>
+            <div class="row-between"><span>Subtotal</span><span class="mono" id="subtotalVal">Rp 0</span></div>
+            <div class="row-between"><span>Discount</span><span class="mono" id="discountVal">– Rp 0</span></div>
+            <div class="row-between row-total"><span>Total</span><span class="mono" id="totalVal">Rp 0</span></div>
+            <div style="display:flex; gap:8px; margin-top:6px;">
+              <button class="btn btn-text" id="holdBtn">Hold / Cancel Sale</button>
+              <button class="btn btn-primary" id="chargeBtn" style="flex:1; justify-content:center;">Charge</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAYMENT -->
+      <section class="view" id="view-payment">
+        <div class="payment-wrap">
+          <div class="card" style="padding:20px; margin-bottom:16px;">
+            <div class="row-between"><span>Items</span><span class="mono" id="payItemCount">0</span></div>
+            <div class="row-between row-total"><span>Amount Due</span><span class="mono" id="payTotal">Rp 0</span></div>
+          </div>
+          <div class="method-row">
+            <button class="method-btn active" data-method="cash">Cash</button>
+            <button class="method-btn" data-method="card">Card</button>
+            <button class="method-btn" data-method="qris">QRIS</button>
+          </div>
+          <div class="field"><label>Cash Tendered (Rp)</label><input type="number" id="tenderedInput" placeholder="0"></div>
+          <div class="change-box" id="changeBox"><div class="lbl">Change Due</div><div class="val" id="changeVal">Rp 0</div></div>
+          <div style="display:flex; gap:10px; margin-top:20px;">
+            <button class="btn btn-secondary" data-goto="pos" style="flex:1; justify-content:center;">Back</button>
+            <button class="btn btn-primary" id="confirmPayBtn" style="flex:2; justify-content:center;">Confirm Payment</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- SUCCESS -->
+      <section class="view" id="view-success">
+        <div class="success-wrap">
+          <div class="success-icon"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg></div>
+          <h2 style="margin:0 0 4px;">Payment complete</h2>
+          <p style="color:var(--ink-soft); font-size:13.5px;">Receipt <span id="receiptNo" class="mono"></span> saved to Transaction History. Stock has been updated.</p>
+          <div class="receipt" id="receiptBox"></div>
+          <div style="display:flex; gap:10px;">
+            <button class="btn btn-secondary" style="flex:1; justify-content:center;">Print Receipt</button>
+            <button class="btn btn-primary" id="newSaleBtn" style="flex:1; justify-content:center;">New Sale</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- PRODUCTS LIST -->
+      <section class="view" id="view-products">
+        <div class="tabs">
+          <button class="tab-btn active" data-goto="products">Products</button>
+          <button class="tab-btn" data-goto="categories">Categories</button>
+        </div>
+        <div class="toolbar">
+          <input class="search-input" id="prodSearch" placeholder="Search products…">
+          <select class="select" id="prodCatFilter"><option value="">All categories</option></select>
+          <button class="btn btn-primary" id="addProductBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Add Product</button>
+        </div>
+        <div class="card"><table><thead><tr><th>Product</th><th>SKU</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th style="text-align:right;">Actions</th></tr></thead><tbody id="productsBody"></tbody></table></div>
+      </section>
+
+      <!-- PRODUCT FORM -->
+      <section class="view" id="view-product-form">
+        <div class="card" style="max-width:640px; padding:24px;">
+          <h2 id="formTitle" style="margin-top:0; margin-bottom:2px; font-size:17px; font-weight:500;">Add Product</h2>
+          <div id="formFlowNote" style="font-size:12.5px; color:var(--ink-soft); margin-bottom:18px;"></div>
+          <div class="form-grid">
+            <div class="field" id="f-name"><label>Product Name</label><input id="in-name" placeholder="e.g. Indomie Goreng"><div class="field-error-msg">Product name is required.</div></div>
+            <div class="field" id="f-sku"><label>SKU / Barcode</label><input id="in-sku" placeholder="e.g. 8991234567"><div class="field-error-msg">SKU is required.</div></div>
+            <div class="field"><label>Category</label><select id="in-category"></select></div>
+            <div class="field"><label>Unit</label><input id="in-unit" placeholder="e.g. pcs, box"></div>
+            <div class="field" id="f-price"><label>Price (Rp)</label><input id="in-price" type="number" placeholder="0"><div class="field-error-msg">Enter a valid price.</div></div>
+            <div class="field"><label>Cost (Rp) — optional</label><input id="in-cost" type="number" placeholder="0"></div>
+            <div class="field" id="f-stock"><label>Stock Quantity</label><input id="in-stock" type="number" placeholder="0"><div class="field-error-msg">Enter a valid stock quantity.</div></div>
+          </div>
+          <div style="display:flex; gap:10px; margin-top:8px;">
+            <button class="btn btn-secondary" data-goto="products">Cancel</button>
+            <button class="btn btn-primary" id="saveProductBtn">Save Product</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- PRODUCT DETAIL -->
+      <section class="view" id="view-product-detail">
+        <div class="card" style="max-width:520px; padding:24px;" id="productDetailBox"></div>
+      </section>
+
+      <!-- CATEGORIES -->
+      <section class="view" id="view-categories">
+        <div class="tabs">
+          <button class="tab-btn" data-goto="products">Products</button>
+          <button class="tab-btn active" data-goto="categories">Categories</button>
+        </div>
+        <div class="toolbar">
+          <input class="search-input" id="catSearch" placeholder="Search categories…">
+          <button class="btn btn-primary" id="addCategoryBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Add Category</button>
+        </div>
+        <div class="card"><table><thead><tr><th>Category Name</th><th>Products</th><th style="text-align:right;">Actions</th></tr></thead><tbody id="categoriesBody"></tbody></table></div>
+      </section>
+
+      <!-- CATEGORY FORM -->
+      <section class="view" id="view-category-form">
+        <div class="card" style="max-width:420px; padding:24px;">
+          <h2 id="catFormTitle" style="margin-top:0; margin-bottom:2px; font-size:17px; font-weight:500;">Add Category</h2>
+          <div id="catFormFlowNote" style="font-size:12.5px; color:var(--ink-soft); margin-bottom:18px;"></div>
+          <div class="field" id="f-cat-name"><label>Category Name</label><input id="in-cat-name" placeholder="e.g. Beverages"><div class="field-error-msg">Category name is required.</div></div>
+          <div style="display:flex; gap:10px;">
+            <button class="btn btn-secondary" data-goto="categories">Cancel</button>
+            <button class="btn btn-primary" id="saveCategoryBtn">Save Category</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- TRANSACTIONS LIST -->
+      <section class="view" id="view-transactions">
+        <div id="txFlowNote" style="font-size:12.5px; color:var(--ink-soft); margin-bottom:12px;"></div>
+        <div class="toolbar">
+          <input class="search-input" id="txSearch" placeholder="Search receipt no…">
+          <select class="select" id="txCashierFilter"><option value="">All cashiers</option></select>
+        </div>
+        <div class="card"><table><thead><tr><th>Receipt</th><th>Date/Time</th><th>Cashier</th><th>Total</th><th>Status</th></tr></thead><tbody id="txBody"></tbody></table></div>
+      </section>
+
+      <!-- TRANSACTION DETAIL -->
+      <section class="view" id="view-transaction-detail">
+        <div class="card" style="max-width:480px; padding:24px;" id="txDetailBox"></div>
+        <div style="margin-top:12px;"><button class="btn btn-secondary" data-goto="transactions">Back to Transactions</button></div>
+      </section>
+
+      <!-- REPORTS -->
+      <section class="view" id="view-reports">
+        <div class="toolbar"><select class="select" id="reportRange"><option>Today</option><option selected>Last 7 days</option><option>Last 30 days</option></select></div>
+        <div class="grid-3">
+          <div class="card stat-card"><div class="stat-label">Total Sales</div><div class="stat-value">Rp 12.8jt</div></div>
+          <div class="card stat-card"><div class="stat-label">Total Transactions</div><div class="stat-value">142</div></div>
+          <div class="card stat-card"><div class="stat-label">Cash Collected</div><div class="stat-value">Rp 12.8jt</div></div>
+        </div>
+        <div class="section-title">Top products</div>
+        <div class="card"><table><thead><tr><th>Product</th><th>Units Sold</th><th>Revenue</th></tr></thead><tbody id="topProductsBody"></tbody></table></div>
+      </section>
+
+      <!-- USERS -->
+      <section class="view" id="view-users">
+        <div class="toolbar">
+          <input class="search-input" id="userSearch" placeholder="Search users…">
+          <select class="select" id="userRoleFilter"><option value="">All roles</option><option>Admin</option><option>Manager</option><option>Cashier</option></select>
+          <button class="btn btn-primary" id="addUserBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Add User</button>
+        </div>
+        <div class="card"><table><thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Status</th><th style="text-align:right;">Actions</th></tr></thead><tbody id="usersBody"></tbody></table></div>
+      </section>
+
+      <!-- USER FORM -->
+      <section class="view" id="view-user-form">
+        <div class="card" style="max-width:520px; padding:24px;">
+          <h2 id="userFormTitle" style="margin-top:0; margin-bottom:2px; font-size:17px; font-weight:500;">Add User</h2>
+          <div id="userFormFlowNote" style="font-size:12.5px; color:var(--ink-soft); margin-bottom:18px;"></div>
+          <div class="form-grid">
+            <div class="field" id="f-uname"><label>Full Name</label><input id="in-uname" placeholder="e.g. Budi Santoso"><div class="field-error-msg">Name is required.</div></div>
+            <div class="field" id="f-uusername"><label>Username</label><input id="in-uusername" placeholder="e.g. budi"><div class="field-error-msg">Username is required.</div></div>
+            <div class="field" id="f-upass"><label id="passLabel">Password</label><input id="in-upass" type="password" placeholder="••••••••"></div>
+            <div class="field"><label>Role</label><select id="in-urole"><option>Admin</option><option>Manager</option><option>Cashier</option></select></div>
+          </div>
+          <div class="field" id="statusFieldWrap" style="display:none;">
+            <label>Status</label>
+            <div class="role-switch" style="justify-content:flex-start;" id="statusSwitch">
+              <button data-status="Active" class="active">Active</button>
+              <button data-status="Inactive">Inactive</button>
+            </div>
+          </div>
+          <div style="display:flex; gap:10px; margin-top:8px;">
+            <button class="btn btn-secondary" data-goto="users">Cancel</button>
+            <button class="btn btn-primary" id="saveUserBtn">Save User</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- USER DETAIL -->
+      <section class="view" id="view-user-detail">
+        <div class="card" style="max-width:480px; padding:24px;" id="userDetailBox"></div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- DELETE / DEACTIVATE CONFIRM MODAL (shared) -->
+<div class="modal-overlay hidden" id="confirmModal">
+  <div class="modal">
+    <h3 id="confirmModalTitle">Delete product?</h3>
+    <p id="confirmModalText">This will permanently remove the item. This can't be undone.</p>
+    <div class="modal-actions">
+      <button class="btn btn-text" id="cancelConfirmBtn">Cancel</button>
+      <button class="btn btn-danger" id="confirmActionBtn">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  const fmt = n => 'Rp ' + Math.round(n).toLocaleString('id-ID');
+  const $ = id => document.getElementById(id);
+
+  // ---- STATE ----
+  let role = 'admin';
+  let shiftStartCash = 0;
+  let shiftSalesTotal = 0;
+
+  // ---- MOCK DATA ----
+  let products = [
+    {id:1,name:'Indomie Goreng',sku:'8991002101',category:'Snacks & Instant',price:3500,cost:2800,stock:120,unit:'pcs'},
+    {id:2,name:'Aqua 600ml',sku:'8993050102',category:'Beverages',price:4000,cost:3000,stock:8,unit:'bottle'},
+    {id:3,name:'Teh Botol Sosro',sku:'8991103103',category:'Beverages',price:5000,cost:3800,stock:64,unit:'bottle'},
+    {id:4,name:'Sari Roti Tawar',sku:'8992001104',category:'Bakery',price:15000,cost:11000,stock:5,unit:'pack'},
+    {id:5,name:'Kopi Kapal Api',sku:'8993201105',category:'Snacks & Instant',price:2000,cost:1500,stock:200,unit:'sachet'},
+    {id:6,name:'Beras Premium 5kg',sku:'8991405106',category:'Staples',price:68000,cost:60000,stock:3,unit:'bag'},
+    {id:7,name:'Minyak Goreng 1L',sku:'8992501107',category:'Staples',price:19500,cost:16500,stock:40,unit:'bottle'},
+    {id:8,name:'Sabun Mandi Lifebuoy',sku:'8993601108',category:'Household',price:6000,cost:4500,stock:75,unit:'pcs'},
+  ];
+  let categories = [
+    {id:1,name:'Beverages'},{id:2,name:'Snacks & Instant'},{id:3,name:'Bakery'},{id:4,name:'Staples'},{id:5,name:'Household'}
+  ];
+  let users = [
+    {id:1,name:'Fawzy Admin',username:'fawzy',role:'Admin',status:'Active'},
+    {id:2,name:'Budi Santoso',username:'budi',role:'Manager',status:'Active'},
+    {id:3,name:'Siti Rahma',username:'siti',role:'Cashier',status:'Active'},
+    {id:4,name:'Andi Wijaya',username:'andi',role:'Cashier',status:'Inactive'},
+  ];
+  let transactions = [
+    {id:'RC-0192',time:'Sep 24, 10:41 AM',cashier:'Siti',total:47500,method:'Cash',tendered:50000,items:[{name:'Indomie Goreng',qty:3,price:3500},{name:'Aqua 600ml',qty:9,price:4000}]},
+    {id:'RC-0191',time:'Sep 24, 10:22 AM',cashier:'Budi',total:132000,method:'Cash',tendered:150000,items:[{name:'Beras Premium 5kg',qty:1,price:68000},{name:'Minyak Goreng 1L',qty:1,price:19500},{name:'Sabun Mandi Lifebuoy',qty:7,price:6000}]},
+    {id:'RC-0190',time:'Sep 24, 09:58 AM',cashier:'Siti',total:19500,method:'Cash',tendered:20000,items:[{name:'Minyak Goreng 1L',qty:1,price:19500}]},
+    {id:'RC-0189',time:'Sep 23, 04:12 PM',cashier:'Budi',total:8000,method:'Cash',tendered:10000,items:[{name:'Kopi Kapal Api',qty:4,price:2000}]},
+  ];
+  let nextId = 9, nextCatId = 6, nextUserId = 5;
+  const lowStock = () => products.filter(p=>p.stock<=8);
+
+  // ---- NAV CONFIG ----
+  const navConfig = [
+    {id:'dashboard', label:'Dashboard', roles:['admin','manager','cashier'],
+      icon:'<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>'},
+    {id:'pos', label:'POS / Sales', roles:['admin','manager','cashier'],
+      icon:'<circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h2l2.4 12.2a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.6L21 7H6"/>'},
+    {id:'products', label:'Products', roles:['admin','manager'],
+      icon:'<path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/>'},
+    {id:'transactions', label:'Transactions', roles:['admin','manager','cashier'],
+      icon:'<path d="M6 2h9l3 3v17H6z"/><path d="M9 9h6M9 13h6M9 17h3"/>'},
+    {id:'reports', label:'Reports', roles:['admin','manager'],
+      icon:'<path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/>'},
+    {id:'users', label:'Users', roles:['admin'],
+      icon:'<circle cx="9" cy="8" r="3.2"/><path d="M2.5 20c.8-3.6 3.4-5.6 6.5-5.6s5.7 2 6.5 5.6"/><path d="M16 4.2a3.2 3.2 0 0 1 0 6.2"/><path d="M18.5 14.6c2.4.6 4.1 2.4 4.7 5.4"/>'},
+  ];
+  const viewRoles = { // which roles may open each view (views not listed = all logged-in roles)
+    products:['admin','manager'], 'product-form':['admin','manager'], 'product-detail':['admin','manager'],
+    categories:['admin','manager'], 'category-form':['admin','manager'],
+    reports:['admin','manager'],
+    users:['admin'], 'user-form':['admin'], 'user-detail':['admin'],
+  };
+  const titles = {dashboard:'Dashboard',pos:'POS / Sales',payment:'Payment',success:'Transaction Complete',
+    products:'Products','product-form':'Product Form','product-detail':'Product Detail',
+    categories:'Categories','category-form':'Category Form',
+    transactions:'Transactions','transaction-detail':'Transaction Detail',
+    reports:'Reports', users:'Users','user-form':'User Form','user-detail':'User Detail'};
+
+  function renderSidebar(){
+    $('navList').innerHTML = navConfig.filter(n=>n.roles.includes(role)).map(n=>`
+      <button class="nav-item" data-view="${n.id}">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${n.icon}</svg>
+        <span class="nav-label">${n.label}</span>
+      </button>
+    `).join('');
+    document.querySelectorAll('#navList .nav-item').forEach(n=>n.addEventListener('click',()=>goto(n.dataset.view)));
+  }
+
+  let currentView = 'dashboard';
+  function goto(view){
+    const allowed = viewRoles[view];
+    if(allowed && !allowed.includes(role)){ showFullscreen('screen-403'); return; }
+    currentView = view;
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    const el = document.getElementById('view-'+view);
+    if(el) el.classList.add('active');
+    document.querySelectorAll('#navList .nav-item').forEach(n=>n.classList.toggle('active', n.dataset.view===view));
+    $('pageTitle').textContent = titles[view] || view;
+    $('content').scrollTop = 0;
+  }
+  document.querySelectorAll('[data-goto]').forEach(el=>el.addEventListener('click',()=>goto(el.dataset.goto)));
+
+  // ---- FULLSCREEN GATE MANAGEMENT ----
+  function showFullscreen(id){
+    ['screen-login','screen-shift-open','screen-shift-close','screen-403','screen-404'].forEach(s=>$(s).classList.add('hidden'));
+    $('appRoot').classList.add('hidden');
+    $(id).classList.remove('hidden');
+  }
+  function showApp(){
+    ['screen-login','screen-shift-open','screen-shift-close','screen-403','screen-404'].forEach(s=>$(s).classList.add('hidden'));
+    $('appRoot').classList.remove('hidden');
+  }
+  $('back403Btn').addEventListener('click',()=>{ showApp(); goto('dashboard'); });
+  $('back404Btn').addEventListener('click',()=>{ showApp(); goto('dashboard'); });
+
+  // ---- LOGIN ----
+  document.querySelectorAll('#loginRoleSwitch button').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('#loginRoleSwitch button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+  }));
+  $('loginBtn').addEventListener('click',()=>{
+    role = document.querySelector('#loginRoleSwitch button.active').dataset.role;
+    $('loginError').classList.remove('show');
+    updateRoleUI();
+    renderSidebar();
+    if(role==='cashier'){ shiftStartCash=0; shiftSalesTotal=0; showFullscreen('screen-shift-open'); }
+    else { showApp(); goto('dashboard'); renderAll(); }
+  });
+
+  // ---- SHIFT OPEN / CLOSE ----
+  $('startShiftBtn').addEventListener('click',()=>{
+    shiftStartCash = parseFloat($('shiftStartCash').value)||0;
+    shiftSalesTotal = 0;
+    showApp(); goto('dashboard'); renderAll();
+    showToast('Shift started with ' + fmt(shiftStartCash) + ' in drawer');
+  });
+  function openShiftClose(){
+    $('shiftExpected').textContent = fmt(shiftStartCash + shiftSalesTotal);
+    $('shiftCountedCash').value = '';
+    $('shiftActual').textContent = fmt(0);
+    $('shiftVariance').textContent = fmt(0 - (shiftStartCash+shiftSalesTotal));
+    showFullscreen('screen-shift-close');
+  }
+  $('shiftCountedCash').addEventListener('input',()=>{
+    const counted = parseFloat($('shiftCountedCash').value)||0;
+    const expected = shiftStartCash + shiftSalesTotal;
+    $('shiftActual').textContent = fmt(counted);
+    $('shiftVariance').textContent = (counted-expected>=0?'':'– ') + fmt(Math.abs(counted-expected));
+  });
+  $('confirmCloseShiftBtn').addEventListener('click',()=>{
+    showFullscreen('screen-login');
+    showToast('Shift closed. Logged out.');
+  });
+
+  // ---- ROLE SWITCH (demo, mid-session) ----
+  function updateRoleUI(){
+    const names = {admin:'Fawzy Admin', manager:'Budi Santoso', cashier:'Siti Rahma'};
+    const initials = {admin:'FZ', manager:'BS', cashier:'SR'};
+    $('userNameLabel').textContent = names[role];
+    $('avatarInitials').textContent = initials[role];
+  }
+
+  // ---- LOGOUT ----
+  $('logoutBtn').addEventListener('click',()=>{
+    if(role==='cashier'){ openShiftClose(); }
+    else { showFullscreen('screen-login'); showToast('Logged out'); }
+  });
+
+  // sidebar collapse
+  $('toggleSidebar').addEventListener('click',()=>$('sidebar').classList.toggle('collapsed'));
+
+  // toast
+  let toastTimer;
+  function showToast(msg){
+    const t = $('toast'); t.textContent = msg; t.classList.add('show');
+    clearTimeout(toastTimer); toastTimer = setTimeout(()=>t.classList.remove('show'),2200);
+  }
+
+  // ---- DASHBOARD ----
+  function renderDashboard(){
+    $('lowStockBody').innerHTML = lowStock().map(p=>`
+      <tr><td>${p.name}</td><td class="mono">${p.sku}</td><td class="mono">${p.stock} ${p.unit}</td><td><span class="badge low">Low stock</span></td></tr>
+    `).join('') || `<tr><td colspan="4" style="text-align:center;color:var(--ink-soft);">No low-stock items</td></tr>`;
+    const recent = role==='cashier' ? transactions.filter(t=>t.cashier==='Siti').slice(0,3) : transactions.slice(0,3);
+    $('recentTxBody').innerHTML = recent.map(x=>`
+      <tr class="clickable" data-tx="${x.id}"><td class="mono">${x.id}</td><td>${x.time}</td><td>${x.cashier}</td><td class="mono">${fmt(x.total)}</td><td><span class="badge done">Completed</span></td></tr>
+    `).join('');
+    $('recentTxBody').querySelectorAll('[data-tx]').forEach(r=>r.addEventListener('click',()=>openTxDetail(r.dataset.tx)));
+  }
+
+  // ---- POS ----
+  let cart = []; let activeCat = 'All';
+  function renderCatChips(){
+    const wrap = $('catChips');
+    const cats = ['All',...categories.map(c=>c.name)];
+    wrap.innerHTML = cats.map(c=>`<button class="cat-chip ${c===activeCat?'active':''}" data-cat="${c}">${c}</button>`).join('');
+    wrap.querySelectorAll('.cat-chip').forEach(b=>b.addEventListener('click',()=>{activeCat=b.dataset.cat; renderPosGrid();}));
+  }
+  function renderPosGrid(){
+    const q = ($('posSearch').value||'').toLowerCase();
+    const list = products.filter(p => (activeCat==='All'||p.category===activeCat) && (p.name.toLowerCase().includes(q) || p.sku.includes(q)));
+    $('posGrid').innerHTML = list.map(p=>`
+      <button class="pos-tile" data-add="${p.id}"><div class="name">${p.name}</div><div class="price">${fmt(p.price)}</div><div class="stk">${p.stock} ${p.unit} left</div></button>
+    `).join('') || `<div class="empty-state" style="grid-column:1/-1;">No products match your search.</div>`;
+    $('posGrid').querySelectorAll('[data-add]').forEach(b=>b.addEventListener('click',()=>addToCart(parseInt(b.dataset.add))));
+  }
+  function addToCart(id){
+    const p = products.find(x=>x.id===id); const row = cart.find(c=>c.id===id);
+    if(row) row.qty++; else cart.push({id,name:p.name,price:p.price,qty:1});
+    renderCart();
+    openCartModal();
+  }
+  function openCartModal(){ $('cartModal').classList.remove('hidden'); }
+  function closeCartModal(){ $('cartModal').classList.add('hidden'); }
+  $('openCartBtn').addEventListener('click', openCartModal);
+  $('closeCartBtn').addEventListener('click', closeCartModal);
+  function renderCart(){
+    const wrap = $('cartItems');
+    wrap.innerHTML = cart.map(c=>`
+      <div class="cart-row"><div class="nm">${c.name}<div class="sub">${fmt(c.price)} each</div></div>
+        <div class="qty-ctrl"><button data-dec="${c.id}">–</button><span>${c.qty}</span><button data-inc="${c.id}">+</button></div>
+        <div class="amt">${fmt(c.price*c.qty)}</div></div>
+    `).join('') || `<div class="empty-state"><div class="ic"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h2l2.4 12.2a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.6L21 7H6"/></svg></div>Cart is empty<br><span style="font-size:12px;">Search or tap a product to add it</span></div>`;
+    wrap.querySelectorAll('[data-inc]').forEach(b=>b.addEventListener('click',()=>{cart.find(c=>c.id==b.dataset.inc).qty++; renderCart();}));
+    wrap.querySelectorAll('[data-dec]').forEach(b=>b.addEventListener('click',()=>{
+      const row = cart.find(c=>c.id==b.dataset.dec); row.qty--;
+      if(row.qty<=0) cart = cart.filter(c=>c.id!=row.id);
+      renderCart();
+    }));
+    updateTotals();
+  }
+  function subtotal(){ return cart.reduce((s,c)=>s+c.price*c.qty,0); }
+  function updateTotals(){
+    const disc = parseFloat($('discountInput').value)||0;
+    const sub = subtotal(); const total = Math.max(sub-disc,0);
+    $('subtotalVal').textContent = fmt(sub);
+    $('discountVal').textContent = '– ' + fmt(disc);
+    $('totalVal').textContent = fmt(total);
+    $('chargeBtn').disabled = cart.length===0;
+    const itemCount = cart.reduce((s,c)=>s+c.qty,0);
+    $('cartBtnCount').textContent = itemCount;
+    $('cartBtnTotal').textContent = fmt(total);
+    $('cartModalCount').textContent = itemCount + (itemCount===1?' item':' items');
+  }
+  $('discountInput').addEventListener('input', updateTotals);
+  $('posSearch').addEventListener('input', renderPosGrid);
+  $('clearCartBtn').addEventListener('click',()=>{cart=[]; $('discountInput').value=0; renderCart();});
+  $('holdBtn').addEventListener('click',()=>{ if(cart.length){cart=[]; renderCart(); closeCartModal(); showToast('Sale held / cancelled');} });
+  $('chargeBtn').addEventListener('click',()=>{
+    if(!cart.length) return;
+    $('payTotal').textContent = fmt(Math.max(subtotal()-(parseFloat($('discountInput').value)||0),0));
+    $('payItemCount').textContent = cart.reduce((s,c)=>s+c.qty,0);
+    $('tenderedInput').value=''; updateChange(); closeCartModal(); goto('payment');
+  });
+
+  // ---- PAYMENT ----
+  document.querySelectorAll('.method-btn').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('.method-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active');
+  }));
+  function currentTotal(){ const disc = parseFloat($('discountInput').value)||0; return Math.max(subtotal()-disc,0); }
+  function updateChange(){
+    const tendered = parseFloat($('tenderedInput').value)||0; const total = currentTotal(); const change = tendered-total;
+    const box = $('changeBox');
+    if(tendered>0 && change<0){ box.classList.add('error'); $('changeVal').textContent = fmt(Math.abs(change)) + ' short'; }
+    else { box.classList.remove('error'); $('changeVal').textContent = fmt(Math.max(change,0)); }
+  }
+  $('tenderedInput').addEventListener('input', updateChange);
+  $('confirmPayBtn').addEventListener('click',()=>{
+    const tendered = parseFloat($('tenderedInput').value)||0; const total = currentTotal();
+    if(tendered < total){ showToast('Cash tendered is less than the total due'); return; }
+    const receiptNo = 'RC-' + String(1000+Math.floor(Math.random()*900)).slice(-4);
+    $('receiptNo').textContent = receiptNo;
+    $('receiptBox').innerHTML = `
+      ${cart.map(c=>`<div class="rrow"><span>${c.name} x${c.qty}</span><span>${fmt(c.price*c.qty)}</span></div>`).join('')}
+      <hr><div class="rrow"><span>Subtotal</span><span>${fmt(subtotal())}</span></div>
+      <div class="rrow"><span>Discount</span><span>– ${fmt(parseFloat($('discountInput').value)||0)}</span></div>
+      <div class="rrow" style="font-weight:700;"><span>Total</span><span>${fmt(total)}</span></div>
+      <div class="rrow"><span>Cash Tendered</span><span>${fmt(tendered)}</span></div>
+      <div class="rrow"><span>Change</span><span>${fmt(tendered-total)}</span></div>`;
+    cart.forEach(c=>{ const p=products.find(x=>x.id===c.id); if(p) p.stock=Math.max(p.stock-c.qty,0); });
+    transactions.unshift({id:receiptNo,time:'Just now',cashier:role==='cashier'?'Siti':'Fawzy',total,method:'Cash',tendered,items:cart.map(c=>({name:c.name,qty:c.qty,price:c.price}))});
+    shiftSalesTotal += total;
+    goto('success');
+  });
+  $('newSaleBtn').addEventListener('click',()=>{
+    cart=[]; $('discountInput').value=0; renderCart(); renderAll(); goto('pos');
+  });
+
+  // ---- PRODUCTS ----
+  function renderCategoryOptions(){
+    $('prodCatFilter').innerHTML = '<option value="">All categories</option>' + categories.map(c=>`<option>${c.name}</option>`).join('');
+    $('in-category').innerHTML = categories.map(c=>`<option>${c.name}</option>`).join('');
+  }
+  function renderProducts(){
+    const q = ($('prodSearch').value||'').toLowerCase(); const cat = $('prodCatFilter').value;
+    const list = products.filter(p=>(!cat||p.category===cat)&&(p.name.toLowerCase().includes(q)||p.sku.includes(q)));
+    $('productsBody').innerHTML = list.map(p=>`
+      <tr><td class="clickable" data-view="${p.id}" style="cursor:pointer;">${p.name}</td><td class="mono">${p.sku}</td><td>${p.category}</td><td class="mono">${fmt(p.price)}</td><td class="mono">${p.stock} ${p.unit}</td>
+        <td>${p.stock<=8?'<span class="badge low">Low stock</span>':'<span class="badge ok">In stock</span>'}</td>
+        <td style="text-align:right;">
+          <button class="btn-icon" data-edit="${p.id}" title="Edit"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
+          <button class="btn-icon" data-del="${p.id}" title="Delete"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/></svg></button>
+        </td></tr>
+    `).join('') || `<tr><td colspan="7"><div class="empty-state">No products found.<br><span style="font-size:12px;">Try a different search or add a new product.</span></div></td></tr>`;
+    $('productsBody').querySelectorAll('[data-view]').forEach(el=>el.addEventListener('click',()=>openProductDetail(parseInt(el.dataset.view))));
+    $('productsBody').querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',(e)=>{e.stopPropagation(); openProductForm(parseInt(b.dataset.edit));}));
+    $('productsBody').querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',(e)=>{e.stopPropagation(); openConfirm('product', parseInt(b.dataset.del));}));
+  }
+  $('prodSearch').addEventListener('input', renderProducts);
+  $('prodCatFilter').addEventListener('change', renderProducts);
+
+  let editingProductId = null;
+  function openProductForm(id){
+    editingProductId = id||null; const p = id ? products.find(x=>x.id===id) : null;
+    $('formTitle').textContent = p ? 'Edit Product' : 'Add Product';
+    $('formFlowNote').textContent = p ? `Editing "${p.name}"` : '';
+    $('in-name').value = p?p.name:''; $('in-sku').value = p?p.sku:''; $('in-unit').value = p?p.unit:'';
+    $('in-price').value = p?p.price:''; $('in-cost').value = p?p.cost:''; $('in-stock').value = p?p.stock:'';
+    $('in-category').value = p?p.category:categories[0].name;
+    ['f-name','f-sku','f-price','f-stock'].forEach(id=>$(id).classList.remove('field-error'));
+    goto('product-form');
+  }
+  $('addProductBtn').addEventListener('click',()=>openProductForm(null));
+  $('saveProductBtn').addEventListener('click',()=>{
+    const name = $('in-name').value.trim(), sku = $('in-sku').value.trim();
+    const price = parseFloat($('in-price').value), stock = parseInt($('in-stock').value);
+    let ok = true; const setErr=(id,bad)=>{ $(id).classList.toggle('field-error',bad); if(bad) ok=false; };
+    setErr('f-name', !name); setErr('f-sku', !sku); setErr('f-price', !(price>0)); setErr('f-stock', isNaN(stock)||stock<0);
+    if(!ok){ showToast('Please fix the highlighted fields'); return; }
+    const data = { name, sku, price, stock, category: $('in-category').value, unit: $('in-unit').value.trim()||'pcs', cost: parseFloat($('in-cost').value)||0 };
+    if(editingProductId){ Object.assign(products.find(p=>p.id===editingProductId), data); showToast('Product updated'); }
+    else { products.push({id:nextId++, ...data}); showToast('Product added'); }
+    renderAll(); goto('products');
+  });
+
+  function openProductDetail(id){
+    const p = products.find(x=>x.id===id);
+    $('productDetailBox').innerHTML = `
+      <div class="detail-row"><span class="lbl">Name</span><span>${p.name}</span></div>
+      <div class="detail-row"><span class="lbl">SKU</span><span class="mono">${p.sku}</span></div>
+      <div class="detail-row"><span class="lbl">Category</span><span>${p.category}</span></div>
+      <div class="detail-row"><span class="lbl">Unit</span><span>${p.unit}</span></div>
+      <div class="detail-row"><span class="lbl">Price</span><span class="mono">${fmt(p.price)}</span></div>
+      <div class="detail-row"><span class="lbl">Cost</span><span class="mono">${fmt(p.cost)}</span></div>
+      <div class="detail-row"><span class="lbl">Stock</span><span class="mono">${p.stock} ${p.unit} ${p.stock<=8?'<span class=\"badge low\">Low stock</span>':'<span class=\"badge ok\">In stock</span>'}</span></div>
+      <div style="margin-top:16px; display:flex; gap:10px;">
+        <button class="btn btn-secondary" id="detailEditBtn">Edit</button>
+        <button class="btn btn-danger" id="detailDelBtn">Delete</button>
+      </div>`;
+    $('detailEditBtn').addEventListener('click',()=>openProductForm(p.id));
+    $('detailDelBtn').addEventListener('click',()=>openConfirm('product', p.id));
+    goto('product-detail');
+  }
+
+  // ---- CATEGORIES ----
+  function renderCategories(){
+    const q = ($('catSearch').value||'').toLowerCase();
+    const list = categories.filter(c=>c.name.toLowerCase().includes(q));
+    $('categoriesBody').innerHTML = list.map(c=>`
+      <tr><td>${c.name}</td><td class="mono">${products.filter(p=>p.category===c.name).length}</td>
+        <td style="text-align:right;">
+          <button class="btn-icon" data-edit="${c.id}" title="Edit"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
+          <button class="btn-icon" data-del="${c.id}" title="Delete"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/></svg></button>
+        </td></tr>
+    `).join('') || `<tr><td colspan="3"><div class="empty-state">No categories found.</div></td></tr>`;
+    $('categoriesBody').querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',()=>openCategoryForm(parseInt(b.dataset.edit))));
+    $('categoriesBody').querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>openConfirm('category', parseInt(b.dataset.del))));
+  }
+  $('catSearch').addEventListener('input', renderCategories);
+  let editingCatId = null;
+  function openCategoryForm(id){
+    editingCatId = id||null; const c = id ? categories.find(x=>x.id===id) : null;
+    $('catFormTitle').textContent = c ? 'Edit Category' : 'Add Category';
+    $('catFormFlowNote').textContent = c ? `Editing "${c.name}"` : '';
+    $('in-cat-name').value = c?c.name:''; $('f-cat-name').classList.remove('field-error');
+    goto('category-form');
+  }
+  $('addCategoryBtn').addEventListener('click',()=>openCategoryForm(null));
+  $('saveCategoryBtn').addEventListener('click',()=>{
+    const name = $('in-cat-name').value.trim();
+    $('f-cat-name').classList.toggle('field-error', !name);
+    if(!name){ showToast('Please enter a category name'); return; }
+    if(editingCatId){ categories.find(c=>c.id===editingCatId).name = name; showToast('Category updated'); }
+    else { categories.push({id:nextCatId++, name}); showToast('Category added'); }
+    renderAll(); goto('categories');
+  });
+
+  // ---- TRANSACTIONS ----
+  function renderCashierFilterOptions(){
+    const names = [...new Set(transactions.map(t=>t.cashier))];
+    $('txCashierFilter').innerHTML = '<option value="">All cashiers</option>' + names.map(n=>`<option>${n}</option>`).join('');
+  }
+  function renderTransactions(){
+    $('txFlowNote').textContent = role==='cashier' ? 'Showing your own transactions only.' : '';
+    $('txCashierFilter').closest('.toolbar').style.display = role==='cashier' ? 'none' : 'flex';
+    const q = ($('txSearch').value||'').toLowerCase(); const cf = $('txCashierFilter').value;
+    let list = transactions.filter(t=>t.id.toLowerCase().includes(q) && (!cf||t.cashier===cf));
+    if(role==='cashier') list = list.filter(t=>t.cashier==='Siti');
+    $('txBody').innerHTML = list.map(t=>`
+      <tr class="clickable" data-tx="${t.id}"><td class="mono">${t.id}</td><td>${t.time}</td><td>${t.cashier}</td><td class="mono">${fmt(t.total)}</td><td><span class="badge done">Completed</span></td></tr>
+    `).join('') || `<tr><td colspan="5"><div class="empty-state">No transactions found for this range.</div></td></tr>`;
+    $('txBody').querySelectorAll('[data-tx]').forEach(r=>r.addEventListener('click',()=>openTxDetail(r.dataset.tx)));
+  }
+  $('txSearch').addEventListener('input', renderTransactions);
+  $('txCashierFilter').addEventListener('change', renderTransactions);
+  function openTxDetail(id){
+    const t = transactions.find(x=>x.id===id); if(!t) return;
+    $('txDetailBox').innerHTML = `
+      <div style="font-weight:600;margin-bottom:10px;">${t.id}</div>
+      ${t.items.map(i=>`<div class="detail-row"><span class="lbl">${i.name} x${i.qty}</span><span class="mono">${fmt(i.price*i.qty)}</span></div>`).join('')}
+      <div class="detail-row"><span class="lbl">Total</span><span class="mono">${fmt(t.total)}</span></div>
+      <div class="detail-row"><span class="lbl">Payment</span><span>${t.method}</span></div>
+      <div class="detail-row"><span class="lbl">Tendered</span><span class="mono">${fmt(t.tendered)}</span></div>
+      <div class="detail-row"><span class="lbl">Change</span><span class="mono">${fmt(t.tendered-t.total)}</span></div>
+      <div class="detail-row"><span class="lbl">Cashier</span><span>${t.cashier}</span></div>
+      <div class="detail-row"><span class="lbl">Time</span><span>${t.time}</span></div>
+      <div style="margin-top:12px;"><button class="btn btn-secondary">Print</button></div>`;
+    goto('transaction-detail');
+  }
+
+  // ---- REPORTS ----
+  function renderReports(){
+    const top = [...products].sort((a,b)=>(120-a.stock)-(120-b.stock)).slice(0,5);
+    $('topProductsBody').innerHTML = top.map(p=>`<tr><td>${p.name}</td><td class="mono">${Math.max(220-p.stock,5)}</td><td class="mono">${fmt((Math.max(220-p.stock,5))*p.price)}</td></tr>`).join('');
+  }
+
+  // ---- USERS ----
+  function renderUsers(){
+    const q = ($('userSearch').value||'').toLowerCase(); const rf = $('userRoleFilter').value;
+    const list = users.filter(u=>u.name.toLowerCase().includes(q) && (!rf||u.role===rf));
+    $('usersBody').innerHTML = list.map(u=>`
+      <tr><td class="clickable" data-view="${u.id}" style="cursor:pointer;">${u.name}</td><td class="mono">@${u.username}</td><td>${u.role}</td>
+        <td><span class="badge ${u.status==='Active'?'ok':'inactive'}">${u.status}</span></td>
+        <td style="text-align:right;">
+          <button class="btn-icon" data-edit="${u.id}" title="Edit"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
+          <button class="btn-icon" data-deact="${u.id}" title="Deactivate"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M5 5l14 14"/></svg></button>
+        </td></tr>
+    `).join('') || `<tr><td colspan="5"><div class="empty-state">No users found.</div></td></tr>`;
+    $('usersBody').querySelectorAll('[data-view]').forEach(el=>el.addEventListener('click',()=>openUserDetail(parseInt(el.dataset.view))));
+    $('usersBody').querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',(e)=>{e.stopPropagation(); openUserForm(parseInt(b.dataset.edit));}));
+    $('usersBody').querySelectorAll('[data-deact]').forEach(b=>b.addEventListener('click',(e)=>{e.stopPropagation(); openConfirm('user', parseInt(b.dataset.deact));}));
+  }
+  $('userSearch').addEventListener('input', renderUsers);
+  $('userRoleFilter').addEventListener('change', renderUsers);
+
+  let editingUserId = null;
+  function openUserForm(id){
+    editingUserId = id||null; const u = id ? users.find(x=>x.id===id) : null;
+    $('userFormTitle').textContent = u ? 'Edit User' : 'Add User';
+    $('userFormFlowNote').textContent = u ? `Editing "${u.name}"` : '';
+    $('in-uname').value = u?u.name:''; $('in-uusername').value = u?u.username:''; $('in-upass').value='';
+    $('in-urole').value = u?u.role:'Cashier';
+    $('passLabel').textContent = u ? 'Reset Password (optional)' : 'Password';
+    $('statusFieldWrap').style.display = u ? 'block' : 'none';
+    document.querySelectorAll('#statusSwitch button').forEach(b=>b.classList.toggle('active', b.dataset.status === (u?u.status:'Active')));
+    ['f-uname','f-uusername'].forEach(id=>$(id).classList.remove('field-error'));
+    goto('user-form');
+  }
+  document.querySelectorAll('#statusSwitch button').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('#statusSwitch button').forEach(x=>x.classList.remove('active')); b.classList.add('active');
+  }));
+  $('addUserBtn').addEventListener('click',()=>openUserForm(null));
+  $('saveUserBtn').addEventListener('click',()=>{
+    const name = $('in-uname').value.trim(), username = $('in-uusername').value.trim();
+    let ok = true; const setErr=(id,bad)=>{ $(id).classList.toggle('field-error',bad); if(bad) ok=false; };
+    setErr('f-uname', !name); setErr('f-uusername', !username);
+    if(!ok){ showToast('Please fix the highlighted fields'); return; }
+    const statusBtn = document.querySelector('#statusSwitch button.active');
+    const data = { name, username, role: $('in-urole').value, status: statusBtn?statusBtn.dataset.status:'Active' };
+    if(editingUserId){ Object.assign(users.find(u=>u.id===editingUserId), data); showToast('User updated'); }
+    else { users.push({id:nextUserId++, ...data}); showToast('User added'); }
+    renderAll(); goto('users');
+  });
+  function openUserDetail(id){
+    const u = users.find(x=>x.id===id);
+    $('userDetailBox').innerHTML = `
+      <div class="detail-row"><span class="lbl">Name</span><span>${u.name}</span></div>
+      <div class="detail-row"><span class="lbl">Username</span><span class="mono">@${u.username}</span></div>
+      <div class="detail-row"><span class="lbl">Role</span><span>${u.role}</span></div>
+      <div class="detail-row"><span class="lbl">Status</span><span class="badge ${u.status==='Active'?'ok':'inactive'}">${u.status}</span></div>
+      <div style="margin-top:16px; display:flex; gap:10px;">
+        <button class="btn btn-secondary" id="userDetailEditBtn">Edit</button>
+        <button class="btn btn-danger" id="userDetailDeactBtn">Deactivate</button>
+      </div>`;
+    $('userDetailEditBtn').addEventListener('click',()=>openUserForm(u.id));
+    $('userDetailDeactBtn').addEventListener('click',()=>openConfirm('user', u.id));
+    goto('user-detail');
+  }
+
+  // ---- SHARED CONFIRM MODAL ----
+  let confirmCtx = null;
+  function openConfirm(type, id){
+    confirmCtx = {type, id};
+    if(type==='product'){
+      const p = products.find(x=>x.id===id);
+      $('confirmModalTitle').textContent = 'Delete product?';
+      $('confirmModalText').textContent = `Delete "${p.name}"? This will permanently remove it from your catalog. This can't be undone.`;
+      $('confirmActionBtn').textContent = 'Delete';
+    } else if(type==='category'){
+      const c = categories.find(x=>x.id===id);
+      $('confirmModalTitle').textContent = 'Delete category?';
+      $('confirmModalText').textContent = `Delete "${c.name}"? Products already in this category keep their data but lose this grouping. This can't be undone.`;
+      $('confirmActionBtn').textContent = 'Delete';
+    } else if(type==='user'){
+      const u = users.find(x=>x.id===id);
+      $('confirmModalTitle').textContent = 'Deactivate user?';
+      $('confirmModalText').textContent = `Deactivate "${u.name}"? They will no longer be able to log in. Their transaction history is kept.`;
+      $('confirmActionBtn').textContent = 'Deactivate';
+    }
+    $('confirmModal').classList.remove('hidden');
+  }
+  $('cancelConfirmBtn').addEventListener('click',()=>$('confirmModal').classList.add('hidden'));
+  $('confirmActionBtn').addEventListener('click',()=>{
+    if(!confirmCtx) return;
+    if(confirmCtx.type==='product'){ products = products.filter(p=>p.id!==confirmCtx.id); showToast('Product deleted'); }
+    else if(confirmCtx.type==='category'){ categories = categories.filter(c=>c.id!==confirmCtx.id); showToast('Category deleted'); }
+    else if(confirmCtx.type==='user'){ const u=users.find(x=>x.id===confirmCtx.id); if(u) u.status='Inactive'; showToast('User deactivated'); }
+    $('confirmModal').classList.add('hidden'); confirmCtx = null;
+    renderAll();
+  });
+
+  // ---- RENDER ALL ----
+  function renderAll(){
+    renderCategoryOptions(); renderCatChips(); renderPosGrid(); renderCart();
+    renderProducts(); renderCategories(); renderDashboard();
+    renderCashierFilterOptions(); renderTransactions(); renderReports(); renderUsers();
+  }
+
+  // ---- INIT ----
+  renderSidebar(); updateRoleUI(); renderAll();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+/* MeStore × PrimeVue bridge */
+:root,
+:root[data-theme='light'] {
+    --p-content-background: var(--surface);
+    --p-content-border-color: var(--border);
+    --p-content-color: var(--text);
+    --p-content-hover-background: var(--surface-hover);
+    --p-content-hover-color: var(--text);
+
+    --p-text-color: var(--text);
+    --p-text-muted-color: var(--text-muted);
+
+    --p-primary-color: var(--primary);
+    --p-primary-contrast-color: var(--primary-fg);
+    --p-primary-hover-color: var(--primary-hover);
+    --p-primary-active-color: var(--primary-active);
+
+    --p-form-field-background: var(--surface);
+    --p-form-field-border-color: var(--border);
+    --p-form-field-color: var(--text);
+    --p-form-field-placeholder-color: var(--text-faint);
+    --p-form-field-focus-border-color: var(--primary);
+    --p-form-field-hover-border-color: var(--border-strong);
+
+    --p-overlay-modal-background: var(--surface);
+    --p-overlay-modal-border-color: var(--border);
+    --p-overlay-popover-background: var(--surface);
+    --p-overlay-popover-border-color: var(--border);
+
+    --p-datatable-header-cell-background: var(--surface-alt);
+    --p-datatable-header-cell-color: var(--text-muted);
+    --p-datatable-header-cell-border-color: var(--border);
+    --p-datatable-body-cell-border-color: var(--border);
+    --p-datatable-row-hover-background: var(--surface-hover);
+}
+
+:root[data-theme='dark'],
+.dark {
+    --p-content-background: var(--surface);
+    --p-content-border-color: var(--border);
+    --p-content-color: var(--text);
+    --p-content-hover-background: var(--surface-hover);
+    --p-content-hover-color: var(--text);
+
+    --p-text-color: var(--text);
+    --p-text-muted-color: var(--text-muted);
+
+    --p-primary-color: var(--primary);
+    --p-primary-contrast-color: var(--primary-fg);
+    --p-primary-hover-color: var(--primary-hover);
+    --p-primary-active-color: var(--primary-active);
+
+    --p-form-field-background: var(--surface-alt);
+    --p-form-field-border-color: var(--border);
+    --p-form-field-color: var(--text);
+    --p-form-field-placeholder-color: var(--text-faint);
+
+    --p-overlay-modal-background: var(--surface);
+    --p-overlay-modal-border-color: var(--border);
+    --p-overlay-popover-background: var(--surface);
+    --p-overlay-popover-border-color: var(--border);
+
+    --p-datatable-header-cell-background: var(--surface-alt);
+    --p-datatable-header-cell-color: var(--text-muted);
+    --p-datatable-header-cell-border-color: var(--border);
+    --p-datatable-body-cell-border-color: var(--border);
+    --p-datatable-row-hover-background: var(--surface-hover);
+}
+
+/* Base overrides for PrimeVue primitives */
+.p-dialog {
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-3);
+}
+
+.p-dialog .p-dialog-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+}
+
+.p-dialog .p-dialog-content {
+    padding: 24px;
+}
+
+.p-dialog .p-dialog-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.p-toast .p-toast-message {
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-2);
+}
