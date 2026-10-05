@@ -5,6 +5,9 @@ import { computed } from 'vue'
 const props = defineProps({
   name: { type: String, required: true },
   size: { type: [Number, String], default: 18 },
+  // When empty, the icon inherits the CSS `color` from its parent.
+  // Set explicitly only when you need to override that.
+  color: { type: String, default: '' },
 })
 
 const fullName = computed(() => {
@@ -14,7 +17,13 @@ const fullName = computed(() => {
 </script>
 
 <template>
-  <Icon :icon="fullName" :width="size" :height="size" class="app-icon" />
+  <Icon
+    :icon="fullName"
+    :width="size"
+    :height="size"
+    :style="color ? { color } : undefined"
+    class="app-icon"
+  />
 </template>
 
 <style scoped>

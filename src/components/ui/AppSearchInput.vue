@@ -1,26 +1,37 @@
 <script setup>
-import IconSearch from '@/components/icons/IconSearch.vue'
+import InputText from 'primevue/inputtext'
+import AppIcon from './AppIcon.vue'
 
-defineProps({
+const props = defineProps({
   modelValue: { type: String, default: '' },
   placeholder: { type: String, default: 'Search…' },
 })
 
-defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue'])
+
+function clear() {
+  emit('update:modelValue', '')
+}
 </script>
 
 <template>
   <div class="search">
-    <span class="search-icon" aria-hidden="true">
-      <IconSearch />
-    </span>
-    <input
-      type="search"
-      class="search-input"
-      :value="modelValue"
+    <AppIcon name="search" :size="18" class="search-icon" />
+    <InputText
+      :model-value="modelValue"
       :placeholder="placeholder"
-      @input="$emit('update:modelValue', $event.target.value)"
+      class="search-input"
+      @update:model-value="(v) => emit('update:modelValue', v)"
     />
+    <button
+      v-if="modelValue"
+      type="button"
+      class="search-clear"
+      aria-label="Clear search"
+      @click="clear"
+    >
+      <AppIcon name="close" :size="14" />
+    </button>
   </div>
 </template>
 
@@ -33,30 +44,40 @@ defineEmits(['update:modelValue'])
 
 .search-icon {
   position: absolute;
-  left: 10px;
+  left: 12px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--color-ink-soft);
-  display: inline-flex;
+  color: var(--text-muted);
+  pointer-events: none;
+  z-index: 1;
 }
 
 .search-input {
   width: 100%;
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-s);
-  padding: 9px 12px 9px 34px;
-  font-size: 13.5px;
-  background: var(--color-surface);
-  color: var(--color-ink);
+  padding-left: 36px;
+  padding-right: 34px;
 }
 
-.search-input:focus {
-  outline: 2px solid var(--color-focus);
-  outline-offset: 0;
-  border-color: var(--color-focus);
-}
-
-.search-input::-webkit-search-cancel-button {
+.search-clear {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.search-clear:hover {
+  background: var(--surface-hover);
+  color: var(--text);
 }
 </style>

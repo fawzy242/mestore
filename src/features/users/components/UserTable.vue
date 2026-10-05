@@ -1,23 +1,31 @@
 <script setup>
+import Button from 'primevue/button'
 import AppTable from '@/components/ui/AppTable.vue'
 import StatusPill from '@/components/ui/StatusPill.vue'
 import AvatarInitials from '@/components/ui/AvatarInitials.vue'
 import MonoChip from '@/components/ui/MonoChip.vue'
-import AppIconButton from '@/components/ui/AppIconButton.vue'
-import IconEdit from '@/components/icons/IconEdit.vue'
-import IconBlock from '@/components/icons/IconBlock.vue'
-import IconCheckCircle from '@/components/icons/IconCheckCircle.vue'
 
-const props = defineProps({
+defineProps({
   rows: { type: Array, required: true },
   loading: { type: Boolean, default: false },
   error: { type: Object, default: null },
   pagination: { type: Object, default: null },
   sortKey: { type: String, default: '' },
   sortDir: { type: String, default: 'asc' },
+  selectable: { type: Boolean, default: false },
+  selectedKeys: { type: Array, default: () => [] },
 })
 
-const emit = defineEmits(['view', 'edit', 'deactivate', 'reactivate', 'page-change', 'sort-change', 'retry'])
+const emit = defineEmits([
+  'view',
+  'edit',
+  'deactivate',
+  'reactivate',
+  'page-change',
+  'sort-change',
+  'retry',
+  'update:selectedKeys',
+])
 
 const columns = [
   { key: 'name', label: 'Name', sortable: true },
@@ -27,9 +35,9 @@ const columns = [
 ]
 
 const roleDots = {
-  admin: 'var(--color-primary-container)',
-  manager: 'var(--color-tertiary)',
-  cashier: 'var(--color-secondary)',
+  admin: 'var(--primary)',
+  manager: 'var(--warning)',
+  cashier: 'var(--text-muted)',
 }
 
 function roleLabel(v) {
@@ -46,8 +54,11 @@ function roleLabel(v) {
     :pagination="pagination"
     :sort-key="sortKey"
     :sort-dir="sortDir"
+    :selectable="selectable"
+    :selected-keys="selectedKeys"
     clickable-rows
     empty-message="No users found."
+    @update:selected-keys="(v) => emit('update:selectedKeys', v)"
     @row-click="(row) => emit('view', row)"
     @page-change="(p) => emit('page-change', p)"
     @sort-change="(k) => emit('sort-change', k)"
@@ -78,24 +89,44 @@ function roleLabel(v) {
     </template>
 
     <template #row-actions="{ row }">
-      <AppIconButton title="Edit" @click="emit('edit', row)">
-        <IconEdit />
-      </AppIconButton>
-      <AppIconButton
+      <Button
+        icon="pi pi-eye"
+        severity="secondary"
+        text
+        rounded
+        size="small"
+        aria-label="View"
+        @click.stop="emit('view', row)"
+      />
+      <Button
+        icon="pi pi-pencil"
+        severity="secondary"
+        text
+        rounded
+        size="small"
+        aria-label="Edit"
+        @click.stop="emit('edit', row)"
+      />
+      <Button
         v-if="row.status === 'Active'"
-        title="Deactivate"
-        variant="danger"
-        @click="emit('deactivate', row)"
-      >
-        <IconBlock />
-      </AppIconButton>
-      <AppIconButton
+        icon="pi pi-ban"
+        severity="danger"
+        text
+        rounded
+        size="small"
+        aria-label="Deactivate"
+        @click.stop="emit('deactivate', row)"
+      />
+      <Button
         v-else
-        title="Reactivate"
-        @click="emit('reactivate', row)"
-      >
-        <IconCheckCircle />
-      </AppIconButton>
+        icon="pi pi-check-circle"
+        severity="success"
+        text
+        rounded
+        size="small"
+        aria-label="Reactivate"
+        @click.stop="emit('reactivate', row)"
+      />
     </template>
   </AppTable>
 </template>
@@ -109,14 +140,15 @@ function roleLabel(v) {
 
 .name-text {
   font-weight: 500;
-  color: var(--color-ink);
+  color: var(--text);
 }
 
 .role-cell {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-weight: 500;
+  color: var(--text);
 }
 
 .role-dot {
@@ -124,5 +156,6 @@ function roleLabel(v) {
   height: 8px;
   border-radius: 50%;
   display: inline-block;
+  flex-shrink: 0;
 }
 </style>

@@ -1,16 +1,12 @@
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import Button from 'primevue/button'
+import InputNumber from 'primevue/inputnumber'
 import AppPageContainer from '@/components/ui/AppPageContainer.vue'
 import AppCard from '@/components/ui/AppCard.vue'
-import AppInput from '@/components/ui/AppInput.vue'
-import AppButton from '@/components/ui/AppButton.vue'
 import AppAlert from '@/components/ui/AppAlert.vue'
-import IconPayments from '@/components/icons/IconPayments.vue'
-import IconCreditCard from '@/components/icons/IconCreditCard.vue'
-import IconQrCode from '@/components/icons/IconQrCode.vue'
-import IconArrowBack from '@/components/icons/IconArrowBack.vue'
-import IconTaskAlt from '@/components/icons/IconTaskAlt.vue'
+import AppIcon from '@/components/ui/AppIcon.vue'
 import { usePosCartStore } from '@/stores/posCart.store.js'
 import { useCheckout } from '../composables/useCheckout.js'
 import { useToast } from '@/composables/useToast.js'
@@ -23,22 +19,25 @@ const { method, tendered, isSubmitting, error, total, change, shortBy, canSubmit
   useCheckout()
 
 const methods = [
-  { id: 'Cash', label: 'Cash', icon: IconPayments },
-  { id: 'Card', label: 'Card', icon: IconCreditCard },
-  { id: 'QRIS', label: 'QRIS', icon: IconQrCode },
+  { id: 'Cash', label: 'Cash', icon: 'payments' },
+  { id: 'Card', label: 'Card', icon: 'credit-card' },
+  { id: 'QRIS', label: 'QRIS', icon: 'qr-code-2' },
 ]
 
+const tenderedValue = ref(null)
+
 function setTender(amount) {
+  tenderedValue.value = amount
   tendered.value = String(amount)
 }
 
 function exact() {
-  tendered.value = String(total.value)
+  setTender(total.value)
 }
 
 async function confirm() {
   if (!canSubmit.value) {
-    push('Cash tendered is less than the total due')
+    push('Cash tendered is less than the total due', { severity: 'warn' })
     return
   }
   const result = await submit()
@@ -59,7 +58,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <AppPageContainer max-width="560px">
+  <AppPageContainer max-width="600px">
     <AppCard padded>
       <div class="line">
         <span>Items</span>
@@ -67,7 +66,7 @@ onMounted(() => {
       </div>
       <div class="line total">
         <span>Amount Due</span>
-        <span class="mono">{{ formatRupiah(total) }}</span>
+        <span class="mono total-value">{{ formatRupiah(total) }}</span>
       </div>
     </AppCard>
 
@@ -80,57 +79,69 @@ onMounted(() => {
         :class="{ active: method === m.id }"
         @click="method = m.id"
       >
-        <component :is="m.icon" class="method-icon" />
+        <AppIcon :name="m.icon" :size="22" />
         <span>{{ m.label }}</span>
       </button>
     </div>
 
-    <AppInput
-      v-if="method === 'Cash'"
-      v-model="tendered"
-      label="Cash Tendered (Rp)"
-      type="number"
-      placeholder="0"
-    />
-
-    <div v-if="method === 'Cash'" class="denoms">
-      <button type="button" class="denom" @click="exact">
-        Exact ({{ formatRupiah(total) }})
-      </button>
-      <button type="button" class="denom" @click="setTender(30000)">30.000</button>
-      <button type="button" class="denom" @click="setTender(50000)">50.000</button>
-      <button type="button" class="denom" @click="setTender(100000)">100.000</button>
-    </div>
-
-    <div
-      v-if="method === 'Cash'"
-      class="change"
-      :class="{ error: shortBy > 0 && tendered }"
-    >
-      <div class="lbl">{{ shortBy > 0 && tendered ? 'Short By' : 'Change Due' }}</div>
-      <div class="val">
-        {{ shortBy > 0 && tendered ? formatRupiah(shortBy) : formatRupiah(change) }}
+    <template v-if="method === 'Cash'">
+      <div class="field">
+        <label>Cash Tendered (Rp)</label>
+        <InputNumber
+          v-model="tenderedValue"
+          mode="currency"
+          currency="IDR"
+          locale="id-ID"
+          :min="0"
+          :show-buttons="false"
+          placeholder="0"
+          class="tender-input"
+          @update:model-value="(v) => (tendered = String(v || 0))"
+        />
       </div>
-    </div>
+
+      <div class="denoms">
+        <button type="button" class="denom" @click="exact">
+          Exact ({{ formatRupiah(total) }})
+        </button>
+        <button type="button" class="denom" @click="setTender(30000)">30.000</button>
+        <button type="button" class="denom" @click="setTender(50000)">50.000</button>
+        <button type="button" class="denom" @click="setTender(100000)">100.000</button>
+      </div>
+
+      <div class="change" :class="{ error: shortBy > 0 && tenderedValue }">
+        <div class="change-label">
+          {{ shortBy > 0 && tenderedValue ? 'Short By' : 'Change Due' }}
+        </div>
+        <div class="change-value mono">
+          {{ shortBy > 0 && tenderedValue ? formatRupiah(shortBy) : formatRupiah(change) }}
+        </div>
+      </div>
+    </template>
 
     <div v-else class="noncash">
+      <AppIcon name="terminal" :size="20" />
       <p>Ready to process with terminal simulation.</p>
     </div>
 
     <AppAlert v-if="error" variant="error" :message="error.message" />
 
     <div class="actions">
-      <AppButton variant="secondary" @click="back">
-        <IconArrowBack /> Back
-      </AppButton>
-      <AppButton
-        variant="primary"
+      <Button
+        label="Back"
+        icon="pi pi-arrow-left"
+        severity="secondary"
+        outlined
+        @click="back"
+      />
+      <Button
+        label="Confirm Payment"
+        icon="pi pi-check"
         :loading="isSubmitting"
         :disabled="!canSubmit"
         @click="confirm"
-      >
-        <IconTaskAlt /> Confirm Payment
-      </AppButton>
+        class="confirm-btn"
+      />
     </div>
   </AppPageContainer>
 </template>
@@ -142,20 +153,21 @@ onMounted(() => {
   align-items: center;
   margin-bottom: 8px;
   font-size: 13.5px;
-  color: var(--color-ink-soft);
+  color: var(--text-muted);
 }
 
 .line.total {
   font-size: 20px;
   font-weight: 700;
-  color: var(--color-ink);
+  color: var(--text);
   margin-bottom: 0;
-  padding-top: 8px;
-  border-top: 1px solid var(--color-line);
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
 }
 
-.line.total .mono {
-  color: var(--color-primary-container);
+.total-value {
+  color: var(--primary);
+  font-size: 22px;
 }
 
 .methods {
@@ -166,92 +178,127 @@ onMounted(() => {
 
 .method {
   flex: 1;
-  border: 1.5px solid var(--color-line);
+  border: 1.5px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 14px 10px;
+  padding: 16px 12px;
   text-align: center;
-  background: var(--color-surface);
+  background: var(--surface);
   font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  transition: border-color 120ms, background 120ms;
+  gap: 8px;
+  transition: all 120ms;
 }
 
 .method:hover {
-  background: var(--color-surface-container-low);
+  background: var(--surface-hover);
+  color: var(--text);
 }
 
 .method.active {
-  border-color: var(--color-primary-container);
-  background: var(--color-primary-tint);
-  color: var(--color-primary-container);
+  border-color: var(--primary);
+  background: var(--primary-tint);
+  color: var(--primary);
   font-weight: 600;
 }
 
-.method-icon {
-  font-size: 20px;
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.field label {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.tender-input {
+  width: 100%;
+}
+
+.tender-input :deep(input) {
+  width: 100%;
+  height: 44px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 15px;
+  font-weight: 600;
 }
 
 .denoms {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   flex-wrap: wrap;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .denom {
-  font-size: 11.5px;
+  flex: 1;
+  min-width: 100px;
+  padding: 10px 12px;
+  background: var(--surface-hover);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  font-size: 12.5px;
   font-family: 'JetBrains Mono', monospace;
-  padding: 5px 10px;
-  background: var(--color-surface-container);
-  border-radius: var(--radius-s);
-  color: var(--color-ink);
-  font-weight: 500;
+  font-weight: 600;
+  color: var(--text);
+  transition: all 120ms;
 }
 
 .denom:hover {
-  background: var(--color-surface-container-high);
+  background: var(--primary-tint);
+  color: var(--primary);
 }
 
 .change {
-  background: var(--color-success-bg);
+  background: var(--success-bg);
   border-radius: var(--radius-lg);
-  padding: 16px;
+  padding: 18px;
   text-align: center;
-  margin: 14px 0;
+  margin: 16px 0;
+  transition: background 120ms;
 }
 
 .change.error {
-  background: var(--color-primary-tint);
+  background: var(--danger-bg);
 }
 
-.change .lbl {
+.change-label {
   font-size: 12px;
-  color: var(--color-ink-soft);
+  color: var(--text-muted);
+  font-weight: 500;
 }
 
-.change .val {
+.change-value {
   font-size: 26px;
   font-weight: 700;
-  color: var(--color-success);
-  font-family: 'JetBrains Mono', monospace;
+  color: var(--success);
+  margin-top: 2px;
 }
 
-.change.error .val {
-  color: var(--color-danger);
+.change.error .change-value {
+  color: var(--danger);
 }
 
 .noncash {
-  background: var(--color-surface-container);
+  background: var(--surface-hover);
   border-radius: var(--radius-lg);
-  padding: 16px;
+  padding: 24px;
   text-align: center;
-  color: var(--color-ink-soft);
+  color: var(--text-muted);
   font-size: 13px;
-  margin: 14px 0;
+  margin: 16px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
 }
 
 .actions {
@@ -260,8 +307,9 @@ onMounted(() => {
   margin-top: 20px;
 }
 
-.actions > * {
+.confirm-btn {
   flex: 1;
-  justify-content: center;
+  height: 46px;
+  font-weight: 600;
 }
 </style>

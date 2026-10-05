@@ -1,29 +1,37 @@
 <script setup>
+import Button from 'primevue/button'
 import AppTable from '@/components/ui/AppTable.vue'
 import StatusPill from '@/components/ui/StatusPill.vue'
 import AvatarInitials from '@/components/ui/AvatarInitials.vue'
-import AppIconButton from '@/components/ui/AppIconButton.vue'
-import IconEdit from '@/components/icons/IconEdit.vue'
-import IconTrash from '@/components/icons/IconTrash.vue'
 import { formatRupiah } from '@/composables/useFormatters.js'
 
-const props = defineProps({
+defineProps({
   rows: { type: Array, required: true },
   loading: { type: Boolean, default: false },
   error: { type: Object, default: null },
   pagination: { type: Object, default: null },
   sortKey: { type: String, default: '' },
   sortDir: { type: String, default: 'asc' },
+  selectable: { type: Boolean, default: false },
+  selectedKeys: { type: Array, default: () => [] },
 })
 
-const emit = defineEmits(['view', 'edit', 'delete', 'page-change', 'sort-change', 'retry'])
+const emit = defineEmits([
+  'view',
+  'edit',
+  'delete',
+  'page-change',
+  'sort-change',
+  'retry',
+  'update:selectedKeys',
+])
 
 const columns = [
   { key: 'name', label: 'Product', sortable: true },
-  { key: 'sku', label: 'SKU', mono: true, sortable: true },
+  { key: 'sku', label: 'SKU', sortable: true },
   { key: 'category', label: 'Category', sortable: true },
-  { key: 'price', label: 'Price', mono: true, align: 'right', sortable: true, formatter: (v) => formatRupiah(v) },
-  { key: 'stock', label: 'Stock', mono: true, align: 'right', sortable: true, formatter: (v, r) => `${v} ${r.unit}` },
+  { key: 'price', label: 'Price', align: 'right', sortable: true, formatter: (v) => formatRupiah(v) },
+  { key: 'stock', label: 'Stock', align: 'right', sortable: true, formatter: (v, r) => `${v} ${r.unit}` },
   { key: 'status', label: 'Status' },
 ]
 </script>
@@ -37,7 +45,10 @@ const columns = [
     :pagination="pagination"
     :sort-key="sortKey"
     :sort-dir="sortDir"
+    :selectable="selectable"
+    :selected-keys="selectedKeys"
     empty-message="No products found. Try a different search or add a new product."
+    @update:selected-keys="(v) => emit('update:selectedKeys', v)"
     @row-click="(row) => emit('view', row)"
     @page-change="(p) => emit('page-change', p)"
     @sort-change="(k) => emit('sort-change', k)"
@@ -53,16 +64,40 @@ const columns = [
       </div>
     </template>
 
-    <template #row-actions="{ row }">
+    <template #cell-status="{ row }">
       <StatusPill :variant="row.stock <= 8 ? 'warning' : 'success'">
         {{ row.stock <= 8 ? 'Low stock' : 'In stock' }}
       </StatusPill>
-      <AppIconButton title="Edit" @click="emit('edit', row)">
-        <IconEdit />
-      </AppIconButton>
-      <AppIconButton title="Delete" variant="danger" @click="emit('delete', row)">
-        <IconTrash />
-      </AppIconButton>
+    </template>
+
+    <template #row-actions="{ row }">
+      <Button
+        icon="pi pi-eye"
+        severity="secondary"
+        text
+        rounded
+        size="small"
+        aria-label="View"
+        @click.stop="emit('view', row)"
+      />
+      <Button
+        icon="pi pi-pencil"
+        severity="secondary"
+        text
+        rounded
+        size="small"
+        aria-label="Edit"
+        @click.stop="emit('edit', row)"
+      />
+      <Button
+        icon="pi pi-trash"
+        severity="danger"
+        text
+        rounded
+        size="small"
+        aria-label="Delete"
+        @click.stop="emit('delete', row)"
+      />
     </template>
   </AppTable>
 </template>
@@ -83,7 +118,7 @@ const columns = [
 
 .name-primary {
   font-weight: 500;
-  color: var(--color-ink);
+  color: var(--text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -91,6 +126,6 @@ const columns = [
 
 .name-secondary {
   font-size: 11.5px;
-  color: var(--color-ink-soft);
+  color: var(--text-muted);
 }
 </style>

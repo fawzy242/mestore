@@ -1,9 +1,7 @@
 <script setup>
 import { useRouter } from 'vue-router'
-import AppButton from '@/components/ui/AppButton.vue'
-import IconExploreOff from '@/components/icons/IconExploreOff.vue'
-import IconArrowBack from '@/components/icons/IconArrowBack.vue'
-import IconRefresh from '@/components/icons/IconRefresh.vue'
+import Button from 'primevue/button'
+import AppIcon from '@/components/ui/AppIcon.vue'
 
 const router = useRouter()
 
@@ -18,18 +16,26 @@ function reload() {
 <template>
   <div>
     <div class="status-icon neutral">
-      <IconExploreOff />
+      <AppIcon name="explore-off" :size="26" />
     </div>
     <div class="badge">ERR_404_NOT_FOUND</div>
     <h2 class="title">Page not found</h2>
     <p class="sub">That link doesn't lead anywhere in this prototype.</p>
     <div class="actions">
-      <AppButton variant="primary" block @click="goHome">
-        <IconArrowBack /> Back to Dashboard
-      </AppButton>
-      <AppButton variant="secondary" block @click="reload">
-        <IconRefresh /> Retry
-      </AppButton>
+      <Button
+        label="Back to Dashboard"
+        icon="pi pi-arrow-left"
+        class="go-btn"
+        @click="goHome"
+      />
+      <Button
+        label="Retry"
+        icon="pi pi-refresh"
+        severity="secondary"
+        outlined
+        class="go-btn"
+        @click="reload"
+      />
     </div>
   </div>
 </template>
@@ -46,8 +52,8 @@ function reload() {
 }
 
 .status-icon.neutral {
-  background: var(--color-primary-fixed);
-  color: var(--color-primary-container);
+  background: var(--primary-tint);
+  color: var(--primary);
 }
 
 .badge {
@@ -55,10 +61,10 @@ function reload() {
   font-family: 'JetBrains Mono', monospace;
   font-size: 10.5px;
   font-weight: 700;
-  color: var(--color-ink-soft);
-  background: var(--color-surface-container);
-  padding: 2px 8px;
-  border-radius: var(--radius-s);
+  color: var(--text-muted);
+  background: var(--surface-hover);
+  padding: 3px 10px;
+  border-radius: var(--radius-xs);
   margin-bottom: 10px;
   letter-spacing: 0.05em;
 }
@@ -67,10 +73,11 @@ function reload() {
   margin: 0 0 6px;
   font-size: 18px;
   font-weight: 600;
+  color: var(--text);
 }
 
 .sub {
-  color: var(--color-ink-soft);
+  color: var(--text-muted);
   font-size: 13px;
   margin: 0 0 20px;
 }
@@ -79,5 +86,11 @@ function reload() {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.go-btn {
+  width: 100%;
+  height: 44px;
+  font-weight: 600;
 }
 </style>

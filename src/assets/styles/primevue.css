@@ -1,4 +1,8 @@
-/* MeStore × PrimeVue bridge */
+/* ============================================================
+ * MeStore × PrimeVue — Unified Component Styles
+ * One button system. One close button. One focus ring.
+ * ============================================================ */
+
 :root,
 :root[data-theme='light'] {
     --p-content-background: var(--surface);
@@ -6,27 +10,22 @@
     --p-content-color: var(--text);
     --p-content-hover-background: var(--surface-hover);
     --p-content-hover-color: var(--text);
-
     --p-text-color: var(--text);
     --p-text-muted-color: var(--text-muted);
-
     --p-primary-color: var(--primary);
     --p-primary-contrast-color: var(--primary-fg);
     --p-primary-hover-color: var(--primary-hover);
     --p-primary-active-color: var(--primary-active);
-
     --p-form-field-background: var(--surface);
     --p-form-field-border-color: var(--border);
     --p-form-field-color: var(--text);
     --p-form-field-placeholder-color: var(--text-faint);
     --p-form-field-focus-border-color: var(--primary);
     --p-form-field-hover-border-color: var(--border-strong);
-
     --p-overlay-modal-background: var(--surface);
     --p-overlay-modal-border-color: var(--border);
     --p-overlay-popover-background: var(--surface);
     --p-overlay-popover-border-color: var(--border);
-
     --p-datatable-header-cell-background: var(--surface-alt);
     --p-datatable-header-cell-color: var(--text-muted);
     --p-datatable-header-cell-border-color: var(--border);
@@ -41,25 +40,20 @@
     --p-content-color: var(--text);
     --p-content-hover-background: var(--surface-hover);
     --p-content-hover-color: var(--text);
-
     --p-text-color: var(--text);
     --p-text-muted-color: var(--text-muted);
-
     --p-primary-color: var(--primary);
     --p-primary-contrast-color: var(--primary-fg);
     --p-primary-hover-color: var(--primary-hover);
     --p-primary-active-color: var(--primary-active);
-
     --p-form-field-background: var(--surface-alt);
     --p-form-field-border-color: var(--border);
     --p-form-field-color: var(--text);
     --p-form-field-placeholder-color: var(--text-faint);
-
     --p-overlay-modal-background: var(--surface);
     --p-overlay-modal-border-color: var(--border);
     --p-overlay-popover-background: var(--surface);
     --p-overlay-popover-border-color: var(--border);
-
     --p-datatable-header-cell-background: var(--surface-alt);
     --p-datatable-header-cell-color: var(--text-muted);
     --p-datatable-header-cell-border-color: var(--border);
@@ -67,30 +61,430 @@
     --p-datatable-row-hover-background: var(--surface-hover);
 }
 
-/* Base overrides for PrimeVue primitives */
+/* ============================================================
+ * BUTTON SYSTEM — 5 variants, 1 scale
+ *   .p-button                       → primary (filled red)
+ *   .p-button-outlined              → secondary (outline)
+ *   .p-button-text                  → tertiary (text)
+ *   .p-button-danger                → destructive
+ *   .p-button-success               → positive (bulk activate)
+ *
+ * Rules:
+ *   • No focus ring by default. Only :focus-visible shows a ring.
+ *   • No shadows, no gradients.
+ *   • Same height, padding, radius, font, gap across all variants.
+ *   • Icon-only buttons have consistent square sizing.
+ * ============================================================ */
+
+.p-button {
+    /* Layout */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: var(--btn-h);
+    min-height: var(--btn-h);
+    padding: 0 var(--btn-px);
+    border-radius: var(--btn-radius);
+    /* Typography */
+    font-family: inherit;
+    font-size: var(--btn-font-size);
+    font-weight: var(--btn-font-weight);
+    line-height: 1;
+    letter-spacing: 0;
+    /* Visual */
+    border: 1px solid transparent;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    box-shadow: none !important;
+    outline: none;
+    transition: background-color 120ms ease, border-color 120ms ease,
+        color 120ms ease;
+    /* Prevent native focus artifacts */
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+/* Kill EVERY PrimeVue focus ring variant */
+.p-button:focus,
+.p-button:enabled:focus,
+.p-button:not(:disabled):focus,
+.p-button.p-focus {
+    outline: none !important;
+    box-shadow: none !important;
+    border-color: inherit;
+}
+
+/* Single accessible focus ring on keyboard navigation only */
+.p-button:focus-visible {
+    outline: none !important;
+    box-shadow: 0 0 0 3px var(--primary-ring) !important;
+}
+
+.p-button .p-button-icon,
+.p-button .p-button-label {
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: 1;
+}
+
+.p-button .p-button-icon {
+    font-size: var(--btn-icon-size);
+}
+
+.p-button .p-button-label {
+    flex: initial;
+}
+
+/* Small variant */
+.p-button.p-button-sm {
+    height: var(--btn-h-sm);
+    min-height: var(--btn-h-sm);
+    padding: 0 var(--btn-px-sm);
+    font-size: var(--btn-font-size-sm);
+}
+
+.p-button.p-button-sm .p-button-icon {
+    font-size: 12px;
+}
+
+/* Large variant */
+.p-button.p-button-lg {
+    height: var(--btn-h-lg);
+    min-height: var(--btn-h-lg);
+    padding: 0 var(--btn-px-lg);
+    font-size: 14px;
+}
+
+/* Icon-only */
+.p-button.p-button-icon-only,
+.p-button.p-button-rounded.p-button-icon-only {
+    width: var(--btn-h);
+    min-width: var(--btn-h);
+    height: var(--btn-h);
+    min-height: var(--btn-h);
+    padding: 0;
+    border-radius: var(--radius-md);
+}
+
+.p-button.p-button-sm.p-button-icon-only {
+    width: var(--btn-h-sm);
+    min-width: var(--btn-h-sm);
+    height: var(--btn-h-sm);
+    min-height: var(--btn-h-sm);
+    padding: 0;
+}
+
+/* ---------- 1. PRIMARY (filled red) ---------- */
+.p-button:not(.p-button-outlined):not(.p-button-text):not(.p-button-link):not(.p-button-danger):not(.p-button-secondary):not(.p-button-success) {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: var(--primary-fg);
+}
+
+.p-button:not(.p-button-outlined):not(.p-button-text):not(.p-button-link):not(.p-button-danger):not(.p-button-secondary):not(.p-button-success):hover:not(:disabled) {
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
+}
+
+/* ---------- 2. SECONDARY (outlined) ---------- */
+.p-button.p-button-outlined,
+.p-button.p-button-outlined.p-button-secondary {
+    background: var(--surface);
+    border-color: var(--border);
+    color: var(--text);
+}
+
+.p-button.p-button-outlined:hover:not(:disabled),
+.p-button.p-button-outlined.p-button-secondary:hover:not(:disabled) {
+    background: var(--surface-hover);
+    border-color: var(--border-strong);
+}
+
+/* Filled secondary (neutral) */
+.p-button.p-button-secondary:not(.p-button-outlined):not(.p-button-text) {
+    background: var(--surface-hover);
+    border-color: var(--surface-hover);
+    color: var(--text);
+}
+
+.p-button.p-button-secondary:not(.p-button-outlined):not(.p-button-text):hover:not(:disabled) {
+    background: var(--border);
+    border-color: var(--border);
+}
+
+/* ---------- 3. TERTIARY (text) ---------- */
+.p-button.p-button-text,
+.p-button.p-button-link {
+    background: transparent;
+    border-color: transparent;
+    color: var(--text-muted);
+    padding: 0 var(--btn-px-sm);
+    box-shadow: none !important;
+}
+
+.p-button.p-button-text:hover:not(:disabled),
+.p-button.p-button-link:hover:not(:disabled) {
+    background: var(--surface-hover);
+    color: var(--text);
+}
+
+/* ---------- 4. DANGER ---------- */
+.p-button.p-button-danger:not(.p-button-outlined):not(.p-button-text):not(.p-button-link) {
+    background: var(--danger);
+    border-color: var(--danger);
+    color: #fff;
+}
+
+.p-button.p-button-danger:not(.p-button-outlined):not(.p-button-text):not(.p-button-link):hover:not(:disabled) {
+    background: var(--primary-active);
+    border-color: var(--primary-active);
+}
+
+.p-button.p-button-danger.p-button-outlined {
+    background: transparent;
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+.p-button.p-button-danger.p-button-outlined:hover:not(:disabled) {
+    background: var(--danger-bg);
+}
+
+.p-button.p-button-danger.p-button-text {
+    background: transparent;
+    border-color: transparent;
+    color: var(--danger);
+}
+
+.p-button.p-button-danger.p-button-text:hover:not(:disabled) {
+    background: var(--danger-bg);
+}
+
+/* ---------- 5. SUCCESS ---------- */
+.p-button.p-button-success:not(.p-button-outlined):not(.p-button-text) {
+    background: var(--success);
+    border-color: var(--success);
+    color: #fff;
+}
+
+.p-button.p-button-success:not(.p-button-outlined):not(.p-button-text):hover:not(:disabled) {
+    background: #166534;
+    border-color: #166534;
+}
+
+.p-button.p-button-success.p-button-outlined {
+    background: transparent;
+    border-color: var(--success);
+    color: var(--success);
+}
+
+.p-button.p-button-success.p-button-outlined:hover:not(:disabled) {
+    background: var(--success-bg);
+}
+
+/* Disabled state */
+.p-button:disabled,
+.p-button.p-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none !important;
+}
+
+/* ============================================================
+ * DIALOG — one header style, one close button style, everywhere
+ * ============================================================ */
 .p-dialog {
     border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
     box-shadow: var(--shadow-3);
+    background: var(--surface);
+    overflow: hidden;
 }
 
 .p-dialog .p-dialog-header {
-    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 22px;
     border-bottom: 1px solid var(--border);
+    background: var(--surface);
+}
+
+.p-dialog .p-dialog-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    flex: 1;
+    margin: 0;
 }
 
 .p-dialog .p-dialog-content {
-    padding: 24px;
+    padding: 22px;
+    background: var(--surface);
 }
 
 .p-dialog .p-dialog-footer {
-    padding: 16px 24px;
-    border-top: 1px solid var(--border);
     display: flex;
     justify-content: flex-end;
-    gap: 10px;
+    gap: 8px;
+    padding: 14px 22px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
 }
 
+/* ---- The ONE close button ---- */
+.p-dialog .p-dialog-header-close,
+.p-dialog .p-dialog-header-icon,
+.p-dialog .p-dialog-close-button {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-radius: var(--radius-md) !important;
+    background: transparent !important;
+    border: none !important;
+    color: var(--text-muted) !important;
+    box-shadow: none !important;
+    outline: none !important;
+    cursor: pointer;
+    transition: background-color 120ms ease, color 120ms ease;
+}
+
+.p-dialog .p-dialog-header-close:hover,
+.p-dialog .p-dialog-header-icon:hover,
+.p-dialog .p-dialog-close-button:hover {
+    background: var(--surface-hover) !important;
+    color: var(--text) !important;
+    box-shadow: none !important;
+}
+
+.p-dialog .p-dialog-header-close:focus,
+.p-dialog .p-dialog-header-close:focus-visible,
+.p-dialog .p-dialog-header-icon:focus,
+.p-dialog .p-dialog-header-icon:focus-visible,
+.p-dialog .p-dialog-close-button:focus,
+.p-dialog .p-dialog-close-button:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.p-dialog .p-dialog-header-close .p-icon,
+.p-dialog .p-dialog-header-close svg,
+.p-dialog .p-dialog-header-icon .p-icon,
+.p-dialog .p-dialog-header-icon svg,
+.p-dialog .p-dialog-close-button svg {
+    width: 14px !important;
+    height: 14px !important;
+    color: inherit !important;
+    stroke: currentColor;
+}
+
+/* ============================================================
+ * INPUTS
+ * ============================================================ */
+.p-inputtext,
+.p-select,
+.p-inputnumber-input,
+.p-password-input,
+.p-datepicker-input {
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    transition: border-color 120ms ease, box-shadow 120ms ease;
+    font-size: 13.5px;
+}
+
+.p-inputtext:enabled:focus,
+.p-select:not(.p-disabled).p-focus,
+.p-inputnumber-input:enabled:focus,
+.p-password-input:enabled:focus,
+.p-datepicker-input:enabled:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-ring);
+    outline: none;
+}
+
+/* ============================================================
+ * TOAST / DATATABLE / CHECKBOX
+ * ============================================================ */
 .p-toast .p-toast-message {
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-2);
+}
+
+.p-datatable .p-datatable-header-cell {
+    background: var(--surface-alt);
+    color: var(--text-muted);
+    border-color: var(--border);
+}
+
+.p-datatable .p-datatable-tbody>tr {
+    background: var(--surface);
+    color: var(--text);
+}
+
+.p-datatable .p-datatable-tbody>tr>td {
+    border-color: var(--border);
+}
+
+.p-datatable .p-datatable-tbody>tr:hover {
+    background: var(--surface-hover);
+}
+
+.p-checkbox .p-checkbox-box {
+    border-radius: 4px;
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    width: 18px;
+    height: 18px;
+    box-shadow: none !important;
+}
+
+.p-checkbox .p-checkbox-box.p-highlight {
+    border-color: var(--primary);
+    background: var(--primary);
+    color: var(--primary-fg);
+}
+
+.p-checkbox:not(.p-checkbox-disabled) .p-checkbox-box.p-focus {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--primary-ring) !important;
+}
+
+/* ============================================================
+ * SWEETALERT2
+ * ============================================================ */
+.swal-mestore-popup {
+    border-radius: var(--radius-lg) !important;
+    padding: 24px !important;
+    font-family: 'Inter', sans-serif !important;
+    background: var(--surface) !important;
+}
+
+.swal-mestore-title {
+    font-size: 17px !important;
+    font-weight: 700 !important;
+    color: var(--text) !important;
+}
+
+.swal-mestore-text {
+    font-size: 13.5px !important;
+    color: var(--text-muted) !important;
+}
+
+.swal2-actions {
+    gap: 8px !important;
+    margin-top: 20px !important;
+}
+
+.swal2-icon {
+    margin: 8px auto 16px !important;
 }

@@ -1,9 +1,6 @@
 /**
  * Full route table.
  * Names must match `ROUTE_PERMISSIONS` in constants/permissions.js.
- *
- * Architecture: two layout routes (`AuthLayout`, `AppLayout`) each render
- * `<router-view />` internally so their children mount inside the layout.
  */
 
 const AuthLayout = () => import('@/layouts/AuthLayout.vue')
@@ -15,7 +12,6 @@ export const routes = [
     redirect: () => ({ name: 'dashboard' }),
   },
 
-  // ---------- AuthLayout (gate screens: Login, Shift, 403, 404) ----------
   {
     path: '/',
     component: AuthLayout,
@@ -25,18 +21,6 @@ export const routes = [
         name: 'login',
         component: () => import('@/features/auth/pages/LoginPage.vue'),
         meta: { public: true, title: 'Login' },
-      },
-      {
-        path: 'shift/open',
-        name: 'shift.open',
-        component: () => import('@/features/shift/pages/ShiftOpenPage.vue'),
-        meta: { requiresAuth: true, roles: ['cashier'], title: 'Start Shift' },
-      },
-      {
-        path: 'shift/close',
-        name: 'shift.close',
-        component: () => import('@/features/shift/pages/ShiftClosePage.vue'),
-        meta: { requiresAuth: true, roles: ['cashier'], title: 'Close Shift' },
       },
       {
         path: '403',
@@ -53,7 +37,6 @@ export const routes = [
     ],
   },
 
-  // ---------- AppLayout (authenticated app shell) ----------
   {
     path: '/',
     component: AppLayout,
@@ -62,25 +45,25 @@ export const routes = [
         path: 'dashboard',
         name: 'dashboard',
         component: () => import('@/features/dashboard/pages/DashboardPage.vue'),
-        meta: { requiresAuth: true, requiresOpenShift: true, title: 'Dashboard' },
+        meta: { requiresAuth: true, title: 'Dashboard' },
       },
       {
         path: 'pos',
         name: 'pos',
         component: () => import('@/features/pos/pages/PosPage.vue'),
-        meta: { requiresAuth: true, requiresOpenShift: true, title: 'POS / Sales' },
+        meta: { requiresAuth: true, title: 'POS / Sales' },
       },
       {
         path: 'pos/payment',
         name: 'pos.payment',
         component: () => import('@/features/pos/pages/PaymentPage.vue'),
-        meta: { requiresAuth: true, requiresOpenShift: true, title: 'Payment' },
+        meta: { requiresAuth: true, title: 'Payment' },
       },
       {
         path: 'pos/success',
         name: 'pos.success',
         component: () => import('@/features/pos/pages/TransactionSuccessPage.vue'),
-        meta: { requiresAuth: true, requiresOpenShift: true, title: 'Transaction Complete' },
+        meta: { requiresAuth: true, title: 'Transaction Complete' },
       },
       {
         path: 'products',
@@ -89,40 +72,16 @@ export const routes = [
         meta: { requiresAuth: true, title: 'Products' },
       },
       {
-        path: 'products/new',
-        name: 'products.new',
-        component: () => import('@/features/products/pages/ProductFormPage.vue'),
-        meta: { requiresAuth: true, title: 'Add Product' },
-      },
-      {
         path: 'products/:id',
         name: 'products.detail',
         component: () => import('@/features/products/pages/ProductDetailPage.vue'),
         meta: { requiresAuth: true, title: 'Product Detail' },
       },
       {
-        path: 'products/:id/edit',
-        name: 'products.edit',
-        component: () => import('@/features/products/pages/ProductFormPage.vue'),
-        meta: { requiresAuth: true, title: 'Edit Product' },
-      },
-      {
         path: 'categories',
         name: 'categories.list',
         component: () => import('@/features/categories/pages/CategoryListPage.vue'),
         meta: { requiresAuth: true, title: 'Categories' },
-      },
-      {
-        path: 'categories/new',
-        name: 'categories.new',
-        component: () => import('@/features/categories/pages/CategoryFormPage.vue'),
-        meta: { requiresAuth: true, title: 'Add Category' },
-      },
-      {
-        path: 'categories/:id/edit',
-        name: 'categories.edit',
-        component: () => import('@/features/categories/pages/CategoryFormPage.vue'),
-        meta: { requiresAuth: true, title: 'Edit Category' },
       },
       {
         path: 'transactions',
@@ -149,27 +108,14 @@ export const routes = [
         meta: { requiresAuth: true, title: 'Users' },
       },
       {
-        path: 'users/new',
-        name: 'users.new',
-        component: () => import('@/features/users/pages/UserFormPage.vue'),
-        meta: { requiresAuth: true, title: 'Add User' },
-      },
-      {
         path: 'users/:id',
         name: 'users.detail',
         component: () => import('@/features/users/pages/UserDetailPage.vue'),
         meta: { requiresAuth: true, title: 'User Detail' },
       },
-      {
-        path: 'users/:id/edit',
-        name: 'users.edit',
-        component: () => import('@/features/users/pages/UserFormPage.vue'),
-        meta: { requiresAuth: true, title: 'Edit User' },
-      },
     ],
   },
 
-  // ---------- Catch-all ----------
   {
     path: '/:pathMatch(.*)*',
     redirect: { name: 'not-found' },

@@ -11,26 +11,28 @@ const CATEGORIES = [
 ]
 
 const BASE_PRODUCTS = [
-  { name: 'Indomie Goreng', sku: '8991002101', category: 'Snacks & Instant', price: 3500, cost: 2800, stock: 120, unit: 'pcs' },
-  { name: 'Aqua 600ml', sku: '8993050102', category: 'Beverages', price: 4000, cost: 3000, stock: 8, unit: 'bottle' },
-  { name: 'Teh Botol Sosro', sku: '8991103103', category: 'Beverages', price: 5000, cost: 3800, stock: 64, unit: 'bottle' },
-  { name: 'Sari Roti Tawar', sku: '8992001104', category: 'Bakery', price: 15000, cost: 11000, stock: 5, unit: 'pack' },
-  { name: 'Kopi Kapal Api', sku: '8993201105', category: 'Snacks & Instant', price: 2000, cost: 1500, stock: 200, unit: 'sachet' },
-  { name: 'Beras Premium 5kg', sku: '8991405106', category: 'Staples', price: 68000, cost: 60000, stock: 3, unit: 'bag' },
-  { name: 'Minyak Goreng 1L', sku: '8992501107', category: 'Staples', price: 19500, cost: 16500, stock: 40, unit: 'bottle' },
-  { name: 'Sabun Mandi Lifebuoy', sku: '8993601108', category: 'Household', price: 6000, cost: 4500, stock: 75, unit: 'pcs' },
-  { name: 'Mie Sedaap Soto', sku: '8991002201', category: 'Snacks & Instant', price: 3400, cost: 2700, stock: 88, unit: 'pcs' },
-  { name: 'Pocari Sweat 500ml', sku: '8993050202', category: 'Beverages', price: 8500, cost: 6800, stock: 22, unit: 'bottle' },
-  { name: 'Roti Sobek Cokelat', sku: '8992001204', category: 'Bakery', price: 12000, cost: 9000, stock: 14, unit: 'pack' },
-  { name: 'Tepung Segitiga 1kg', sku: '8991405206', category: 'Staples', price: 13500, cost: 10500, stock: 30, unit: 'pack' },
-  { name: 'Sabun Cuci Rinso', sku: '8993601208', category: 'Household', price: 24500, cost: 19500, stock: 18, unit: 'pack' },
-  { name: 'Kecap ABC 275ml', sku: '8992501307', category: 'Staples', price: 8500, cost: 6500, stock: 42, unit: 'bottle' },
-  { name: 'Sarden ABC 155g', sku: '8991405306', category: 'Staples', price: 12500, cost: 9500, stock: 26, unit: 'can' },
-  { name: 'Kopi Good Day', sku: '8993201305', category: 'Snacks & Instant', price: 2500, cost: 1800, stock: 150, unit: 'sachet' },
-  { name: 'Susu Ultra 250ml', sku: '8993050302', category: 'Beverages', price: 6500, cost: 5000, stock: 60, unit: 'pack' },
-  { name: 'Chitato Sapi 68g', sku: '8991002301', category: 'Snacks & Instant', price: 11000, cost: 8500, stock: 34, unit: 'pack' },
-  { name: 'Roti Sisir', sku: '8992001304', category: 'Bakery', price: 14000, cost: 10500, stock: 7, unit: 'pack' },
-  { name: 'Pembersih Lantai Super', sku: '8993601308', category: 'Household', price: 18500, cost: 14500, stock: 12, unit: 'bottle' },
+  { name: 'Indomie Goreng', sku: '8991002101', category: 'Snacks & Instant', price: 3500, cost: 2800, stock: 120, unit: 'pcs', status: 'Active' },
+  { name: 'Aqua 600ml', sku: '8993050102', category: 'Beverages', price: 4000, cost: 3000, stock: 8, unit: 'bottle', status: 'Active' },
+  { name: 'Teh Botol Sosro', sku: '8991103103', category: 'Beverages', price: 5000, cost: 3800, stock: 64, unit: 'bottle', status: 'Active' },
+  { name: 'Sari Roti Tawar', sku: '8992001104', category: 'Bakery', price: 15000, cost: 11000, stock: 5, unit: 'pack', status: 'Active' },
+  { name: 'Kopi Kapal Api', sku: '8993201105', category: 'Snacks & Instant', price: 2000, cost: 1500, stock: 200, unit: 'sachet', status: 'Active' },
+  { name: 'Beras Premium 5kg', sku: '8991405106', category: 'Staples', price: 68000, cost: 60000, stock: 3, unit: 'bag', status: 'Active' },
+  { name: 'Minyak Goreng 1L', sku: '8992501107', category: 'Staples', price: 19500, cost: 16500, stock: 40, unit: 'bottle', status: 'Active' },
+  { name: 'Sabun Mandi Lifebuoy', sku: '8993601108', category: 'Household', price: 6000, cost: 4500, stock: 75, unit: 'pcs', status: 'Active' },
+  { name: 'Mie Sedaap Soto', sku: '8991002201', category: 'Snacks & Instant', price: 3400, cost: 2700, stock: 88, unit: 'pcs', status: 'Active' },
+  { name: 'Pocari Sweat 500ml', sku: '8993050202', category: 'Beverages', price: 8500, cost: 6800, stock: 22, unit: 'bottle', status: 'Active' },
+  { name: 'Roti Sobek Cokelat', sku: '8992001204', category: 'Bakery', price: 12000, cost: 9000, stock: 14, unit: 'pack', status: 'Active' },
+  { name: 'Tepung Segitiga 1kg', sku: '8991405206', category: 'Staples', price: 13500, cost: 10500, stock: 30, unit: 'pack', status: 'Active' },
+  { name: 'Sabun Cuci Rinso', sku: '8993601208', category: 'Household', price: 24500, cost: 19500, stock: 18, unit: 'pack', status: 'Active' },
+  { name: 'Kecap ABC 275ml', sku: '8992501307', category: 'Staples', price: 8500, cost: 6500, stock: 42, unit: 'bottle', status: 'Active' },
+  { name: 'Sarden ABC 155g', sku: '8991405306', category: 'Staples', price: 12500, cost: 9500, stock: 26, unit: 'can', status: 'Active' },
+  { name: 'Kopi Good Day', sku: '8993201305', category: 'Snacks & Instant', price: 2500, cost: 1800, stock: 150, unit: 'sachet', status: 'Active' },
+  { name: 'Susu Ultra 250ml', sku: '8993050302', category: 'Beverages', price: 6500, cost: 5000, stock: 60, unit: 'pack', status: 'Active' },
+  { name: 'Chitato Sapi 68g', sku: '8991002301', category: 'Snacks & Instant', price: 11000, cost: 8500, stock: 34, unit: 'pack', status: 'Active' },
+  { name: 'Roti Sisir', sku: '8992001304', category: 'Bakery', price: 14000, cost: 10500, stock: 7, unit: 'pack', status: 'Active' },
+  { name: 'Pembersih Lantai Super', sku: '8993601308', category: 'Household', price: 18500, cost: 14500, stock: 12, unit: 'bottle', status: 'Active' },
+  { name: 'Teh Pucuk 350ml', sku: '8991103203', category: 'Beverages', price: 4500, cost: 3200, stock: 55, unit: 'bottle', status: 'Inactive' },
+  { name: 'Beng Beng', sku: '8991002401', category: 'Snacks & Instant', price: 2500, cost: 1800, stock: 96, unit: 'pcs', status: 'Inactive' },
 ]
 
 const BASE_USERS = [
@@ -62,7 +64,7 @@ function buildProducts() {
   return BASE_PRODUCTS.map((p, idx) => ({ id: idx + 1, ...p }))
 }
 function buildCategories() {
-  return CATEGORIES.map((c) => ({ ...c }))
+  return CATEGORIES.map((c, idx) => ({ ...c, status: idx < 4 ? 'Active' : 'Active' }))
 }
 function buildUsers() {
   return BASE_USERS.map((u, idx) => ({ id: idx + 1, ...u }))

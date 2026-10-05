@@ -7,7 +7,7 @@ export function useUsers() {
   const rows = ref([])
   const loading = ref(false)
   const error = ref(null)
-  const filters = reactive({ search: '', role: '' })
+  const filters = reactive({ search: '', role: '', status: 'Active' })
   const sort = reactive({ key: '', dir: 'asc' })
   const { page, pageSize, total, pageCount, setTotal, goToPage, reset } = usePagination({
     pageSize: 10,
@@ -20,6 +20,7 @@ export function useUsers() {
       const result = await usersService.getUsers({
         search: filters.search,
         role: filters.role,
+        status: filters.status,
         page: page.value,
         pageSize: pageSize.value,
         sortKey: sort.key,
@@ -39,7 +40,18 @@ export function useUsers() {
     await fetchUsers()
   }
 
+  async function bulkSetStatus(ids, status) {
+    await usersService.bulkUpdateUserStatus(ids, status)
+    await fetchUsers()
+  }
+
   function applyFilter() {
+    reset()
+    fetchUsers()
+  }
+
+  function setStatusTab(status) {
+    filters.status = status
     reset()
     fetchUsers()
   }
@@ -66,7 +78,9 @@ export function useUsers() {
     pageCount,
     fetchUsers,
     deactivate,
+    bulkSetStatus,
     applyFilter,
+    setStatusTab,
     setSort,
     goToPage,
   }

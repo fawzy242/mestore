@@ -1,18 +1,19 @@
 <script setup>
+import Button from 'primevue/button'
 import AppTable from '@/components/ui/AppTable.vue'
 import MonoChip from '@/components/ui/MonoChip.vue'
-import AppIconButton from '@/components/ui/AppIconButton.vue'
-import IconEdit from '@/components/icons/IconEdit.vue'
-import IconTrash from '@/components/icons/IconTrash.vue'
+import AppIcon from '@/components/ui/AppIcon.vue'
 import { useCategoryIcons } from '../composables/useCategoryIcons.js'
 
 const props = defineProps({
   rows: { type: Array, required: true },
   loading: { type: Boolean, default: false },
   error: { type: Object, default: null },
+  selectable: { type: Boolean, default: false },
+  selectedKeys: { type: Array, default: () => [] },
 })
 
-const emit = defineEmits(['edit', 'delete', 'retry'])
+const emit = defineEmits(['view', 'edit', 'delete', 'retry', 'update:selectedKeys'])
 const { iconFor } = useCategoryIcons()
 
 const columns = [
@@ -33,7 +34,11 @@ function rowIndex(row) {
     :rows="rows"
     :loading="loading"
     :error="error"
+    :selectable="selectable"
+    :selected-keys="selectedKeys"
     empty-message="No categories found."
+    @update:selected-keys="(v) => emit('update:selectedKeys', v)"
+    @row-click="(row) => emit('view', row)"
     @retry="emit('retry')"
   >
     <template #cell-index="{ row }">
@@ -43,7 +48,7 @@ function rowIndex(row) {
     <template #cell-name="{ row }">
       <div class="name-cell">
         <span class="icon-square">
-          <component :is="iconFor(row.name)" />
+          <AppIcon :name="iconFor(row.name)" :size="16" />
         </span>
         <span class="name-text">{{ row.name }}</span>
       </div>
@@ -54,12 +59,33 @@ function rowIndex(row) {
     </template>
 
     <template #row-actions="{ row }">
-      <AppIconButton title="Edit" @click="emit('edit', row)">
-        <IconEdit />
-      </AppIconButton>
-      <AppIconButton title="Delete" variant="danger" @click="emit('delete', row)">
-        <IconTrash />
-      </AppIconButton>
+      <Button
+        icon="pi pi-eye"
+        severity="secondary"
+        text
+        rounded
+        size="small"
+        aria-label="View"
+        @click.stop="emit('view', row)"
+      />
+      <Button
+        icon="pi pi-pencil"
+        severity="secondary"
+        text
+        rounded
+        size="small"
+        aria-label="Edit"
+        @click.stop="emit('edit', row)"
+      />
+      <Button
+        icon="pi pi-trash"
+        severity="danger"
+        text
+        rounded
+        size="small"
+        aria-label="Delete"
+        @click.stop="emit('delete', row)"
+      />
     </template>
   </AppTable>
 </template>
@@ -67,7 +93,7 @@ function rowIndex(row) {
 <style scoped>
 .index {
   font-size: 12.5px;
-  color: var(--color-ink-soft);
+  color: var(--text-muted);
 }
 
 .name-cell {
@@ -79,9 +105,9 @@ function rowIndex(row) {
 .icon-square {
   width: 28px;
   height: 28px;
-  border-radius: var(--radius-s);
-  background: var(--color-surface-container);
-  color: var(--color-ink-soft);
+  border-radius: var(--radius-sm);
+  background: var(--surface-hover);
+  color: var(--text-muted);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -90,6 +116,6 @@ function rowIndex(row) {
 
 .name-text {
   font-weight: 500;
-  color: var(--color-ink);
+  color: var(--text);
 }
 </style>

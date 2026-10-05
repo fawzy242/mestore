@@ -1,12 +1,11 @@
 <script setup>
+import Button from 'primevue/button'
 import AppTable from '@/components/ui/AppTable.vue'
 import StatusPill from '@/components/ui/StatusPill.vue'
-import IconTransactions from '@/components/icons/IconTransactions.vue'
-import IconVisibility from '@/components/icons/IconVisibility.vue'
-import AppIconButton from '@/components/ui/AppIconButton.vue'
+import AppIcon from '@/components/ui/AppIcon.vue'
 import { formatRupiah } from '@/composables/useFormatters.js'
 
-const props = defineProps({
+defineProps({
   rows: { type: Array, required: true },
   loading: { type: Boolean, default: false },
   error: { type: Object, default: null },
@@ -36,7 +35,7 @@ const columns = [
   >
     <template #cell-id="{ row }">
       <span class="receipt-cell">
-        <IconTransactions class="receipt-icon" />
+        <AppIcon name="receipt" :size="16" class="receipt-icon" />
         <span class="mono receipt-id">{{ row.id }}</span>
       </span>
     </template>
@@ -50,9 +49,15 @@ const columns = [
     </template>
 
     <template #row-actions="{ row }">
-      <AppIconButton title="View" @click="emit('view', row)">
-        <IconVisibility />
-      </AppIconButton>
+      <Button
+        icon="pi pi-eye"
+        severity="secondary"
+        text
+        rounded
+        size="small"
+        aria-label="View receipt"
+        @click.stop="emit('view', row)"
+      />
     </template>
   </AppTable>
 </template>
@@ -65,12 +70,11 @@ const columns = [
 }
 
 .receipt-icon {
-  color: var(--color-ink-soft);
-  font-size: 16px;
+  color: var(--text-muted);
 }
 
 .receipt-id {
-  color: var(--color-primary-container);
+  color: var(--primary);
   font-weight: 600;
 }
 

@@ -1,6 +1,3 @@
-/**
- * MOCK — swap for real endpoints when contract is confirmed.
- */
 import { db, delay, nextUserId } from '@/services/mock/data.js'
 
 const SORTABLE_KEYS = ['name', 'username', 'role', 'status']
@@ -15,6 +12,7 @@ export async function getUsers(params = {}) {
   const {
     search = '',
     role = '',
+    status = 'Active',
     page = 1,
     pageSize = 10,
     sortKey = '',
@@ -22,6 +20,7 @@ export async function getUsers(params = {}) {
   } = params
 
   let items = [...db.users]
+  if (status) items = items.filter((u) => u.status === status)
   if (search) {
     const q = search.toLowerCase()
     items = items.filter((u) => u.name.toLowerCase().includes(q) || u.username.includes(q))
@@ -67,4 +66,12 @@ export async function deactivateUser(id) {
   const user = db.users.find((u) => String(u.id) === String(id))
   if (user) user.status = 'Inactive'
   return delay(user)
+}
+
+export async function bulkUpdateUserStatus(ids, status) {
+  const idSet = new Set(ids.map(String))
+  db.users.forEach((u) => {
+    if (idSet.has(String(u.id))) u.status = status
+  })
+  return delay({ updated: ids.length, status })
 }

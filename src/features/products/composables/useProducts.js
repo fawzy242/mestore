@@ -7,7 +7,7 @@ export function useProducts() {
   const rows = ref([])
   const loading = ref(false)
   const error = ref(null)
-  const filters = reactive({ search: '', category: '' })
+  const filters = reactive({ search: '', category: '', status: 'Active' })
   const sort = reactive({ key: '', dir: 'asc' })
   const { page, pageSize, total, pageCount, setTotal, goToPage, reset } = usePagination({
     pageSize: 10,
@@ -20,6 +20,7 @@ export function useProducts() {
       const result = await productsService.getProducts({
         search: filters.search,
         category: filters.category,
+        status: filters.status,
         page: page.value,
         pageSize: pageSize.value,
         sortKey: sort.key,
@@ -36,14 +37,24 @@ export function useProducts() {
 
   async function removeProduct(id) {
     await productsService.deleteProduct(id)
-    // If we just removed the last row on the page, step back one page.
     if (rows.value.length === 1 && page.value > 1) {
       goToPage(page.value - 1)
     }
     await fetchProducts()
   }
 
+  async function bulkSetStatus(ids, status) {
+    await productsService.bulkUpdateProductStatus(ids, status)
+    await fetchProducts()
+  }
+
   function applyFilter() {
+    reset()
+    fetchProducts()
+  }
+
+  function setStatusTab(status) {
+    filters.status = status
     reset()
     fetchProducts()
   }
@@ -70,7 +81,9 @@ export function useProducts() {
     pageCount,
     fetchProducts,
     removeProduct,
+    bulkSetStatus,
     applyFilter,
+    setStatusTab,
     setSort,
     goToPage,
   }

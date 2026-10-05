@@ -1,0 +1,112 @@
+/* ============================================================================
+ * MeStore — Tab component
+ * Fixes the split-row / stacked tab issue. Uses a single horizontal control.
+ * ========================================================================== */
+
+.mestore-tabs {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--surface-hover);
+    border-radius: var(--radius-md);
+    padding: 4px;
+    margin-bottom: 20px;
+}
+
+.mestore-tab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 34px;
+    padding: 0 18px;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: transparent;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: background 120ms ease, color 120ms ease;
+    white-space: nowrap;
+    line-height: 1;
+}
+
+.mestore-tab:hover {
+    color: var(--text);
+}
+
+.mestore-tab.active {
+    background: var(--surface);
+    color: var(--primary);
+    font-weight: 600;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* PrimeVue TabView/Tabs override — keep everything in one row */
+.p-tabs,
+.p-tabview {
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+
+.p-tablist,
+.p-tabview-nav {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 4px;
+    background: var(--surface-hover) !important;
+    border: none !important;
+    border-radius: var(--radius-md);
+    padding: 4px;
+    margin-bottom: 20px;
+    min-height: auto !important;
+}
+
+.p-tab,
+.p-tabview-nav-link {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    height: 34px !important;
+    padding: 0 18px !important;
+    border: none !important;
+    border-radius: var(--radius-sm) !important;
+    background: transparent !important;
+    font-size: 13px !important;
+    font-weight: 500;
+    color: var(--text-muted) !important;
+    cursor: pointer;
+    transition: background 120ms ease, color 120ms ease;
+    white-space: nowrap;
+    min-width: auto !important;
+    margin: 0 !important;
+}
+
+.p-tab:hover,
+.p-tabview-nav-link:hover {
+    color: var(--text) !important;
+    background: transparent !important;
+}
+
+.p-tab.p-tab-active,
+.p-tab[data-p-active='true'],
+.p-tabview-nav-link.p-tabview-nav-link-active {
+    background: var(--surface) !important;
+    color: var(--primary) !important;
+    font-weight: 600 !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* PrimeVue renders the active-tab underline separately — hide it */
+.p-tablist-active-bar,
+.p-tabview-ink-bar {
+    display: none !important;
+}
+
+.p-tabpanels,
+.p-tabview-panels {
+    background: transparent;
+    padding: 0;
+    border: none;
+}

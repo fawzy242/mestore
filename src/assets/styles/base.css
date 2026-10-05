@@ -12,6 +12,9 @@ body {
 }
 
 html {
+    /* Reserve the scrollbar gutter so opening a modal never shifts the page. */
+    scrollbar-gutter: stable;
+    overflow-y: scroll;
     scroll-padding-top: env(safe-area-inset-top, 0px);
 }
 
@@ -79,4 +82,16 @@ a {
         transition: none !important;
         animation: none !important;
     }
+}
+
+/* SweetAlert2 — do not remove the browser's reserved scrollbar gutter
+ * when the body is locked. This is what prevents the page from jumping. */
+body.swal2-shown {
+    /* Override Swal's default `overflow: hidden` without changing width */
+    padding-right: 0 !important;
+}
+
+/* SweetAlert container inherits our font */
+.swal2-container {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }

@@ -1,15 +1,14 @@
 <script setup>
 import { onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import Button from 'primevue/button'
+import DatePicker from 'primevue/datepicker'
+import Select from 'primevue/select'
+import InputText from 'primevue/inputtext'
 import AppPageContainer from '@/components/ui/AppPageContainer.vue'
-import AppSearchInput from '@/components/ui/AppSearchInput.vue'
-import AppSelect from '@/components/ui/AppSelect.vue'
-import AppButton from '@/components/ui/AppButton.vue'
-import IconCalendar from '@/components/icons/IconCalendar.vue'
-import IconBadge from '@/components/icons/IconBadge.vue'
-import IconRefresh from '@/components/icons/IconRefresh.vue'
-import IconFileDownload from '@/components/icons/IconFileDownload.vue'
+import AppIcon from '@/components/ui/AppIcon.vue'
 import TransactionTable from '../components/TransactionTable.vue'
+import TransactionViewModal from '../components/TransactionViewModal.vue'
 import { useTransactions } from '../composables/useTransactions.js'
 import { useDebouncedSearch } from '@/composables/useDebouncedSearch.js'
 import { useToast } from '@/composables/useToast.js'
@@ -17,7 +16,12 @@ import { useToast } from '@/composables/useToast.js'
 const router = useRouter()
 const { push } = useToast()
 const { rows, loading, error, filters, fetchTransactions, isCashier } = useTransactions()
+
 const cashierOptions = ref([{ value: '', label: 'All cashiers' }])
+const dateRange = ref(null)
+
+const viewModalOpen = ref(false)
+const viewTransactionId = ref(null)
 
 const { value: searchValue } = useDebouncedSearch((v) => {
   filters.search = v
@@ -29,8 +33,9 @@ watch(
   () => fetchTransactions(),
 )
 
-function openDetail(row) {
-  router.push({ name: 'transactions.detail', params: { id: row.id } })
+function openView(row) {
+  viewTransactionId.value = row.id
+  viewModalOpen.value = true
 }
 
 function refresh() {
@@ -62,39 +67,62 @@ onMounted(async () => {
 
     <div class="filter-card">
       <div class="filter-group">
-        <div class="filter-item">
-          <IconCalendar class="filter-icon" />
+        <div class="filter-item date-item">
+          <AppIcon name="calendar-today" :size="18" class="filter-icon" />
           <div class="filter-text">
             <span class="filter-label">Date Range</span>
-            <span class="filter-value mono">Sep 18 - Sep 24, 2026</span>
+            <DatePicker
+              v-model="dateRange"
+              selection-mode="range"
+              :show-icon="false"
+              :manual-input="false"
+              placeholder="Select dates"
+              date-format="d M, yy"
+              class="date-picker"
+            />
           </div>
         </div>
 
         <div v-if="!isCashier" class="filter-item">
-          <IconBadge class="filter-icon" />
+          <AppIcon name="badge" :size="18" class="filter-icon" />
           <div class="filter-text">
             <span class="filter-label">Cashier</span>
-            <AppSelect
-              :model-value="filters.cashier"
+            <Select
+              v-model="filters.cashier"
               :options="cashierOptions"
+              option-label="label"
+              option-value="value"
               class="filter-select"
-              @update:model-value="(v) => (filters.cashier = v)"
             />
           </div>
         </div>
 
         <div class="filter-search">
-          <AppSearchInput v-model="searchValue" placeholder="Search receipt no…" />
+          <span class="search-wrap">
+            <AppIcon name="search" :size="18" class="search-icon" />
+            <InputText
+              v-model="searchValue"
+              placeholder="Search receipt no…"
+              class="search-input"
+            />
+          </span>
         </div>
       </div>
 
       <div class="filter-actions">
-        <button type="button" class="icon-action" title="Reset filters" @click="refresh">
-          <IconRefresh />
-        </button>
-        <AppButton variant="primary" @click="exportCsv">
-          <IconFileDownload /> Export CSV
-        </AppButton>
+        <Button
+          icon="pi pi-refresh"
+          severity="secondary"
+          text
+          rounded
+          aria-label="Reset filters"
+          @click="refresh"
+        />
+        <Button
+          label="Export CSV"
+          icon="pi pi-download"
+          @click="exportCsv"
+        />
       </div>
     </div>
 
@@ -102,8 +130,13 @@ onMounted(async () => {
       :rows="rows"
       :loading="loading"
       :error="error"
-      @view="openDetail"
+      @view="openView"
       @retry="fetchTransactions"
+    />
+
+    <TransactionViewModal
+      v-model="viewModalOpen"
+      :transaction-id="viewTransactionId"
     />
   </AppPageContainer>
 </template>
@@ -111,9 +144,9 @@ onMounted(async () => {
 <style scoped>
 .flow-note {
   font-size: 11.5px;
-  color: var(--color-ink-soft);
-  background: var(--color-primary-tint);
-  border-radius: var(--radius-s);
+  color: var(--text-muted);
+  background: var(--primary-tint);
+  border-radius: var(--radius-sm);
   padding: 8px 12px;
   margin-bottom: 18px;
   display: inline-block;
@@ -123,18 +156,17 @@ onMounted(async () => {
   display: flex;
   align-items: stretch;
   gap: 12px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-line);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 12px 14px;
   margin-bottom: 16px;
-  box-shadow: var(--shadow-1);
   flex-wrap: wrap;
 }
 
 .filter-group {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   gap: 10px;
   flex: 1;
   flex-wrap: wrap;
@@ -144,38 +176,68 @@ onMounted(async () => {
 .filter-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: var(--color-surface-container-low);
+  gap: 10px;
+  background: var(--surface-hover);
   padding: 6px 12px;
   border-radius: var(--radius-md);
   min-width: 0;
 }
 
 .filter-icon {
-  color: var(--color-ink-soft);
-  font-size: 18px;
+  color: var(--text-muted);
   flex-shrink: 0;
 }
 
 .filter-text {
   display: flex;
   flex-direction: column;
+  gap: 2px;
   min-width: 0;
 }
 
 .filter-label {
   font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--color-ink-soft);
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
   font-weight: 600;
 }
 
-.filter-value {
+.date-item {
+  min-width: 240px;
+}
+
+.date-picker {
+  min-width: 200px;
+}
+
+.date-picker :deep(.p-datepicker-input) {
+  border: none;
+  background: transparent;
+  padding: 0;
   font-size: 12.5px;
   font-weight: 500;
-  color: var(--color-ink);
-  white-space: nowrap;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text);
+  box-shadow: none;
+}
+
+.date-picker :deep(.p-datepicker-input:focus) {
+  box-shadow: none;
+}
+
+.filter-select {
+  border: none;
+  background: transparent;
+  padding: 0;
+  min-width: 140px;
+}
+
+.filter-select :deep(.p-select-label) {
+  padding: 0;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text);
 }
 
 .filter-search {
@@ -183,30 +245,30 @@ onMounted(async () => {
   min-width: 200px;
 }
 
-.filter-select {
-  margin-bottom: 0;
+.search-wrap {
+  position: relative;
+  display: block;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  height: 40px;
+  padding-left: 38px;
 }
 
 .filter-actions {
   display: flex;
   align-items: center;
   gap: 8px;
-}
-
-.icon-action {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-md);
-  background: var(--color-surface-container-low);
-  color: var(--color-ink-soft);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.icon-action:hover {
-  background: var(--color-surface-container);
-  color: var(--color-ink);
 }
 
 @media (max-width: 640px) {

@@ -1,6 +1,6 @@
 <script setup>
+import AppIcon from '@/components/ui/AppIcon.vue'
 import { formatRupiah } from '@/composables/useFormatters.js'
-import IconCart from '@/components/icons/IconCart.vue'
 
 defineProps({
   itemCount: { type: Number, default: 0 },
@@ -12,7 +12,7 @@ defineEmits(['open'])
 
 <template>
   <button type="button" class="cart-btn" @click="$emit('open')">
-    <IconCart />
+    <AppIcon name="shopping-cart" :size="18" />
     <span class="badge">{{ itemCount }}</span>
     <span class="sep">·</span>
     <span class="mono total">{{ formatRupiah(total) }}</span>
@@ -21,30 +21,38 @@ defineEmits(['open'])
 
 <style scoped>
 .cart-btn {
-  background: var(--color-primary);
-  color: #fff;
-  border-radius: var(--radius-s);
-  padding: 9px 16px;
+  background: var(--primary);
+  color: var(--primary-fg);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 10px 16px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
   font-size: 13.5px;
-  font-weight: 500;
+  font-weight: 600;
   flex-shrink: 0;
+  transition: background 120ms;
 }
 
 .cart-btn:hover {
-  background: var(--color-primary-hover);
+  background: var(--primary-hover);
 }
 
 .badge {
   background: rgba(255, 255, 255, 0.25);
-  border-radius: 10px;
-  padding: 1px 7px;
+  border-radius: var(--radius-full);
+  padding: 2px 8px;
   font-size: 12px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
 }
 
 .sep {
   opacity: 0.7;
+}
+
+.total {
+  font-weight: 700;
 }
 </style>

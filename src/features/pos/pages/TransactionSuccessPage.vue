@@ -1,11 +1,9 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import Button from 'primevue/button'
 import AppPageContainer from '@/components/ui/AppPageContainer.vue'
-import AppButton from '@/components/ui/AppButton.vue'
-import IconCheck from '@/components/icons/IconCheck.vue'
-import IconPrint from '@/components/icons/IconPrint.vue'
-import IconTransactions from '@/components/icons/IconTransactions.vue'
+import AppIcon from '@/components/ui/AppIcon.vue'
 import ReceiptBlock from '@/components/ui/ReceiptBlock.vue'
 import { usePosCartStore } from '@/stores/posCart.store.js'
 
@@ -34,31 +32,40 @@ onMounted(() => {
 </script>
 
 <template>
-  <AppPageContainer max-width="500px">
+  <AppPageContainer max-width="560px">
     <div v-if="receipt" class="wrap">
-      <div class="icon"><IconCheck /></div>
+      <div class="icon">
+        <AppIcon name="check" :size="32" />
+      </div>
       <h2 class="title">Payment complete</h2>
       <p class="sub">
-        Receipt <span class="mono">{{ receipt.receiptNo }}</span> saved to Transaction History.
-        Stock has been updated.
+        Receipt <span class="mono receipt-no">{{ receipt.receiptNo }}</span> saved to
+        Transaction History. Stock has been updated.
       </p>
 
       <ReceiptBlock :receipt="receipt" />
 
       <div class="actions">
-        <AppButton variant="secondary" @click="printReceipt">
-          <IconPrint /> Print Receipt
-        </AppButton>
-        <AppButton variant="primary" @click="newSale">
-          New Sale
-        </AppButton>
+        <Button
+          label="Print Receipt"
+          icon="pi pi-print"
+          severity="secondary"
+          outlined
+          @click="printReceipt"
+          class="action-btn"
+        />
+        <Button
+          label="New Sale"
+          icon="pi pi-plus"
+          @click="newSale"
+          class="action-btn"
+        />
       </div>
 
-      <div class="secondary-links">
-        <button type="button" @click="goTransactions">
-          <IconTransactions /> View in Transactions
-        </button>
-      </div>
+      <button type="button" class="secondary-link" @click="goTransactions">
+        <AppIcon name="receipt-long" :size="16" />
+        <span>View in Transactions</span>
+      </button>
     </div>
   </AppPageContainer>
 </template>
@@ -70,27 +77,34 @@ onMounted(() => {
 }
 
 .icon {
-  width: 64px;
-  height: 64px;
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
-  background: var(--color-success-bg);
-  color: var(--color-success);
+  background: var(--success-bg);
+  color: var(--success);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 16px;
+  margin: 0 auto 18px;
 }
 
 .title {
-  margin: 0 0 4px;
-  font-size: 20px;
-  font-weight: 600;
+  margin: 0 0 6px;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
 }
 
 .sub {
-  color: var(--color-ink-soft);
+  color: var(--text-muted);
   font-size: 13.5px;
-  margin: 0 0 12px;
+  margin: 0 0 14px;
+  line-height: 1.5;
+}
+
+.receipt-no {
+  color: var(--primary);
+  font-weight: 600;
 }
 
 .actions {
@@ -98,27 +112,26 @@ onMounted(() => {
   gap: 10px;
 }
 
-.actions > * {
+.action-btn {
   flex: 1;
-  justify-content: center;
+  height: 46px;
+  font-weight: 600;
 }
 
-.secondary-links {
-  margin-top: 20px;
-  display: flex;
-  justify-content: center;
-  gap: 16px;
-}
-
-.secondary-links button {
+.secondary-link {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  margin-top: 20px;
+  background: transparent;
+  border: none;
+  padding: 6px 10px;
+  color: var(--text-muted);
   font-size: 12.5px;
-  color: var(--color-ink-soft);
+  font-weight: 500;
 }
 
-.secondary-links button:hover {
-  color: var(--color-primary-container);
+.secondary-link:hover {
+  color: var(--primary);
 }
 </style>

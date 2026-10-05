@@ -1,8 +1,7 @@
 <script setup>
 import { useRouter } from 'vue-router'
-import AppButton from '@/components/ui/AppButton.vue'
-import IconShieldLock from '@/components/icons/IconShieldLock.vue'
-import IconArrowBack from '@/components/icons/IconArrowBack.vue'
+import Button from 'primevue/button'
+import AppIcon from '@/components/ui/AppIcon.vue'
 
 const router = useRouter()
 
@@ -14,14 +13,17 @@ function goHome() {
 <template>
   <div>
     <div class="status-icon warn">
-      <IconShieldLock />
+      <AppIcon name="shield-lock" :size="26" />
     </div>
     <div class="badge">403</div>
     <h2 class="title">You don't have access</h2>
     <p class="sub">Your current role doesn't have permission to view this page.</p>
-    <AppButton variant="primary" block @click="goHome">
-      <IconArrowBack /> Back to Dashboard
-    </AppButton>
+    <Button
+      label="Back to Dashboard"
+      icon="pi pi-arrow-left"
+      class="go-btn"
+      @click="goHome"
+    />
   </div>
 </template>
 
@@ -37,8 +39,8 @@ function goHome() {
 }
 
 .status-icon.warn {
-  background: var(--color-tertiary-fixed);
-  color: var(--color-tertiary);
+  background: var(--warning-bg);
+  color: var(--warning);
 }
 
 .badge {
@@ -46,10 +48,10 @@ function goHome() {
   font-family: 'JetBrains Mono', monospace;
   font-size: 11px;
   font-weight: 700;
-  color: var(--color-primary-container);
-  background: var(--color-surface-container);
-  padding: 2px 8px;
-  border-radius: var(--radius-s);
+  color: var(--primary);
+  background: var(--surface-hover);
+  padding: 3px 10px;
+  border-radius: var(--radius-xs);
   margin-bottom: 10px;
   letter-spacing: 0.05em;
 }
@@ -58,12 +60,19 @@ function goHome() {
   margin: 0 0 6px;
   font-size: 20px;
   font-weight: 600;
+  color: var(--text);
 }
 
 .sub {
-  color: var(--color-ink-soft);
+  color: var(--text-muted);
   font-size: 13px;
   margin: 0 0 20px;
   line-height: 1.5;
+}
+
+.go-btn {
+  width: 100%;
+  height: 44px;
+  font-weight: 600;
 }
 </style>

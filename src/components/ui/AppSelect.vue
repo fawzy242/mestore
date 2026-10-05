@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import { useUniqueId } from '@/composables/useUniqueId.js'
+import Select from 'primevue/select'
 
 const props = defineProps({
   modelValue: { type: [String, Number], default: '' },
@@ -10,69 +10,48 @@ const props = defineProps({
   disabled: { type: Boolean, default: false },
 })
 
-defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue'])
 
-const uid = useUniqueId('select')
-const selectId = computed(() => `select-${uid}`)
-const errorId = computed(() => `select-error-${uid}`)
 const hasError = computed(() => Boolean(props.error))
 </script>
+
 <template>
-  <div class="field" :class="{ 'field-error': hasError }">
-    <label v-if="label" :for="selectId" class="field-label">{{ label }}</label>
-    <select
-      :id="selectId"
-      :value="modelValue"
+  <div class="field" :class="{ 'has-error': hasError }">
+    <label v-if="label" class="field-label">{{ label }}</label>
+    <Select
+      :model-value="modelValue"
+      :options="options"
+      option-label="label"
+      option-value="value"
       :disabled="disabled"
-      :aria-describedby="hasError ? errorId : undefined"
-      :aria-invalid="hasError ? 'true' : undefined"
+      :class="{ 'p-invalid': hasError }"
       class="field-select"
-      @change="$emit('update:modelValue', $event.target.value)"
-    >
-      <option v-for="opt in options" :key="opt.value" :value="opt.value">
-        {{ opt.label }}
-      </option>
-    </select>
-    <div v-if="hasError" :id="errorId" class="field-error-msg">{{ error }}</div>
+      @update:model-value="(v) => emit('update:modelValue', v)"
+    />
+    <div v-if="hasError" class="field-error-msg">{{ error }}</div>
   </div>
 </template>
 
 <style scoped>
 .field {
-  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 160px;
 }
 
 .field-label {
-  display: block;
   font-size: 12.5px;
-  color: var(--color-ink-soft);
-  margin-bottom: 5px;
+  color: var(--text-muted);
   font-weight: 500;
 }
 
 .field-select {
   width: 100%;
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-s);
-  padding: 10px 12px;
-  font-size: 14px;
-  background: var(--color-surface);
-  color: var(--color-ink);
-}
-
-.field-select:focus {
-  outline: 2px solid var(--color-focus);
-  outline-offset: 0;
-  border-color: var(--color-focus);
-}
-
-.field-error .field-select {
-  border-color: var(--color-danger);
 }
 
 .field-error-msg {
-  color: var(--color-danger);
+  color: var(--danger);
   font-size: 12px;
-  margin-top: 4px;
 }
 </style>

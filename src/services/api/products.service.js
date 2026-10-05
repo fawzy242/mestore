@@ -1,8 +1,3 @@
-/**
- * MOCK — swap for real endpoints when contract is confirmed.
- * The function signatures mirror the intended REST shape so callers
- * (composables) will not change when the backend arrives.
- */
 import { db, delay, nextProductId } from '@/services/mock/data.js'
 
 const SORTABLE_KEYS = ['name', 'sku', 'category', 'price', 'stock']
@@ -22,6 +17,7 @@ export async function getProducts(params = {}) {
   const {
     search = '',
     category = '',
+    status = 'Active',
     lowStock = false,
     page = 1,
     pageSize = 10,
@@ -30,6 +26,7 @@ export async function getProducts(params = {}) {
   } = params
 
   let items = [...db.products]
+  if (status) items = items.filter((p) => (p.status || 'Active') === status)
   if (search) {
     const q = search.toLowerCase()
     items = items.filter((p) => p.name.toLowerCase().includes(q) || p.sku.includes(search))
@@ -57,7 +54,7 @@ export async function getProductById(id) {
 }
 
 export async function createProduct(payload) {
-  const product = { id: nextProductId(), ...payload }
+  const product = { id: nextProductId(), status: 'Active', ...payload }
   db.products.push(product)
   return delay(product)
 }
@@ -77,4 +74,12 @@ export async function deleteProduct(id) {
   const idx = db.products.findIndex((p) => String(p.id) === String(id))
   if (idx >= 0) db.products.splice(idx, 1)
   return delay(null)
+}
+
+export async function bulkUpdateProductStatus(ids, status) {
+  const idSet = new Set(ids.map(String))
+  db.products.forEach((p) => {
+    if (idSet.has(String(p.id))) p.status = status
+  })
+  return delay({ updated: ids.length, status })
 }

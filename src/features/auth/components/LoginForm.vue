@@ -1,31 +1,22 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import InputText from 'primevue/inputtext'
+import Password from 'primevue/password'
+import Button from 'primevue/button'
+import Message from 'primevue/message'
 import { useAuthStore } from '@/stores/auth.store.js'
 import { useToast } from '@/composables/useToast.js'
-import { useShift } from '@/features/shift/composables/useShift.js'
-import { ROLE } from '@/constants/roles.js'
-import AppInput from '@/components/ui/AppInput.vue'
-import AppButton from '@/components/ui/AppButton.vue'
-import AppAlert from '@/components/ui/AppAlert.vue'
 import { COPY } from '@/constants/copy.js'
 
 const router = useRouter()
 const auth = useAuthStore()
 const { push } = useToast()
-const shift = useShift()
 
 const username = ref('siti')
 const password = ref('password')
 const isSubmitting = ref(false)
 const errorMessage = ref('')
-
-function landingRoute() {
-  if (auth.role === ROLE.CASHIER) {
-    return shift.hasOpenShift.value ? 'dashboard' : 'shift.open'
-  }
-  return 'dashboard'
-}
 
 async function submit() {
   errorMessage.value = ''
@@ -36,7 +27,7 @@ async function submit() {
     if (typeof redirect === 'string' && redirect.length) {
       router.push(redirect)
     } else {
-      router.push({ name: landingRoute() })
+      router.push({ name: 'dashboard' })
     }
     push('Signed in')
   } catch (error) {
@@ -54,30 +45,40 @@ async function submit() {
     <p class="sub">{{ COPY.auth.loginSubtitle }}</p>
 
     <div class="fields">
-      <AppInput
-        v-model="username"
-        :label="COPY.auth.loginUsername"
-        placeholder="e.g. siti"
-      />
-      <AppInput
-        v-model="password"
-        :label="COPY.auth.loginPassword"
-        type="password"
-        placeholder="Enter password"
-      />
+      <div class="field">
+        <label>Username</label>
+        <InputText
+          v-model="username"
+          placeholder="e.g. siti"
+          class="w-full"
+          autocomplete="username"
+        />
+      </div>
+
+      <div class="field">
+        <label>Password</label>
+        <Password
+          v-model="password"
+          :feedback="false"
+          toggle-mask
+          placeholder="Enter password"
+          input-class="w-full"
+          class="w-full"
+          autocomplete="current-password"
+        />
+      </div>
     </div>
 
-    <AppAlert v-if="errorMessage" variant="error" :message="errorMessage" />
+    <Message v-if="errorMessage" severity="error" :closable="false" class="error-msg">
+      {{ errorMessage }}
+    </Message>
 
-    <AppButton
-      variant="primary"
+    <Button
       type="submit"
-      block
+      :label="COPY.auth.loginButton"
       :loading="isSubmitting"
       class="submit"
-    >
-      {{ COPY.auth.loginButton }}
-    </AppButton>
+    />
 
     <p class="hint">
       Demo users: <span class="mono">fawzy</span> · <span class="mono">budi</span> ·
@@ -92,43 +93,78 @@ async function submit() {
 }
 
 .gate-logo {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: var(--color-primary-container);
-  color: #fff;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-lg);
+  background: var(--primary);
+  color: var(--primary-fg);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 20px;
-  margin: 0 auto 16px;
-  box-shadow: var(--shadow-1);
+  font-size: 22px;
+  margin: 0 auto 18px;
 }
 
 .title {
   margin: 0 0 4px;
-  font-size: 20px;
-  font-weight: 600;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
 }
 
 .sub {
-  color: var(--color-ink-soft);
+  color: var(--text-muted);
   font-size: 13px;
-  margin: 0 0 22px;
+  margin: 0 0 24px;
 }
 
 .fields {
   text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field label {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.field :deep(.p-inputtext),
+.field :deep(.p-password),
+.field :deep(.p-password-input) {
+  width: 100%;
+}
+
+.error-msg {
+  margin-bottom: 14px;
+  text-align: left;
 }
 
 .submit {
-  margin-top: 4px;
+  width: 100%;
+  height: 46px;
+  font-weight: 600;
 }
 
 .hint {
   font-size: 11px;
-  color: var(--color-ink-soft);
+  color: var(--text-muted);
   margin-top: 16px;
+}
+
+.hint .mono {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 500;
+  color: var(--text);
 }
 </style>

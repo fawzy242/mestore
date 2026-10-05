@@ -13,6 +13,7 @@ import router from './router/index.js'
 import '@/assets/styles/tokens.css'
 import '@/assets/styles/base.css'
 import '@/assets/styles/primevue.css'
+import '@/assets/styles/tabs.css'
 
 const MeStorePreset = definePreset(Aura, {
   semantic: {

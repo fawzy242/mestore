@@ -1,28 +1,25 @@
 <script setup>
-import { computed, onMounted, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import Button from 'primevue/button'
 import AppPageContainer from '@/components/ui/AppPageContainer.vue'
 import AppToolbar from '@/components/ui/AppToolbar.vue'
 import AppSearchInput from '@/components/ui/AppSearchInput.vue'
 import AppSelect from '@/components/ui/AppSelect.vue'
-import AppButton from '@/components/ui/AppButton.vue'
 import KPIBar from '@/components/ui/KPIBar.vue'
 import KPIStat from '@/components/ui/KPIStat.vue'
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
-import IconPlus from '@/components/icons/IconPlus.vue'
-import IconPerson from '@/components/icons/IconPerson.vue'
-import IconVerifiedUser from '@/components/icons/IconVerifiedUser.vue'
-import IconBlock from '@/components/icons/IconBlock.vue'
-import IconPointOfSale from '@/components/icons/IconPointOfSale.vue'
 import UserTable from '../components/UserTable.vue'
+import UserFormModal from '../components/UserFormModal.vue'
+import UserViewModal from '../components/UserViewModal.vue'
 import { useUsers } from '../composables/useUsers.js'
-import { useConfirmDialog } from '@/composables/useConfirmDialog.js'
 import { useDebouncedSearch } from '@/composables/useDebouncedSearch.js'
 import { useToast } from '@/composables/useToast.js'
-import * as usersService from '@/services/api/users.service.js'
+import { useConfirm } from '@/composables/useConfirm.js'
 
 const router = useRouter()
 const { push } = useToast()
+const { confirmAction } = useConfirm()
+
 const {
   rows,
   loading,
@@ -35,10 +32,15 @@ const {
   pageCount,
   fetchUsers,
   deactivate,
+  bulkSetStatus,
   applyFilter,
+  setStatusTab,
   setSort,
   goToPage,
 } = useUsers()
+
+const activeTab = ref('Active')
+const selectedKeys = ref([])
 
 const roleOptions = [
   { value: '', label: 'All roles' },
@@ -47,9 +49,10 @@ const roleOptions = [
   { value: 'cashier', label: 'Cashier' },
 ]
 
-const { state: confirmState, open: openConfirm, confirm: confirmOk, close: confirmCancel } =
-  useConfirmDialog()
-let pending = null
+const formModalOpen = ref(false)
+const formUserId = ref(null)
+const viewModalOpen = ref(false)
+const viewUserId = ref(null)
 
 const kpis = computed(() => {
   const active = rows.value.filter((u) => u.status === 'Active').length
@@ -68,14 +71,31 @@ watch(
   () => applyFilter(),
 )
 
-function goNew() {
-  router.push({ name: 'users.new' })
+function onTabChange(next) {
+  activeTab.value = next
+  selectedKeys.value = []
+  setStatusTab(next)
 }
-function goEdit(row) {
-  router.push({ name: 'users.edit', params: { id: row.id } })
+
+function openAdd() {
+  formUserId.value = null
+  formModalOpen.value = true
 }
-function goDetail(row) {
-  router.push({ name: 'users.detail', params: { id: row.id } })
+
+function openEdit(row) {
+  formUserId.value = row.id
+  formModalOpen.value = true
+}
+
+function openView(row) {
+  viewUserId.value = row.id
+  viewModalOpen.value = true
+}
+
+function editFromView(id) {
+  viewModalOpen.value = false
+  formUserId.value = id
+  formModalOpen.value = true
 }
 
 function onPageChange(p) {
@@ -84,23 +104,55 @@ function onPageChange(p) {
 }
 
 async function askDeactivate(row) {
-  pending = row
-  const ok = await openConfirm({
-    title: 'Deactivate user?',
+  await confirmAction({
+    header: 'Deactivate user?',
     message: `Deactivate "${row.name}"? They will no longer be able to log in. Their transaction history is kept.`,
-    confirmLabel: 'Deactivate',
+    acceptLabel: 'Deactivate',
+    rejectLabel: 'Cancel',
     variant: 'danger',
+    accept: async () => {
+      await deactivate(row.id)
+      selectedKeys.value = selectedKeys.value.filter((k) => k !== row.id)
+      push('User deactivated')
+    },
   })
-  if (ok && pending) {
-    await deactivate(pending.id)
-    push('User deactivated')
-    pending = null
-  }
 }
 
-async function reactivate(row) {
-  await usersService.updateUser(row.id, { status: 'Active' })
-  push('User reactivated')
+async function bulkDeactivate() {
+  if (!selectedKeys.value.length) return
+  const count = selectedKeys.value.length
+  await confirmAction({
+    header: 'Deactivate selected users?',
+    message: `Deactivate ${count} selected user(s)?`,
+    acceptLabel: 'Deactivate',
+    rejectLabel: 'Cancel',
+    variant: 'danger',
+    accept: async () => {
+      await bulkSetStatus(selectedKeys.value, 'Inactive')
+      push(`${count} users deactivated`)
+      selectedKeys.value = []
+    },
+  })
+}
+
+async function bulkActivate() {
+  if (!selectedKeys.value.length) return
+  const count = selectedKeys.value.length
+  await confirmAction({
+    header: 'Activate selected users?',
+    message: `Activate ${count} selected user(s)?`,
+    acceptLabel: 'Activate',
+    rejectLabel: 'Cancel',
+    variant: 'success',
+    accept: async () => {
+      await bulkSetStatus(selectedKeys.value, 'Active')
+      push(`${count} users activated`)
+      selectedKeys.value = []
+    },
+  })
+}
+
+async function onSaved() {
   await fetchUsers()
 }
 
@@ -109,11 +161,30 @@ onMounted(fetchUsers)
 
 <template>
   <AppPageContainer>
+    <div class="mestore-tabs">
+      <button
+        type="button"
+        class="mestore-tab"
+        :class="{ active: activeTab === 'Active' }"
+        @click="onTabChange('Active')"
+      >
+        Active
+      </button>
+      <button
+        type="button"
+        class="mestore-tab"
+        :class="{ active: activeTab === 'Inactive' }"
+        @click="onTabChange('Inactive')"
+      >
+        Inactive
+      </button>
+    </div>
+
     <KPIBar :columns="4">
-      <KPIStat label="Total Accounts" :value="kpis.total" :icon="IconPerson" tone="neutral" />
-      <KPIStat label="Active Staff" :value="kpis.active" :icon="IconVerifiedUser" tone="success" />
-      <KPIStat label="Deactivated" :value="kpis.inactive" :icon="IconBlock" tone="neutral" />
-      <KPIStat label="Active Cashiers" :value="kpis.cashiers" :icon="IconPointOfSale" tone="primary" />
+      <KPIStat label="Total Accounts" :value="kpis.total" icon="person" tone="neutral" />
+      <KPIStat label="Active Staff" :value="kpis.active" icon="verified-user" tone="success" />
+      <KPIStat label="Deactivated" :value="kpis.inactive" icon="block" tone="neutral" />
+      <KPIStat label="Active Cashiers" :value="kpis.cashiers" icon="point-of-sale" tone="primary" />
     </KPIBar>
 
     <AppToolbar>
@@ -128,11 +199,39 @@ onMounted(fetchUsers)
         />
       </template>
       <template #actions>
-        <AppButton variant="primary" @click="goNew">
-          <IconPlus /> Add User
-        </AppButton>
+        <Button label="Add User" icon="pi pi-plus" @click="openAdd" />
       </template>
     </AppToolbar>
+
+    <div v-if="selectedKeys.length" class="bulk-bar">
+      <span class="bulk-count">{{ selectedKeys.length }} selected</span>
+      <Button
+        v-if="activeTab === 'Active'"
+        label="Deactivate"
+        icon="pi pi-ban"
+        severity="danger"
+        outlined
+        size="small"
+        @click="bulkDeactivate"
+      />
+      <Button
+        v-else
+        label="Activate"
+        icon="pi pi-check-circle"
+        severity="success"
+        outlined
+        size="small"
+        @click="bulkActivate"
+      />
+      <Button
+        label="Clear"
+        icon="pi pi-times"
+        text
+        severity="secondary"
+        size="small"
+        @click="selectedKeys = []"
+      />
+    </div>
 
     <UserTable
       :rows="rows"
@@ -141,10 +240,12 @@ onMounted(fetchUsers)
       :pagination="{ page, pageSize, total, pageCount }"
       :sort-key="sort.key"
       :sort-dir="sort.dir"
-      @view="goDetail"
-      @edit="goEdit"
+      selectable
+      :selected-keys="selectedKeys"
+      @update:selected-keys="(v) => (selectedKeys = v)"
+      @view="openView"
+      @edit="openEdit"
       @deactivate="askDeactivate"
-      @reactivate="reactivate"
       @page-change="onPageChange"
       @sort-change="setSort"
       @retry="fetchUsers"
@@ -152,26 +253,45 @@ onMounted(fetchUsers)
 
     <p class="page-footer">
       Showing <span class="mono">{{ rows.length }}</span> of
-      <span class="mono">{{ total }}</span> users
+      <span class="mono">{{ total }}</span> {{ activeTab.toLowerCase() }} users
     </p>
 
-    <ConfirmDialog
-      :model-value="confirmState.isOpen.value"
-      :title="confirmState.title.value"
-      :message="confirmState.message.value"
-      :confirm-label="confirmState.confirmLabel.value"
-      :variant="confirmState.variant.value"
-      @update:model-value="(v) => !v && confirmCancel()"
-      @confirm="confirmOk"
+    <UserFormModal
+      v-model="formModalOpen"
+      :user-id="formUserId"
+      @saved="onSaved"
+    />
+    <UserViewModal
+      v-model="viewModalOpen"
+      :user-id="viewUserId"
+      @edit="editFromView"
     />
   </AppPageContainer>
 </template>
 
 <style scoped>
+.bulk-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--primary-tint);
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-md);
+  margin-bottom: 12px;
+}
+
+.bulk-count {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+  margin-right: auto;
+}
+
 .page-footer {
   text-align: right;
   font-size: 12px;
-  color: var(--color-ink-soft);
+  color: var(--text-muted);
   margin-top: 10px;
 }
 </style>

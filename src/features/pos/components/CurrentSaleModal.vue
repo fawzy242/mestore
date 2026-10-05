@@ -37,34 +37,33 @@ const discountProxy = computed({
 })
 
 function close() {
-  emit('update:modelValue', false)
+  visible.value = false
 }
 </script>
 
 <template>
   <Dialog
     v-model:visible="visible"
-    :modal="true"
+    modal
     :draggable="false"
-    :closable="false"
     :dismissable-mask="false"
-    :style="{ width: '520px' }"
-    class="cart-modal"
+    :style="{ width: '540px' }"
+    :show-header="false"
   >
-    <template #header>
-      <div class="modal-head">
-        <div class="head-left">
-          <span class="head-title">Current Sale</span>
-          <span class="head-pill">{{ itemCount }} items</span>
-        </div>
-        <div class="head-actions">
-          <button class="link-btn" type="button" @click="emit('clear')">CLEAR</button>
-          <button class="icon-btn" type="button" title="Close" @click="close">
-            <AppIcon name="close" :size="18" />
-          </button>
-        </div>
+    <!-- Custom header: icon + title + pill + clear + close -->
+    <div class="modal-head">
+      <span class="head-icon">
+        <AppIcon name="shopping-bag" :size="20" />
+      </span>
+      <h2 class="head-title">Current Sale</h2>
+      <span class="head-pill mono">{{ itemCount }} items</span>
+      <div class="head-actions">
+        <button type="button" class="head-clear" @click="emit('clear')">Clear</button>
+        <button type="button" class="head-close" aria-label="Close" @click="close">
+          <AppIcon name="close" :size="14" />
+        </button>
       </div>
-    </template>
+    </div>
 
     <div class="items">
       <div v-for="item in items" :key="item.id" class="row">
@@ -119,9 +118,12 @@ function close() {
       </div>
 
       <div class="actions">
-        <button type="button" class="hold-btn" @click="emit('hold')">
-          Hold / Cancel Sale
-        </button>
+        <Button
+          label="Hold / Cancel Sale"
+          text
+          severity="secondary"
+          @click="emit('hold')"
+        />
         <Button
           :label="`Charge (${formatRupiah(total)})`"
           icon="pi pi-credit-card"
@@ -135,24 +137,28 @@ function close() {
 </template>
 
 <style scoped>
-:deep(.cart-modal .p-dialog-content) {
-  padding: 0;
-}
-
 .modal-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  width: 100%;
+  gap: 12px;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border);
 }
 
-.head-left {
-  display: flex;
+.head-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--primary-tint);
+  color: var(--primary);
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .head-title {
+  margin: 0;
   font-size: 16px;
   font-weight: 600;
   color: var(--text);
@@ -161,7 +167,6 @@ function close() {
 .head-pill {
   font-size: 11px;
   font-weight: 600;
-  font-family: 'JetBrains Mono', monospace;
   background: var(--primary-tint);
   color: var(--primary);
   padding: 3px 8px;
@@ -169,39 +174,50 @@ function close() {
 }
 
 .head-actions {
+  margin-left: auto;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
 }
 
-.link-btn {
-  font-size: 11.5px;
-  letter-spacing: 0.05em;
+.head-clear {
+  font-size: 12px;
+  font-weight: 500;
   color: var(--text-muted);
-  font-weight: 600;
   background: transparent;
   border: none;
-  padding: 6px 8px;
+  padding: 6px 10px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
 }
-.link-btn:hover {
+
+.head-clear:hover {
+  background: var(--surface-hover);
   color: var(--text);
 }
 
-.icon-btn {
-  padding: 6px;
-  border-radius: var(--radius-sm);
-  color: var(--text-muted);
+.head-close {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
   background: transparent;
   border: none;
+  color: var(--text-muted);
   display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
 }
-.icon-btn:hover {
+
+.head-close:hover {
   background: var(--surface-hover);
   color: var(--text);
 }
 
 .items {
-  padding: 8px 24px;
+  padding: 8px 22px;
   max-height: 44vh;
   overflow-y: auto;
 }
@@ -259,6 +275,7 @@ function close() {
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
 }
 .qty-btn:hover {
   background: var(--surface);
@@ -288,7 +305,7 @@ function close() {
 }
 
 .foot {
-  padding: 16px 24px 20px;
+  padding: 16px 22px 20px;
   border-top: 1px solid var(--border);
 }
 
@@ -313,7 +330,7 @@ function close() {
   flex: 1;
 }
 
-:deep(.coupon-input input) {
+.coupon-input :deep(input) {
   width: 100%;
   height: 38px;
   font-family: 'JetBrains Mono', monospace;
@@ -354,25 +371,10 @@ function close() {
 .actions {
   display: flex;
   align-items: center;
-  gap: 12px;
-}
-
-.hold-btn {
-  background: transparent;
-  border: none;
-  padding: 10px 4px;
-  color: var(--text-muted);
-  font-size: 13px;
-  font-weight: 500;
-}
-.hold-btn:hover {
-  color: var(--text);
+  gap: 10px;
 }
 
 .charge-btn {
   flex: 1;
-  height: 44px;
-  font-weight: 600;
-  font-size: 14px;
 }
 </style>

@@ -1,14 +1,13 @@
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store.js'
 import { useUiStore } from '@/stores/ui.store.js'
 import { useToast } from '@/composables/useToast.js'
 import { useBreakpoint } from '@/composables/useBreakpoint.js'
-import { useShift } from '@/features/shift/composables/useShift.js'
+import { useConfirm } from '@/composables/useConfirm.js'
 import { NAV_ITEMS } from '@/constants/navigation.js'
 import { canAccessRoute } from '@/constants/permissions.js'
-import { ROLE } from '@/constants/roles.js'
 import AppIcon from '@/components/ui/AppIcon.vue'
 
 const props = defineProps({
@@ -21,7 +20,7 @@ const auth = useAuthStore()
 const ui = useUiStore()
 const { push } = useToast()
 const { isTablet } = useBreakpoint()
-const shift = useShift()
+const { confirmAction } = useConfirm()
 
 const visibleItems = computed(() =>
   NAV_ITEMS.filter((item) => canAccessRoute(auth.role, item.routeName)),
@@ -32,13 +31,15 @@ const collapsed = computed(() => {
   return ui.sidebarCollapsed
 })
 
+// Route name → Material Symbol name
 const iconMap = {
   dashboard: 'dashboard',
   pos: 'shopping-cart',
-  products: 'inventory-2',
-  transactions: 'receipt-long',
+  'products.list': 'inventory-2',
+  'categories.list': 'category',
+  'transactions.list': 'receipt-long',
   reports: 'bar-chart',
-  users: 'group',
+  'users.list': 'group',
 }
 
 function isActive(name) {
@@ -53,14 +54,19 @@ function go(name) {
   if (props.drawer) ui.closeMobileDrawer()
 }
 
-function handleLogout() {
-  if (auth.role === ROLE.CASHIER && shift.hasOpenShift.value) {
-    router.push({ name: 'shift.close' })
-    return
-  }
-  auth.logout()
-  push('Logged out')
-  router.push({ name: 'login' })
+async function askLogout() {
+  await confirmAction({
+    header: 'Logout?',
+    message: 'Are you sure you want to logout?',
+    acceptLabel: 'Logout',
+    rejectLabel: 'Cancel',
+    variant: 'danger',
+    accept: async () => {
+      await auth.logout()
+      push('Logged out')
+      router.push({ name: 'login' })
+    },
+  })
 }
 
 onMounted(() => {
@@ -99,13 +105,13 @@ onMounted(() => {
         :class="{ active: isActive(item.routeName) }"
         @click="go(item.routeName)"
       >
-        <AppIcon :name="iconMap[item.routeName.split('.')[0]] || 'circle'" :size="20" />
+        <AppIcon :name="iconMap[item.routeName] || 'circle'" :size="20" />
         <span v-if="!collapsed" class="nav-label">{{ item.label }}</span>
       </button>
     </nav>
 
     <div class="sidebar-footer">
-      <button type="button" class="nav-item" @click="handleLogout">
+      <button type="button" class="nav-item" @click="askLogout">
         <AppIcon name="logout" :size="20" />
         <span v-if="!collapsed" class="nav-label">Logout</span>
       </button>
@@ -176,6 +182,8 @@ onMounted(() => {
   opacity: 0.85;
   background: transparent;
   display: inline-flex;
+  border: none;
+  cursor: pointer;
 }
 
 .sidebar.collapsed .toggle-btn {
@@ -211,6 +219,7 @@ onMounted(() => {
   overflow: hidden;
   position: relative;
   transition: background 120ms;
+  cursor: pointer;
 }
 
 .nav-item:hover {

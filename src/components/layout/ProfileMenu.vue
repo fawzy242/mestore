@@ -4,19 +4,22 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store.js'
 import { useShift } from '@/features/shift/composables/useShift.js'
 import { useToast } from '@/composables/useToast.js'
+import { useConfirm } from '@/composables/useConfirm.js'
 import { formatRupiah } from '@/composables/useFormatters.js'
 import AppIcon from '@/components/ui/AppIcon.vue'
 import AvatarInitials from '@/components/ui/AvatarInitials.vue'
+import ProfileManagementModal from './ProfileManagementModal.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
 const shift = useShift()
 const { push } = useToast()
+const { confirmAction } = useConfirm()
 
 const open = ref(false)
 const root = ref(null)
+const profileModalOpen = ref(false)
 
-const initial = computed(() => auth.initials || '?')
 const roleLabel = computed(() => {
   if (!auth.role) return ''
   return auth.role.charAt(0).toUpperCase() + auth.role.slice(1)
@@ -43,15 +46,25 @@ function handleDocClick(e) {
   if (root.value && !root.value.contains(e.target)) close()
 }
 
-async function logout() {
+function openProfileManagement() {
   close()
-  if (auth.role === 'cashier' && shift.hasOpenShift.value) {
-    router.push({ name: 'shift.close' })
-    return
-  }
-  await auth.logout()
-  push('Logged out')
-  router.push({ name: 'login' })
+  profileModalOpen.value = true
+}
+
+async function askLogout() {
+  close()
+  await confirmAction({
+    header: 'Logout?',
+    message: 'Are you sure you want to logout?',
+    acceptLabel: 'Logout',
+    rejectLabel: 'Cancel',
+    variant: 'danger',
+    accept: async () => {
+      await auth.logout()
+      push('Logged out')
+      router.push({ name: 'login' })
+    },
+  })
 }
 
 onMounted(() => document.addEventListener('mousedown', handleDocClick))
@@ -106,12 +119,19 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', handleDocClick))
 
         <div class="menu-separator"></div>
 
-        <button type="button" class="menu-item" role="menuitem" @click="logout">
+        <button type="button" class="menu-item" role="menuitem" @click="openProfileManagement">
+          <AppIcon name="manage-accounts" :size="16" />
+          <span>Manage Profile</span>
+        </button>
+
+        <button type="button" class="menu-item danger" role="menuitem" @click="askLogout">
           <AppIcon name="logout" :size="16" />
           <span>Logout</span>
         </button>
       </div>
     </Transition>
+
+    <ProfileManagementModal v-model="profileModalOpen" />
   </div>
 </template>
 
@@ -128,6 +148,8 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', handleDocClick))
   background: transparent;
   border-radius: var(--radius-full);
   transition: background 120ms;
+  cursor: pointer;
+  border: none;
 }
 .profile-chip:hover {
   background: var(--surface-hover);
@@ -274,10 +296,14 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', handleDocClick))
   font-weight: 500;
   text-align: left;
   transition: background 120ms;
+  cursor: pointer;
 }
 .menu-item:hover {
   background: var(--surface-hover);
-  color: var(--primary);
+}
+.menu-item.danger:hover {
+  background: var(--danger-bg);
+  color: var(--danger);
 }
 
 .profile-fade-enter-active,

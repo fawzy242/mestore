@@ -3,14 +3,11 @@ import { computed, ref, watch } from 'vue'
 import { useLocalStorage, usePreferredDark } from '@vueuse/core'
 
 export const useThemeStore = defineStore('theme', () => {
-  const mode = useLocalStorage('mestore.theme', 'system')
+  // Persisted mode: 'light' | 'dark'. Defaults to system preference on first load.
   const systemDark = usePreferredDark()
+  const mode = useLocalStorage('mestore.theme', systemDark.value ? 'dark' : 'light')
 
-  const isDark = computed(() => {
-    if (mode.value === 'dark') return true
-    if (mode.value === 'light') return false
-    return systemDark.value
-  })
+  const isDark = computed(() => mode.value === 'dark')
 
   function apply() {
     const html = document.documentElement
@@ -28,14 +25,13 @@ export const useThemeStore = defineStore('theme', () => {
     apply()
   }
 
-  function cycle() {
-    const order = ['light', 'dark', 'system']
-    const i = order.indexOf(mode.value)
-    setMode(order[(i + 1) % order.length])
+  // Toggle flips between light and dark in a single call
+  function toggle() {
+    setMode(isDark.value ? 'light' : 'dark')
+    return mode.value
   }
 
-  // Re-apply whenever system preference changes and mode is 'system'
-  watch([systemDark, mode], apply)
+  watch(mode, apply)
 
-  return { mode, isDark, setMode, cycle, apply }
+  return { mode, isDark, setMode, toggle, apply }
 })
