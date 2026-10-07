@@ -36,6 +36,10 @@ const discountProxy = computed({
   set: (v) => emit('update:discount', Number(v) || 0),
 })
 
+function atMax(item) {
+  return item.qty >= (item.stock ?? Infinity)
+}
+
 function close() {
   visible.value = false
 }
@@ -73,14 +77,22 @@ function close() {
           <div class="qty-ctrl">
             <button type="button" class="qty-btn" @click="emit('decrement', item.id)">−</button>
             <span class="qty-value mono">{{ item.qty }}</span>
-            <button type="button" class="qty-btn" @click="emit('increment', item.id)">+</button>
+            <button
+              type="button"
+              class="qty-btn"
+              :disabled="atMax(item)"
+              :aria-label="atMax(item) ? 'Stock limit reached' : 'Increase quantity'"
+              @click="emit('increment', item.id)"
+            >
+              +
+            </button>
           </div>
 
           <div class="amt mono">{{ formatRupiah(item.price * item.qty) }}</div>
         </div>
 
         <div v-if="items.length === 0" class="empty">
-          Cart is empty. Search or tap a product to add it.
+          Your current sale is empty. Close this and tap + on a product to add it.
         </div>
       </div>
 
@@ -255,8 +267,12 @@ function close() {
   justify-content: center;
   cursor: pointer;
 }
-.qty-btn:hover {
+.qty-btn:hover:not(:disabled) {
   background: var(--surface);
+}
+.qty-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 .qty-value {
   min-width: 26px;

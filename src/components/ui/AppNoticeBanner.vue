@@ -28,11 +28,12 @@ defineEmits(['dismiss'])
 .notice {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
+  gap: 8px;
+  padding: 7px 12px;
   border-radius: var(--radius-md);
-  font-size: 13px;
-  margin-bottom: 18px;
+  font-size: 12.5px;
+  line-height: 1.35;
+  margin-bottom: 14px;
   border: 1px solid transparent;
   transition: background-color 150ms ease, color 150ms ease;
 }
@@ -65,7 +66,7 @@ defineEmits(['dismiss'])
 }
 .msg {
   flex: 1;
-  line-height: 1.4;
+  line-height: 1.35;
 }
 .close {
   font-size: 12px;

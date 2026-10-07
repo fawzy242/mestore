@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, watch } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Button from 'primevue/button'
 import { Line, Doughnut, Bar } from 'vue-chartjs'
@@ -89,13 +89,6 @@ const categoryBreakdown = computed(() => {
     const key = p.category || 'Other'
     map.set(key, (map.get(key) || 0) + 1)
   })
-  if (map.size === 0) {
-    map.set('Beverages', 3)
-    map.set('Snacks & Instant', 4)
-    map.set('Bakery', 2)
-    map.set('Staples', 5)
-    map.set('Household', 2)
-  }
   const labels = Array.from(map.keys())
   const data = Array.from(map.values())
   const palette = [
@@ -103,7 +96,7 @@ const categoryBreakdown = computed(() => {
     tokens.value.warning,
     tokens.value.textMuted,
     tokens.value.textFaint,
-    '#DC2626',
+    tokens.value.danger,
   ]
   return {
     labels,
@@ -117,6 +110,8 @@ const categoryBreakdown = computed(() => {
     ],
   }
 })
+
+const hasCategoryData = computed(() => categoryBreakdown.value.labels.length > 0)
 
 const paymentMethods = computed(() => ({
   labels: ['Cash', 'Card', 'QRIS'],
@@ -244,15 +239,14 @@ const lowStockColumns = [
   { key: 'name', label: 'Product' },
   { key: 'sku', label: 'SKU' },
   { key: 'stock', label: 'Stock', align: 'right' },
-  { key: 'status', label: 'Status', align: 'right' },
 ]
 
 const recentColumns = [
   { key: 'id', label: 'Receipt' },
   { key: 'time', label: 'Time' },
   { key: 'cashier', label: 'Cashier' },
+  { key: 'method', label: 'Payment', align: 'center' },
   { key: 'total', label: 'Total', align: 'right' },
-  { key: 'status', label: 'Status', align: 'right' },
 ]
 
 function goNewSale() {
@@ -260,6 +254,12 @@ function goNewSale() {
 }
 function goProducts() {
   router.push({ name: 'products.list' })
+}
+function goStock() {
+  router.push({ name: 'stock.list' })
+}
+function goTransactions() {
+  router.push({ name: 'transactions.list' })
 }
 function openTx(row) {
   router.push({ name: 'transactions.detail', params: { id: row.id } })
@@ -270,7 +270,7 @@ function openTx(row) {
   <AppPageContainer>
     <AppNoticeBanner
       variant="info"
-      message="Entry point after login. Shortcuts jump straight into POS, low-stock products, or a recent transaction."
+      message="Shortcuts to POS, low-stock items, and recent transactions."
     />
 
     <AppAlert
@@ -334,9 +334,11 @@ function openTx(row) {
       <div class="chart-card">
         <div class="chart-head">
           <h3 class="chart-title">Category Breakdown</h3>
+          <span class="chart-sub">Low stock by category</span>
         </div>
         <div class="chart-body">
-          <Doughnut :data="categoryBreakdown" :options="doughnutOptions" />
+          <Doughnut v-if="hasCategoryData" :data="categoryBreakdown" :options="doughnutOptions" />
+          <div v-else class="chart-empty">No low stock items</div>
         </div>
       </div>
 
@@ -350,9 +352,15 @@ function openTx(row) {
       </div>
     </div>
 
-    <h3 class="section-title">
-      <span class="dot dot-warning"></span> Low stock — needs attention
-    </h3>
+    <div class="section-head">
+      <h3 class="section-title">
+        <span class="dot dot-warning"></span> Low stock — needs attention
+      </h3>
+      <button type="button" class="section-link" @click="goStock">
+        View all
+        <AppIcon name="arrow-right-alt" :size="14" />
+      </button>
+    </div>
     <AppTable
       :columns="lowStockColumns"
       :rows="lowStock"
@@ -374,14 +382,17 @@ function openTx(row) {
       <template #cell-stock="{ row }">
         <span class="mono">{{ row.stock }} {{ row.unit }}</span>
       </template>
-      <template #cell-status>
-        <StatusPill variant="warning">Low stock</StatusPill>
-      </template>
     </AppTable>
 
-    <h3 class="section-title">
-      <span class="dot dot-primary"></span> Recent transactions
-    </h3>
+    <div class="section-head">
+      <h3 class="section-title">
+        <span class="dot dot-primary"></span> Recent transactions
+      </h3>
+      <button type="button" class="section-link" @click="goTransactions">
+        View all
+        <AppIcon name="arrow-right-alt" :size="14" />
+      </button>
+    </div>
     <AppTable
       :columns="recentColumns"
       :rows="recent"
@@ -396,11 +407,11 @@ function openTx(row) {
           <span class="mono receipt-id">{{ row.id }}</span>
         </div>
       </template>
+      <template #cell-method="{ row }">
+        <MonoChip variant="neutral">{{ row.method }}</MonoChip>
+      </template>
       <template #cell-total="{ row }">
         <span class="mono total">{{ formatRupiah(row.total) }}</span>
-      </template>
-      <template #cell-status>
-        <StatusPill variant="success">Completed</StatusPill>
       </template>
     </AppTable>
   </AppPageContainer>
@@ -474,14 +485,49 @@ function openTx(row) {
   height: 160px;
 }
 
+.chart-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 24px 0 12px;
+}
+
 .section-title {
   display: flex;
   align-items: center;
   gap: 8px;
   font-size: 15px;
   font-weight: 600;
-  margin: 24px 0 12px;
+  margin: 0;
   color: var(--text);
+}
+
+.section-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--primary);
+  background: transparent;
+  border: none;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+.section-link:hover {
+  background: var(--primary-tint);
 }
 
 .dot {

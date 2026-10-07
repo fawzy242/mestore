@@ -3,7 +3,7 @@
  */
 export const COPY = Object.freeze({
   auth: {
-    loginTitle: 'RetailPOS',
+    loginTitle: 'MeStore',
     loginSubtitle: 'Sign in to continue',
     loginUsername: 'Username',
     loginPassword: 'Password',

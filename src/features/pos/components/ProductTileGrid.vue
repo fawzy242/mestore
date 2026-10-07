@@ -13,6 +13,31 @@ const emit = defineEmits(['add', 'remove'])
 function qtyFor(product) {
   return props.cart[product.id] || 0
 }
+
+function stockOf(product) {
+  return Number(product.stock) || 0
+}
+
+function isOutOfStock(product) {
+  return stockOf(product) <= 0
+}
+
+function isLowStock(product) {
+  const s = stockOf(product)
+  return s > 0 && s <= 8
+}
+
+function stockVariant(product) {
+  if (isOutOfStock(product)) return 'danger'
+  if (isLowStock(product)) return 'warning'
+  return 'success'
+}
+
+function stockLabel(product) {
+  const s = stockOf(product)
+  if (s <= 0) return 'Out of stock'
+  return `${s} ${product.unit}`
+}
 </script>
 
 <template>
@@ -21,12 +46,15 @@ function qtyFor(product) {
       v-for="product in products"
       :key="product.id"
       class="tile"
-      :class="{ 'in-cart': qtyFor(product) > 0 }"
+      :class="{
+        'in-cart': qtyFor(product) > 0,
+        'out-of-stock': isOutOfStock(product),
+      }"
     >
       <div class="tile-top">
         <span class="sku mono">{{ product.sku }}</span>
-        <StatusPill :variant="product.stock <= 8 ? 'warning' : 'success'">
-          {{ product.stock }} {{ product.unit }}
+        <StatusPill :variant="stockVariant(product)">
+          {{ stockLabel(product) }}
         </StatusPill>
       </div>
 
@@ -50,6 +78,7 @@ function qtyFor(product) {
             type="button"
             class="stepper-btn"
             aria-label="Increase quantity"
+            :disabled="qtyFor(product) >= stockOf(product)"
             @click.stop="emit('add', product)"
           >
             +
@@ -57,7 +86,7 @@ function qtyFor(product) {
         </div>
 
         <button
-          v-else
+          v-else-if="!isOutOfStock(product)"
           type="button"
           class="add-btn"
           aria-label="Add to cart"
@@ -65,6 +94,8 @@ function qtyFor(product) {
         >
           +
         </button>
+
+        <span v-else class="out-chip">Out</span>
       </div>
     </div>
 
@@ -75,11 +106,18 @@ function qtyFor(product) {
 </template>
 
 <style scoped>
+/*
+ * Grid height = viewport - everything above it on the POS page:
+ *   - topbar (60px, exposed as --topbar-h)
+ *   - content padding (24px top + 24px bottom = 48px)
+ *   - banner + toolbar + category chips (~200px)
+ * Using the topbar token so future topbar height changes flow through.
+ */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 12px;
-  max-height: calc(100vh - 260px);
+  max-height: calc(100vh - var(--topbar-h, 60px) - 248px);
   overflow-y: auto;
   padding-right: 4px;
 }
@@ -118,6 +156,21 @@ function qtyFor(product) {
   width: 3px;
   border-radius: 0 3px 3px 0;
   background: var(--primary);
+}
+
+/* Out of stock: greyed out, no hover affordance */
+.tile.out-of-stock {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.tile.out-of-stock:hover {
+  border-color: var(--border);
+  box-shadow: none;
+}
+
+.tile.out-of-stock .price {
+  color: var(--text-muted);
 }
 
 /* ---- Tile content ---- */
@@ -198,6 +251,22 @@ function qtyFor(product) {
   transform: scale(0.96);
 }
 
+/* ---- Out-of-stock chip replaces the + ---- */
+.out-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: var(--radius-md);
+  background: var(--surface-hover);
+  color: var(--text-muted);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
 /* ---- In cart: neutral stepper, no borders except a soft container ---- */
 .stepper {
   display: inline-flex;
@@ -226,13 +295,18 @@ function qtyFor(product) {
   transition: background 100ms ease, color 100ms ease;
 }
 
-.stepper-btn:hover {
+.stepper-btn:hover:not(:disabled) {
   background: var(--surface-hover);
   color: var(--text);
 }
 
-.stepper-btn:active {
+.stepper-btn:active:not(:disabled) {
   background: var(--border);
+}
+
+.stepper-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
 .stepper-qty {

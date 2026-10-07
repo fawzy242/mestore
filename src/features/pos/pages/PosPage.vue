@@ -1,6 +1,5 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
 import Button from 'primevue/button'
 import AppPageContainer from '@/components/ui/AppPageContainer.vue'
 import AppNoticeBanner from '@/components/ui/AppNoticeBanner.vue'
@@ -9,6 +8,8 @@ import CategoryChips from '../components/CategoryChips.vue'
 import ProductTileGrid from '../components/ProductTileGrid.vue'
 import CartButton from '../components/CartButton.vue'
 import CurrentSaleModal from '../components/CurrentSaleModal.vue'
+import PaymentModal from '../components/PaymentModal.vue'
+import TransactionSuccessModal from '../components/TransactionSuccessModal.vue'
 import ShiftModal from '@/features/shift/components/ShiftModal.vue'
 import { usePosCatalog } from '../composables/usePosCatalog.js'
 import { useDebouncedSearch } from '@/composables/useDebouncedSearch.js'
@@ -16,13 +17,14 @@ import { usePosCartStore } from '@/stores/posCart.store.js'
 import { useShift } from '@/features/shift/composables/useShift.js'
 import { formatRupiah } from '@/composables/useFormatters.js'
 
-const router = useRouter()
 const cart = usePosCartStore()
 const shift = useShift()
 const { products, categories, loading, error, filters, fetchCategories, fetchProducts } =
   usePosCatalog()
 
 const cartModalOpen = ref(false)
+const paymentModalOpen = ref(false)
+const successModalOpen = ref(false)
 const shiftModalOpen = ref(false)
 
 const { value: searchValue } = useDebouncedSearch((v) => {
@@ -62,7 +64,9 @@ function removeFromCart(product) {
 
 function increment(id) {
   const item = cart.items.find((i) => i.id === id)
-  if (item) cart.setQty(id, item.qty + 1)
+  if (!item) return
+  if (item.qty >= (item.stock ?? Infinity)) return
+  cart.setQty(id, item.qty + 1)
 }
 
 function decrement(id) {
@@ -70,15 +74,44 @@ function decrement(id) {
   if (item) cart.setQty(id, item.qty - 1)
 }
 
+/**
+ * Cart modal → Charge → open Payment modal.
+ * Closes the cart modal first (one modal at a time).
+ */
 function charge() {
   if (cart.items.length === 0) return
   cartModalOpen.value = false
-  router.push({ name: 'pos.payment' })
+  paymentModalOpen.value = true
 }
 
 function hold() {
   cart.clear()
   cartModalOpen.value = false
+}
+
+/**
+ * Payment modal → Back → reopen the cart modal so the cashier can adjust.
+ */
+function onPaymentBack() {
+  paymentModalOpen.value = false
+  cartModalOpen.value = true
+}
+
+/**
+ * Payment modal → successful submit → close Payment, open Success.
+ * The receipt is stored inside the cart store by useCheckout.submit(),
+ * so the Success modal reads it on open.
+ */
+function onPaymentSuccess() {
+  paymentModalOpen.value = false
+  successModalOpen.value = true
+}
+
+/**
+ * Success modal → New Sale → back to a clean POS view.
+ */
+function onNewSale() {
+  successModalOpen.value = false
 }
 
 function openShiftModal() {
@@ -106,16 +139,16 @@ onMounted(async () => {
           class="search-input"
           placeholder="Search product name or scan barcode…"
         />
-        <button type="button" class="scan-btn" aria-label="Scan barcode">
-          <AppIcon name="barcode-scanner" :size="20" />
+        <button type="button" class="scan-btn" aria-label="Scan barcode" title="Scan barcode">
+          <AppIcon name="barcode-scanner" :size="22" />
         </button>
       </div>
 
       <div class="toolbar-actions">
         <Button
-          :label="shift.hasOpenShift.value ? 'Shift Open' : 'Shift Closed'"
-          :icon="shift.hasOpenShift.value ? 'pi pi-clock' : 'pi pi-power-off'"
-          :severity="shift.hasOpenShift.value ? 'success' : 'warning'"
+          :label="shift.hasOpenShift.value ? 'Shift Open' : 'Open Shift'"
+          :icon="shift.hasOpenShift.value ? 'pi pi-check-circle' : 'pi pi-power-off'"
+          :severity="shift.hasOpenShift.value ? 'success' : 'secondary'"
           outlined
           @click="openShiftModal"
         />
@@ -153,6 +186,17 @@ onMounted(async () => {
       @charge="charge"
     />
 
+    <PaymentModal
+      v-model="paymentModalOpen"
+      @back="onPaymentBack"
+      @success="onPaymentSuccess"
+    />
+
+    <TransactionSuccessModal
+      v-model="successModalOpen"
+      @new-sale="onNewSale"
+    />
+
     <ShiftModal v-model="shiftModalOpen" />
   </AppPageContainer>
 </template>
@@ -184,7 +228,7 @@ onMounted(async () => {
 .search-input {
   width: 100%;
   height: 44px;
-  padding: 0 44px 0 42px;
+  padding: 0 48px 0 42px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
@@ -201,17 +245,24 @@ onMounted(async () => {
 
 .scan-btn {
   position: absolute;
-  right: 10px;
+  right: 8px;
   top: 50%;
   transform: translateY(-50%);
   background: transparent;
   border: none;
   color: var(--primary);
-  padding: 4px;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.scan-btn:hover {
+  background: var(--primary-tint);
 }
 
 .toolbar-actions {

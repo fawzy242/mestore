@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue'
+import AppIcon from './AppIcon.vue'
 
 const props = defineProps({
   label: { type: String, required: true },
@@ -24,7 +25,7 @@ const iconTone = computed(() => `icon-${props.tone}`)
     </div>
     <div v-if="icon" class="kpi-icon" :class="iconTone">
       <slot name="icon">
-        <span class="letter">{{ String(icon).charAt(0).toUpperCase() }}</span>
+        <AppIcon :name="icon" :size="18" />
       </slot>
     </div>
   </div>
@@ -94,7 +95,6 @@ const iconTone = computed(() => `icon-${props.tone}`)
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  font-size: 18px;
 }
 
 .icon-neutral {
@@ -112,10 +112,5 @@ const iconTone = computed(() => `icon-${props.tone}`)
 .icon-warning {
   background: var(--warning-bg);
   color: var(--warning);
-}
-
-.letter {
-  font-weight: 700;
-  font-size: 14px;
 }
 </style>

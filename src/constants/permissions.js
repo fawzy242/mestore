@@ -4,8 +4,6 @@ export const ROUTE_PERMISSIONS = Object.freeze({
   dashboard: [ROLE.ADMIN, ROLE.MANAGER, ROLE.CASHIER],
 
   pos: [ROLE.ADMIN, ROLE.MANAGER, ROLE.CASHIER],
-  'pos.payment': [ROLE.ADMIN, ROLE.MANAGER, ROLE.CASHIER],
-  'pos.success': [ROLE.ADMIN, ROLE.MANAGER, ROLE.CASHIER],
 
   'shift.open': [ROLE.ADMIN, ROLE.MANAGER, ROLE.CASHIER],
 

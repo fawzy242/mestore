@@ -34,8 +34,11 @@ const total = computed(() =>
     </div>
 
     <div class="total-row">
-      <span>Total</span>
-      <span class="mono">{{ formatRupiah(total) }}</span>
+      <span></span>
+      <span class="total-label">Total</span>
+      <span></span>
+      <span class="mono total-amount">{{ formatRupiah(total) }}</span>
+      <span></span>
     </div>
   </div>
 </template>
@@ -62,13 +65,17 @@ const total = computed(() =>
   flex-direction: column;
   gap: 10px;
 }
-.legend-row {
+
+/* Shared grid for both legend and total rows */
+.legend-row,
+.total-row {
   display: grid;
   grid-template-columns: 12px 1fr auto auto 44px;
   align-items: center;
   gap: 12px;
   font-size: 12.5px;
 }
+
 .legend-swatch {
   width: 12px;
   height: 12px;
@@ -94,13 +101,18 @@ const total = computed(() =>
   color: var(--text);
   text-align: right;
 }
+
 .total-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   padding-top: 12px;
   border-top: 1px solid var(--border);
   font-size: 13.5px;
   font-weight: 600;
+}
+.total-label {
+  color: var(--text);
+}
+.total-amount {
+  text-align: right;
+  color: var(--text);
 }
 </style>

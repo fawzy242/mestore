@@ -52,11 +52,49 @@ export async function getTransactionById(id) {
 }
 
 export async function createTransaction(payload) {
-  const subtotal = payload.items.reduce((sum, i) => sum + i.price * i.qty, 0)
+  const lines = Array.isArray(payload.items) ? payload.items : []
+  if (lines.length === 0) {
+    const err = new Error('Cannot create an empty transaction.')
+    err.status = 'validation'
+    throw err
+  }
+
+  // ---- Stock validation ----
+  // Resolve each line to a live product record and reject if the requested
+  // quantity exceeds what is currently on hand. This is the authoritative
+  // check; the UI's snapshot may be stale.
+  const resolvedLines = lines.map((line) => {
+    const product = db.products.find((p) => p.name === line.name && p.IsDelete === 0)
+    if (!product) {
+      const err = new Error(`Product "${line.name}" not found.`)
+      err.status = 'not_found'
+      throw err
+    }
+    const qty = Number(line.qty) || 0
+    if (qty <= 0) {
+      const err = new Error(`Invalid quantity for "${line.name}".`)
+      err.status = 'validation'
+      throw err
+    }
+    if (qty > product.stock) {
+      const err = new Error(
+        `Insufficient stock for "${line.name}". Available: ${product.stock}, requested: ${qty}.`,
+      )
+      err.status = 'validation'
+      err.fieldErrors = { items: err.message }
+      throw err
+    }
+    return { product, qty, price: Number(line.price) || product.price }
+  })
+
+  // ---- Compute totals ----
+  const subtotal = resolvedLines.reduce((sum, l) => sum + l.price * l.qty, 0)
   const discount = Number(payload.discount) || 0
   const total = Math.max(subtotal - discount, 0)
   const tendered = Number(payload.tendered) || total
   const receiptNo = generateReceiptNumber()
+
+  // ---- Persist ----
   const record = {
     id: receiptNo,
     time: new Date().toLocaleString('en-US', {
@@ -70,13 +108,19 @@ export async function createTransaction(payload) {
     total,
     method: payload.method || 'Cash',
     tendered,
-    items: payload.items.map((i) => ({ name: i.name, qty: i.qty, price: i.price })),
+    items: resolvedLines.map((l) => ({
+      name: l.product.name,
+      qty: l.qty,
+      price: l.price,
+    })),
   }
   db.transactions.unshift(record)
-  for (const line of payload.items) {
-    const product = db.products.find((p) => p.name === line.name)
-    if (product) product.stock = Math.max(product.stock - line.qty, 0)
+
+  // ---- Deduct stock (only after all lines validated) ----
+  for (const line of resolvedLines) {
+    line.product.stock = Math.max(line.product.stock - line.qty, 0)
   }
+
   return delay({
     receiptNo,
     items: record.items,

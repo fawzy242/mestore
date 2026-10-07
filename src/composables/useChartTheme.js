@@ -34,6 +34,8 @@ export function useChartTheme() {
       primaryTint: readVar('--primary-tint', '#FEF2F2'),
       warning: readVar('--warning', '#B45309'),
       success: readVar('--success', '#15803D'),
+      danger: readVar('--danger', '#B91C1C'),
+      info: readVar('--info', '#1D4ED8'),
       surface: readVar('--surface', '#FFFFFF'),
       surfaceAlt: readVar('--surface-alt', '#FAFAFA'),
     }

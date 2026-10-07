@@ -9,7 +9,8 @@ import TopProductsTable from '../components/TopProductsTable.vue'
 import CategoryBreakdownCard from '../components/CategoryBreakdownCard.vue'
 import { useReports } from '../composables/useReports.js'
 import { useToast } from '@/composables/useToast.js'
-import { exportCsv, exportXlsx, exportPdf } from '@/composables/useExport.js'
+import { exportPdf } from '@/composables/useExport.js'
+import { exportXlsx } from '@/composables/useExport.js'
 import { formatRupiah } from '@/composables/useFormatters.js'
 
 const { push } = useToast()
@@ -28,11 +29,7 @@ const {
 
 const exporting = ref('')
 
-const rangeLabel = computed(() => {
-  if (range.value === 'today') return 'Sep 24, 2026'
-  if (range.value === 'last30') return 'Aug 26 - Sep 24, 2026'
-  return 'Sep 18 - Sep 24, 2026'
-})
+const rangeLabel = computed(() => summary.value?.rangeLabel ?? '')
 
 const exportFilenameBase = computed(() => {
   const slug = range.value.replace(/\s+/g, '-').toLowerCase()
@@ -46,7 +43,6 @@ const exportFilenameBase = computed(() => {
 async function onExportCsv() {
   exporting.value = 'csv'
   try {
-    // Combine everything into a single flat CSV with sections
     const sections = []
     sections.push(['MeStore — Reports Export'])
     sections.push([`Range: ${rangeLabel.value}`])
@@ -351,7 +347,7 @@ onMounted(fetchReports)
 }
 .bar-row {
   display: grid;
-  grid-template-columns: 160px 1fr 110px;
+  grid-template-columns: 160px 1fr 130px;
   align-items: center;
   gap: 12px;
   font-size: 12.5px;
@@ -380,6 +376,7 @@ onMounted(fetchReports)
   color: var(--text);
   font-weight: 600;
   font-size: 12px;
+  white-space: nowrap;
 }
 
 .payment-grid {

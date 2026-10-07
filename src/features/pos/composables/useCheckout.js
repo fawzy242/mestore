@@ -16,8 +16,19 @@ export function useCheckout() {
   const tenderedNumber = computed(() => Number(tendered.value) || 0)
   const change = computed(() => Math.max(tenderedNumber.value - total.value, 0))
   const shortBy = computed(() => Math.max(total.value - tenderedNumber.value, 0))
+
+  /**
+   * True when every cart line still fits within its stock snapshot.
+   * This is a UI pre-flight check — the service layer re-validates against
+   * live stock before committing.
+   */
+  const stockOk = computed(() =>
+    cart.items.every((i) => i.qty <= (i.stock ?? Infinity)),
+  )
+
   const canSubmit = computed(() => {
     if (cart.items.length === 0) return false
+    if (!stockOk.value) return false
     if (method.value !== 'Cash') return true
     return tenderedNumber.value >= total.value
   })
@@ -53,6 +64,7 @@ export function useCheckout() {
     total,
     change,
     shortBy,
+    stockOk,
     canSubmit,
     submit,
   }

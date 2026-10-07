@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store.js'
 import { useUiStore } from '@/stores/ui.store.js'
@@ -143,16 +143,30 @@ onMounted(() => {
   width: var(--sidebar-w-collapsed);
 }
 
+/* Aligns the sidebar header baseline with the topbar.
+ * Height comes from --topbar-h so the two horizontal separator lines
+ * render as a single continuous line across the top of the app. */
 .sidebar-header {
+  height: var(--topbar-h);
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 16px;
+  padding: 0 16px;
   border-bottom: 1px solid var(--sidebar-border);
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .sidebar.collapsed .sidebar-header {
   justify-content: center;
+  padding: 0;
+  gap: 0;
+}
+
+/* When collapsed, the header only has room for one child.
+ * Keep the toggle (functional) and hide the brand (decorative). */
+.sidebar.collapsed .brand {
+  display: none;
 }
 
 .brand {

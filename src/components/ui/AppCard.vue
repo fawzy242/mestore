@@ -20,9 +20,9 @@ defineProps({
 
 <style scoped>
 .card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-m);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-1);
   overflow: hidden;
 }
@@ -33,11 +33,11 @@ defineProps({
 
 .card.padded .card-header {
   padding: 16px 20px;
-  border-bottom: 1px solid var(--color-line);
+  border-bottom: 1px solid var(--border);
 }
 
 .card.padded .card-footer {
   padding: 16px 20px;
-  border-top: 1px solid var(--color-line);
+  border-top: 1px solid var(--border);
 }
 </style>

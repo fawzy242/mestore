@@ -58,18 +58,6 @@ export const routes = [
         component: () => import('@/features/pos/pages/PosPage.vue'),
         meta: { requiresAuth: true, title: 'POS / Sales', requiresOpenShift: true },
       },
-      {
-        path: 'pos/payment',
-        name: 'pos.payment',
-        component: () => import('@/features/pos/pages/PaymentPage.vue'),
-        meta: { requiresAuth: true, title: 'Payment' },
-      },
-      {
-        path: 'pos/success',
-        name: 'pos.success',
-        component: () => import('@/features/pos/pages/TransactionSuccessPage.vue'),
-        meta: { requiresAuth: true, title: 'Transaction Complete' },
-      },
 
       // Shift
       {
