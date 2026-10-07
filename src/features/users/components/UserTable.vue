@@ -19,8 +19,7 @@ defineProps({
 const emit = defineEmits([
   'view',
   'edit',
-  'deactivate',
-  'reactivate',
+  'delete',
   'page-change',
   'sort-change',
   'retry',
@@ -56,7 +55,6 @@ function roleLabel(v) {
     :sort-dir="sortDir"
     :selectable="selectable"
     :selected-keys="selectedKeys"
-    clickable-rows
     empty-message="No users found."
     @update:selected-keys="(v) => emit('update:selectedKeys', v)"
     @row-click="(row) => emit('view', row)"
@@ -83,21 +81,12 @@ function roleLabel(v) {
     </template>
 
     <template #cell-status="{ row }">
-      <StatusPill :variant="row.status === 'Active' ? 'success' : 'neutral'">
-        {{ row.status }}
+      <StatusPill :variant="row.IsActive === 1 ? 'success' : 'neutral'">
+        {{ row.IsActive === 1 ? 'Active' : 'Inactive' }}
       </StatusPill>
     </template>
 
     <template #row-actions="{ row }">
-      <Button
-        icon="pi pi-eye"
-        severity="secondary"
-        text
-        rounded
-        size="small"
-        aria-label="View"
-        @click.stop="emit('view', row)"
-      />
       <Button
         icon="pi pi-pencil"
         severity="secondary"
@@ -108,24 +97,13 @@ function roleLabel(v) {
         @click.stop="emit('edit', row)"
       />
       <Button
-        v-if="row.status === 'Active'"
-        icon="pi pi-ban"
+        icon="pi pi-trash"
         severity="danger"
         text
         rounded
         size="small"
-        aria-label="Deactivate"
-        @click.stop="emit('deactivate', row)"
-      />
-      <Button
-        v-else
-        icon="pi pi-check-circle"
-        severity="success"
-        text
-        rounded
-        size="small"
-        aria-label="Reactivate"
-        @click.stop="emit('reactivate', row)"
+        aria-label="Delete"
+        @click.stop="emit('delete', row)"
       />
     </template>
   </AppTable>
@@ -137,12 +115,10 @@ function roleLabel(v) {
   align-items: center;
   gap: 10px;
 }
-
 .name-text {
   font-weight: 500;
   color: var(--text);
 }
-
 .role-cell {
   display: inline-flex;
   align-items: center;
@@ -150,7 +126,6 @@ function roleLabel(v) {
   font-weight: 500;
   color: var(--text);
 }
-
 .role-dot {
   width: 8px;
   height: 8px;

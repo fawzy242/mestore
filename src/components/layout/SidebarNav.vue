@@ -31,15 +31,23 @@ const collapsed = computed(() => {
   return ui.sidebarCollapsed
 })
 
-// Route name → Material Symbol name
+// Route name → Material Symbols icon name (via Iconify)
 const iconMap = {
   dashboard: 'dashboard',
   pos: 'shopping-cart',
   'products.list': 'inventory-2',
   'categories.list': 'category',
+  'stock.list': 'warehouse',
   'transactions.list': 'receipt-long',
+  'shifts.list': 'schedule',
+  'suppliers.list': 'local-shipping',
+  'purchases.list': 'shopping-basket',
+  'refunds.list': 'assignment-return',
+  'customers.list': 'group',
+  'discounts.list': 'sell',
+  'cash-movements.list': 'payments',
   reports: 'bar-chart',
-  'users.list': 'group',
+  'users.list': 'badge',
 }
 
 function isActive(name) {

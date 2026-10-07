@@ -1,11 +1,9 @@
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
-import Button from 'primevue/button'
+import { computed, onMounted, ref } from 'vue'
 import AppPageContainer from '@/components/ui/AppPageContainer.vue'
-import AppToolbar from '@/components/ui/AppToolbar.vue'
-import AppSearchInput from '@/components/ui/AppSearchInput.vue'
 import KPIBar from '@/components/ui/KPIBar.vue'
 import KPIStat from '@/components/ui/KPIStat.vue'
+import { CrudToolbar, CrudTabs, BulkActionBar } from '@/components/crud/index.js'
 import CategoryTable from '../components/CategoryTable.vue'
 import CategoryFormModal from '../components/CategoryFormModal.vue'
 import CategoryViewModal from '../components/CategoryViewModal.vue'
@@ -20,19 +18,39 @@ const {
   loading,
   error,
   search,
+  activeTab,
+  sort,
   fetchCategories,
   removeCategory,
   bulkSetStatus,
+  bulkDelete,
   setStatusTab,
+  setSort,
 } = useCategories()
 
-const activeTab = ref('Active')
 const selectedKeys = ref([])
+const formOpen = ref(false)
+const formId = ref(null)
+const viewOpen = ref(false)
+const viewId = ref(null)
+const refreshing = ref(false)
 
-const formModalOpen = ref(false)
-const formCategoryId = ref(null)
-const viewModalOpen = ref(false)
-const viewCategoryId = ref(null)
+const tabs = [
+  { value: 'Active', label: 'Active' },
+  { value: 'Inactive', label: 'Inactive' },
+]
+
+const bulkActions = computed(() =>
+  activeTab.value === 'Active'
+    ? [
+        { key: 'deactivate', label: 'Deactivate', icon: 'pi pi-ban', severity: 'danger' },
+        { key: 'delete', label: 'Delete', icon: 'pi pi-trash', severity: 'danger' },
+      ]
+    : [
+        { key: 'activate', label: 'Activate', icon: 'pi pi-check-circle', severity: 'success' },
+        { key: 'delete', label: 'Delete', icon: 'pi pi-trash', severity: 'danger' },
+      ],
+)
 
 const kpis = computed(() => {
   const total = rows.value.length
@@ -44,39 +62,34 @@ const kpis = computed(() => {
   }
 })
 
-watch(search, fetchCategories)
-
 function onTabChange(next) {
-  activeTab.value = next
   selectedKeys.value = []
   setStatusTab(next)
 }
 
+async function onRefresh() {
+  refreshing.value = true
+  await fetchCategories()
+  refreshing.value = false
+}
+
 function openAdd() {
-  formCategoryId.value = null
-  formModalOpen.value = true
+  formId.value = null
+  formOpen.value = true
 }
-
 function openEdit(row) {
-  formCategoryId.value = row.id
-  formModalOpen.value = true
+  formId.value = row.id
+  formOpen.value = true
 }
-
 function openView(row) {
-  viewCategoryId.value = row.id
-  viewModalOpen.value = true
-}
-
-function editFromView(id) {
-  viewModalOpen.value = false
-  formCategoryId.value = id
-  formModalOpen.value = true
+  viewId.value = row.id
+  viewOpen.value = true
 }
 
 async function askDelete(row) {
   await confirmAction({
     header: 'Delete category?',
-    message: `Delete "${row.name}"? Products already in this category keep their data but lose this grouping. This can't be undone.`,
+    message: `Delete "${row.name}"? The record is hidden from both tabs. Products keep their data.`,
     acceptLabel: 'Delete',
     rejectLabel: 'Cancel',
     variant: 'danger',
@@ -88,35 +101,36 @@ async function askDelete(row) {
   })
 }
 
-async function bulkDeactivate() {
+async function onBulkAction(key) {
   if (!selectedKeys.value.length) return
   const count = selectedKeys.value.length
-  await confirmAction({
-    header: 'Deactivate selected categories?',
-    message: `Deactivate ${count} selected categor${count === 1 ? 'y' : 'ies'}?`,
-    acceptLabel: 'Deactivate',
-    rejectLabel: 'Cancel',
-    variant: 'danger',
-    accept: async () => {
-      await bulkSetStatus(selectedKeys.value, 'Inactive')
-      push(`${count} categories deactivated`)
-      selectedKeys.value = []
-    },
-  })
-}
 
-async function bulkActivate() {
-  if (!selectedKeys.value.length) return
-  const count = selectedKeys.value.length
+  if (key === 'delete') {
+    await confirmAction({
+      header: 'Delete selected?',
+      message: `Delete ${count} categor${count === 1 ? 'y' : 'ies'}? They will be hidden from both tabs.`,
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
+      variant: 'danger',
+      accept: async () => {
+        await bulkDelete(selectedKeys.value)
+        push(`${count} categor${count === 1 ? 'y' : 'ies'} deleted`)
+        selectedKeys.value = []
+      },
+    })
+    return
+  }
+
+  const isActivate = key === 'activate'
   await confirmAction({
-    header: 'Activate selected categories?',
-    message: `Activate ${count} selected categor${count === 1 ? 'y' : 'ies'}?`,
-    acceptLabel: 'Activate',
+    header: isActivate ? 'Activate selected?' : 'Deactivate selected?',
+    message: `${isActivate ? 'Activate' : 'Deactivate'} ${count} categor${count === 1 ? 'y' : 'ies'}?`,
+    acceptLabel: isActivate ? 'Activate' : 'Deactivate',
     rejectLabel: 'Cancel',
-    variant: 'success',
+    variant: isActivate ? 'success' : 'danger',
     accept: async () => {
-      await bulkSetStatus(selectedKeys.value, 'Active')
-      push(`${count} categories activated`)
+      await bulkSetStatus(selectedKeys.value, isActivate ? 'Active' : 'Inactive')
+      push(`${count} categor${count === 1 ? 'y' : 'ies'} ${isActivate ? 'activated' : 'deactivated'}`)
       selectedKeys.value = []
     },
   })
@@ -131,25 +145,6 @@ onMounted(fetchCategories)
 
 <template>
   <AppPageContainer>
-    <div class="mestore-tabs">
-      <button
-        type="button"
-        class="mestore-tab"
-        :class="{ active: activeTab === 'Active' }"
-        @click="onTabChange('Active')"
-      >
-        Active
-      </button>
-      <button
-        type="button"
-        class="mestore-tab"
-        :class="{ active: activeTab === 'Inactive' }"
-        @click="onTabChange('Inactive')"
-      >
-        Inactive
-      </button>
-    </div>
-
     <KPIBar :columns="3">
       <KPIStat label="Active Taxonomy" :value="kpis.taxonomy" icon="layers" tone="primary" />
       <KPIStat label="Indexed SKUs" :value="kpis.skus" icon="qr-code-2" tone="neutral" />
@@ -162,55 +157,37 @@ onMounted(fetchCategories)
       />
     </KPIBar>
 
-    <AppToolbar>
-      <template #search>
-        <AppSearchInput v-model="search" placeholder="Search categories…" />
-      </template>
-      <template #actions>
-        <Button label="Add Category" icon="pi pi-plus" @click="openAdd" />
-      </template>
-    </AppToolbar>
+    <CrudToolbar
+      v-model:search="search"
+      search-placeholder="Search categories…"
+      add-label="Add Category"
+      :refreshing="refreshing"
+      @refresh="onRefresh"
+      @add="openAdd"
+    />
 
-    <div v-if="selectedKeys.length" class="bulk-bar">
-      <span class="bulk-count">{{ selectedKeys.length }} selected</span>
-      <Button
-        v-if="activeTab === 'Active'"
-        label="Deactivate"
-        icon="pi pi-ban"
-        severity="danger"
-        outlined
-        size="small"
-        @click="bulkDeactivate"
-      />
-      <Button
-        v-else
-        label="Activate"
-        icon="pi pi-check-circle"
-        severity="success"
-        outlined
-        size="small"
-        @click="bulkActivate"
-      />
-      <Button
-        label="Clear"
-        icon="pi pi-times"
-        text
-        severity="secondary"
-        size="small"
-        @click="selectedKeys = []"
-      />
-    </div>
+    <CrudTabs :model-value="activeTab" :tabs="tabs" @update:model-value="onTabChange" />
+
+    <BulkActionBar
+      :count="selectedKeys.length"
+      :actions="bulkActions"
+      @action="onBulkAction"
+      @clear="selectedKeys = []"
+    />
 
     <CategoryTable
       :rows="rows"
       :loading="loading"
       :error="error"
-      selectable
+      :selectable="true"
       :selected-keys="selectedKeys"
+      :sort-key="sort.key"
+      :sort-dir="sort.dir"
       @update:selected-keys="(v) => (selectedKeys = v)"
       @view="openView"
       @edit="openEdit"
       @delete="askDelete"
+      @sort-change="setSort"
       @retry="fetchCategories"
     />
 
@@ -218,38 +195,12 @@ onMounted(fetchCategories)
       Showing <span class="mono">{{ rows.length }}</span> {{ activeTab.toLowerCase() }} categories
     </p>
 
-    <CategoryFormModal
-      v-model="formModalOpen"
-      :category-id="formCategoryId"
-      @saved="onSaved"
-    />
-    <CategoryViewModal
-      v-model="viewModalOpen"
-      :category-id="viewCategoryId"
-      @edit="editFromView"
-    />
+    <CategoryFormModal v-model="formOpen" :category-id="formId" @saved="onSaved" />
+    <CategoryViewModal v-model="viewOpen" :category-id="viewId" @edit="openEdit" />
   </AppPageContainer>
 </template>
 
 <style scoped>
-.bulk-bar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  background: var(--primary-tint);
-  border: 1px solid var(--primary);
-  border-radius: var(--radius-md);
-  margin-bottom: 12px;
-}
-
-.bulk-count {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--primary);
-  margin-right: auto;
-}
-
 .page-footer {
   text-align: right;
   font-size: 12px;

@@ -6,6 +6,7 @@ import AppSpinner from '@/components/ui/AppSpinner.vue'
 import AppDetailRow from '@/components/ui/AppDetailRow.vue'
 import StatusPill from '@/components/ui/StatusPill.vue'
 import ReceiptBlock from '@/components/ui/ReceiptBlock.vue'
+import AppIcon from '@/components/ui/AppIcon.vue'
 import * as transactionsService from '@/services/api/transactions.service.js'
 
 const props = defineProps({
@@ -43,6 +44,10 @@ function print() {
   window.print()
 }
 
+function close() {
+  visible.value = false
+}
+
 watch(
   () => [visible.value, props.transactionId],
   ([open]) => {
@@ -61,35 +66,99 @@ onMounted(() => {
     modal
     :draggable="false"
     :style="{ width: '560px' }"
-    header="Transaction Detail"
+    :show-header="false"
   >
-    <div v-if="loading" class="loading">
-      <AppSpinner />
+    <div class="modal-head">
+      <span class="head-icon">
+        <AppIcon name="receipt-long" :size="20" />
+      </span>
+      <h2 class="head-title">Transaction Detail</h2>
+      <button
+        type="button"
+        class="head-close"
+        aria-label="Close"
+        @click="close"
+      >
+        <AppIcon name="close" :size="14" />
+      </button>
     </div>
 
-    <div v-else-if="transaction" class="body">
-      <div class="tx-head">
-        <h3 class="tx-title">Receipt #{{ transaction.id }}</h3>
-        <StatusPill variant="success">Completed</StatusPill>
+    <div class="modal-body">
+      <div v-if="loading" class="loading">
+        <AppSpinner />
       </div>
 
-      <ReceiptBlock :receipt="transaction" />
+      <div v-else-if="transaction" class="body">
+        <div class="tx-head">
+          <h3 class="tx-title">Receipt #{{ transaction.id }}</h3>
+          <StatusPill variant="success">Completed</StatusPill>
+        </div>
 
-      <div class="details">
-        <AppDetailRow label="Payment">{{ transaction.method }}</AppDetailRow>
-        <AppDetailRow label="Cashier">{{ transaction.cashier }}</AppDetailRow>
-        <AppDetailRow label="Time">{{ transaction.time }}</AppDetailRow>
+        <ReceiptBlock :receipt="transaction" />
+
+        <div class="details">
+          <AppDetailRow label="Payment">{{ transaction.method }}</AppDetailRow>
+          <AppDetailRow label="Cashier">{{ transaction.cashier }}</AppDetailRow>
+          <AppDetailRow label="Time">{{ transaction.time }}</AppDetailRow>
+        </div>
       </div>
     </div>
 
-    <template #footer>
-      <Button label="Close" text severity="secondary" @click="visible = false" />
+    <div class="mestore-modal-foot">
+      <Button label="Close" text severity="secondary" @click="close" />
       <Button label="Print Receipt" icon="pi pi-print" @click="print" />
-    </template>
+    </div>
   </Dialog>
 </template>
 
 <style scoped>
+.modal-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border);
+}
+.head-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--primary-tint);
+  color: var(--primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.head-title {
+  flex: 1;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+.head-close {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+.head-close:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.modal-body {
+  padding: 22px;
+}
+
 .loading {
   padding: 40px;
   display: flex;
@@ -101,20 +170,17 @@ onMounted(() => {
   flex-direction: column;
   gap: 16px;
 }
-
 .tx-head {
   display: flex;
   align-items: center;
   gap: 12px;
 }
-
 .tx-title {
   margin: 0;
   font-size: 17px;
   font-weight: 600;
   color: var(--text);
 }
-
 .details {
   display: flex;
   flex-direction: column;

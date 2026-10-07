@@ -72,15 +72,6 @@ const columns = [
 
     <template #row-actions="{ row }">
       <Button
-        icon="pi pi-eye"
-        severity="secondary"
-        text
-        rounded
-        size="small"
-        aria-label="View"
-        @click.stop="emit('view', row)"
-      />
-      <Button
         icon="pi pi-pencil"
         severity="secondary"
         text
@@ -109,13 +100,11 @@ const columns = [
   gap: 10px;
   min-width: 0;
 }
-
 .name-text {
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
-
 .name-primary {
   font-weight: 500;
   color: var(--text);
@@ -123,7 +112,6 @@ const columns = [
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
 .name-secondary {
   font-size: 11.5px;
   color: var(--text-muted);

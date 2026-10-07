@@ -7,11 +7,10 @@ export function useProducts() {
   const rows = ref([])
   const loading = ref(false)
   const error = ref(null)
-  const filters = reactive({ search: '', category: '', status: 'Active' })
+  const filters = reactive({ search: '', category: '', isActive: true })
   const sort = reactive({ key: '', dir: 'asc' })
-  const { page, pageSize, total, pageCount, setTotal, goToPage, reset } = usePagination({
-    pageSize: 10,
-  })
+  const { page, pageSize, total, pageCount, setTotal, goToPage, reset } =
+    usePagination({ pageSize: 10 })
 
   async function fetchProducts() {
     loading.value = true
@@ -20,7 +19,7 @@ export function useProducts() {
       const result = await productsService.getProducts({
         search: filters.search,
         category: filters.category,
-        status: filters.status,
+        isActive: filters.isActive,
         page: page.value,
         pageSize: pageSize.value,
         sortKey: sort.key,
@@ -48,13 +47,18 @@ export function useProducts() {
     await fetchProducts()
   }
 
+  async function bulkDelete(ids) {
+    await productsService.bulkDeleteProducts(ids)
+    await fetchProducts()
+  }
+
   function applyFilter() {
     reset()
     fetchProducts()
   }
 
-  function setStatusTab(status) {
-    filters.status = status
+  function setStatusTab(tabValue) {
+    filters.isActive = tabValue === 'Active'
     reset()
     fetchProducts()
   }
@@ -82,6 +86,7 @@ export function useProducts() {
     fetchProducts,
     removeProduct,
     bulkSetStatus,
+    bulkDelete,
     applyFilter,
     setStatusTab,
     setSort,

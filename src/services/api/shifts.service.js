@@ -1,31 +1,43 @@
 /**
- * Shifts service — future backend integration point.
- *
- * The current MVP manages shift state entirely client-side via
- * `src/features/shift/composables/useShift.js` (which persists the drawer
- * amount, running sales total, and open/closed flag to localStorage).
- *
- * No code currently imports this module. When the backend contract for the
- * shift lifecycle is confirmed, the three functions below become real
- * `httpClient` calls, and `useShift` is refactored to call them instead of
- * touching localStorage directly.
- *
- * Function shapes below mirror the signature useShift would need:
- *   openShift({ startingCash }) -> { startingCash, salesTotal, openedAt }
- *   closeShift({ countedCash }) -> { expected, counted, variance, closedAt }
- *   getShiftSummary()          -> { startingCash, salesTotal, expected }
+ * Shift Management service — view-only.
+ * The shift lifecycle (open / close) is handled by useShift on the POS page.
+ * This service only reads the historical shift records.
  */
+import { db, delay } from '@/services/mock/data.js'
 
-import httpClient from '@/services/http/httpClient.js'
+export async function getShifts(params = {}) {
+  const { search = '', status = '', page = 1, pageSize = 10 } = params
 
-export function openShift(payload) {
-  return httpClient.post('/shifts/open', payload)
+  let items = [...db.shifts]
+
+  if (status) {
+    items = items.filter((s) => s.status === status)
+  }
+
+  if (search) {
+    const q = search.toLowerCase()
+    items = items.filter(
+      (s) =>
+        String(s.id).toLowerCase().includes(q) ||
+        s.cashier.toLowerCase().includes(q),
+    )
+  }
+
+  items.sort((a, b) => (a.date < b.date ? 1 : -1))
+
+  const total = items.length
+  const start = (page - 1) * pageSize
+  const slice = items.slice(start, start + pageSize)
+
+  return delay({ items: slice, total, page, pageSize })
 }
 
-export function closeShift(payload) {
-  return httpClient.post('/shifts/close', payload)
-}
-
-export function getShiftSummary() {
-  return httpClient.get('/shifts/current')
+export async function getShiftById(id) {
+  const found = db.shifts.find((s) => String(s.id) === String(id))
+  if (!found) {
+    const err = new Error('Shift not found')
+    err.status = 'not_found'
+    throw err
+  }
+  return delay(found)
 }

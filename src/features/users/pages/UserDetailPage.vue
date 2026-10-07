@@ -2,7 +2,6 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Button from 'primevue/button'
-import { useConfirm } from 'primevue/useconfirm'
 import AppPageContainer from '@/components/ui/AppPageContainer.vue'
 import AppCard from '@/components/ui/AppCard.vue'
 import AppDetailRow from '@/components/ui/AppDetailRow.vue'
@@ -13,30 +12,32 @@ import AppAlert from '@/components/ui/AppAlert.vue'
 import UserFormModal from '../components/UserFormModal.vue'
 import { useUserDetail } from '../composables/useUserDetail.js'
 import { useToast } from '@/composables/useToast.js'
+import { useConfirm } from '@/composables/useConfirm.js'
 import * as usersService from '@/services/api/users.service.js'
 
 const route = useRoute()
 const router = useRouter()
-const confirm = useConfirm()
 const { push } = useToast()
+const { confirmAction } = useConfirm()
 
 const userId = computed(() => route.params.id)
 const { user, loading, error, fetchUser } = useUserDetail(userId.value)
 
 const modalOpen = ref(false)
 
+const isActive = computed(() => user.value?.IsActive === 1)
+
 function openEdit() {
   modalOpen.value = true
 }
 
-function askDeactivate() {
-  confirm.require({
+async function askDeactivate() {
+  await confirmAction({
     header: 'Deactivate user?',
     message: `Deactivate "${user.value.name}"? They will no longer be able to log in. Their transaction history is kept.`,
-    icon: 'pi pi-exclamation-triangle',
     acceptLabel: 'Deactivate',
     rejectLabel: 'Cancel',
-    acceptClass: 'p-button-danger',
+    variant: 'danger',
     accept: async () => {
       await usersService.deactivateUser(user.value.id)
       push('User deactivated')
@@ -76,15 +77,15 @@ onMounted(fetchUser)
           {{ user.role.charAt(0).toUpperCase() + user.role.slice(1) }}
         </AppDetailRow>
         <AppDetailRow label="Status">
-          <StatusPill :variant="user.status === 'Active' ? 'success' : 'neutral'">
-            {{ user.status }}
+          <StatusPill :variant="isActive ? 'success' : 'neutral'">
+            {{ isActive ? 'Active' : 'Inactive' }}
           </StatusPill>
         </AppDetailRow>
 
         <div class="actions">
           <Button label="Edit" icon="pi pi-pencil" outlined @click="openEdit" />
           <Button
-            v-if="user.status === 'Active'"
+            v-if="isActive"
             label="Deactivate"
             icon="pi pi-ban"
             severity="danger"

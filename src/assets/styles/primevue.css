@@ -1,6 +1,6 @@
 /* ============================================================
  * MeStore × PrimeVue — Unified Component Styles
- * One button system. One close button. One focus ring.
+ * One button system. One modal footer layout. One close button.
  * ============================================================ */
 
 :root,
@@ -63,21 +63,8 @@
 
 /* ============================================================
  * BUTTON SYSTEM — 5 variants, 1 scale
- *   .p-button                       → primary (filled red)
- *   .p-button-outlined              → secondary (outline)
- *   .p-button-text                  → tertiary (text)
- *   .p-button-danger                → destructive
- *   .p-button-success               → positive (bulk activate)
- *
- * Rules:
- *   • No focus ring by default. Only :focus-visible shows a ring.
- *   • No shadows, no gradients.
- *   • Same height, padding, radius, font, gap across all variants.
- *   • Icon-only buttons have consistent square sizing.
  * ============================================================ */
-
 .p-button {
-    /* Layout */
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -86,13 +73,11 @@
     min-height: var(--btn-h);
     padding: 0 var(--btn-px);
     border-radius: var(--btn-radius);
-    /* Typography */
     font-family: inherit;
     font-size: var(--btn-font-size);
     font-weight: var(--btn-font-weight);
     line-height: 1;
     letter-spacing: 0;
-    /* Visual */
     border: 1px solid transparent;
     background: transparent;
     color: inherit;
@@ -101,22 +86,18 @@
     outline: none;
     transition: background-color 120ms ease, border-color 120ms ease,
         color 120ms ease;
-    /* Prevent native focus artifacts */
     -webkit-appearance: none;
     appearance: none;
 }
 
-/* Kill EVERY PrimeVue focus ring variant */
 .p-button:focus,
 .p-button:enabled:focus,
 .p-button:not(:disabled):focus,
 .p-button.p-focus {
     outline: none !important;
     box-shadow: none !important;
-    border-color: inherit;
 }
 
-/* Single accessible focus ring on keyboard navigation only */
 .p-button:focus-visible {
     outline: none !important;
     box-shadow: 0 0 0 3px var(--primary-ring) !important;
@@ -133,11 +114,6 @@
     font-size: var(--btn-icon-size);
 }
 
-.p-button .p-button-label {
-    flex: initial;
-}
-
-/* Small variant */
 .p-button.p-button-sm {
     height: var(--btn-h-sm);
     min-height: var(--btn-h-sm);
@@ -149,7 +125,6 @@
     font-size: 12px;
 }
 
-/* Large variant */
 .p-button.p-button-lg {
     height: var(--btn-h-lg);
     min-height: var(--btn-h-lg);
@@ -157,7 +132,6 @@
     font-size: 14px;
 }
 
-/* Icon-only */
 .p-button.p-button-icon-only,
 .p-button.p-button-rounded.p-button-icon-only {
     width: var(--btn-h);
@@ -176,7 +150,7 @@
     padding: 0;
 }
 
-/* ---------- 1. PRIMARY (filled red) ---------- */
+/* 1. PRIMARY */
 .p-button:not(.p-button-outlined):not(.p-button-text):not(.p-button-link):not(.p-button-danger):not(.p-button-secondary):not(.p-button-success) {
     background: var(--primary);
     border-color: var(--primary);
@@ -188,7 +162,7 @@
     border-color: var(--primary-hover);
 }
 
-/* ---------- 2. SECONDARY (outlined) ---------- */
+/* 2. SECONDARY (outlined) */
 .p-button.p-button-outlined,
 .p-button.p-button-outlined.p-button-secondary {
     background: var(--surface);
@@ -202,7 +176,6 @@
     border-color: var(--border-strong);
 }
 
-/* Filled secondary (neutral) */
 .p-button.p-button-secondary:not(.p-button-outlined):not(.p-button-text) {
     background: var(--surface-hover);
     border-color: var(--surface-hover);
@@ -214,7 +187,12 @@
     border-color: var(--border);
 }
 
-/* ---------- 3. TERTIARY (text) ---------- */
+/* ------------------------------------------------------------
+ * 3. TERTIARY / TEXT — borderless by default
+ *    Use only for inline text actions, table row icons, and
+ *    small utilities like CLEAR / Refresh that should have no
+ *    visual chrome.
+ * ---------------------------------------------------------- */
 .p-button.p-button-text,
 .p-button.p-button-link {
     background: transparent;
@@ -230,7 +208,7 @@
     color: var(--text);
 }
 
-/* ---------- 4. DANGER ---------- */
+/* 4. DANGER */
 .p-button.p-button-danger:not(.p-button-outlined):not(.p-button-text):not(.p-button-link) {
     background: var(--danger);
     border-color: var(--danger);
@@ -262,7 +240,7 @@
     background: var(--danger-bg);
 }
 
-/* ---------- 5. SUCCESS ---------- */
+/* 5. SUCCESS */
 .p-button.p-button-success:not(.p-button-outlined):not(.p-button-text) {
     background: var(--success);
     border-color: var(--success);
@@ -284,7 +262,6 @@
     background: var(--success-bg);
 }
 
-/* Disabled state */
 .p-button:disabled,
 .p-button.p-disabled {
     opacity: 0.5;
@@ -293,7 +270,7 @@
 }
 
 /* ============================================================
- * DIALOG — one header style, one close button style, everywhere
+ * DIALOG
  * ============================================================ */
 .p-dialog {
     border-radius: var(--radius-lg);
@@ -325,8 +302,11 @@
     background: var(--surface);
 }
 
-.p-dialog .p-dialog-footer {
+/* ---- Modal footer layout ---- */
+.p-dialog .p-dialog-footer,
+.mestore-modal-foot {
     display: flex;
+    align-items: center;
     justify-content: flex-end;
     gap: 8px;
     padding: 14px 22px;
@@ -334,7 +314,62 @@
     background: var(--surface);
 }
 
-/* ---- The ONE close button ---- */
+.p-dialog .p-dialog-footer>.p-button,
+.mestore-modal-foot>.p-button {
+    margin: 0;
+    flex: 0 0 auto;
+}
+
+.p-dialog .p-dialog-footer>.p-button:last-child,
+.mestore-modal-foot>.p-button:last-child {
+    min-width: 120px;
+}
+
+.mestore-modal-foot.split {
+    justify-content: space-between;
+}
+
+/* ------------------------------------------------------------
+ * SECONDARY ACTIONS IN FOOTERS
+ * Only within modal footers, text buttons get a subtle outline so
+ * Cancel / Close / Hold are clearly recognisable as buttons.
+ * This does NOT affect text buttons elsewhere in the app
+ * (table row actions, CLEAR pill, etc.).
+ * ---------------------------------------------------------- */
+.p-dialog .p-dialog-footer>.p-button.p-button-text,
+.p-dialog .p-dialog-footer>.p-button.p-button-link,
+.mestore-modal-foot>.p-button.p-button-text,
+.mestore-modal-foot>.p-button.p-button-link {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 0 var(--btn-px);
+}
+
+.p-dialog .p-dialog-footer>.p-button.p-button-text:hover:not(:disabled),
+.p-dialog .p-dialog-footer>.p-button.p-button-link:hover:not(:disabled),
+.mestore-modal-foot>.p-button.p-button-text:hover:not(:disabled),
+.mestore-modal-foot>.p-button.p-button-link:hover:not(:disabled) {
+    background: var(--surface-hover);
+    border-color: var(--border-strong);
+    color: var(--text);
+}
+
+/* Danger-styled footer text buttons keep the danger outline */
+.p-dialog .p-dialog-footer>.p-button.p-button-text.p-button-danger,
+.mestore-modal-foot>.p-button.p-button-text.p-button-danger {
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+.p-dialog .p-dialog-footer>.p-button.p-button-text.p-button-danger:hover:not(:disabled),
+.mestore-modal-foot>.p-button.p-button-text.p-button-danger:hover:not(:disabled) {
+    background: var(--danger-bg);
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+/* Close button — remains icon-only, no border */
 .p-dialog .p-dialog-header-close,
 .p-dialog .p-dialog-header-icon,
 .p-dialog .p-dialog-close-button {
@@ -362,7 +397,6 @@
 .p-dialog .p-dialog-close-button:hover {
     background: var(--surface-hover) !important;
     color: var(--text) !important;
-    box-shadow: none !important;
 }
 
 .p-dialog .p-dialog-header-close:focus,

@@ -24,7 +24,6 @@ const visible = computed({
   set: (v) => emit('update:modelValue', v),
 })
 
-// Persist profile extras locally for the mock
 const profileExtras = useLocalStorage('mestore.profileExtras', {
   email: '',
   phone: '',
@@ -77,7 +76,6 @@ function save() {
     push('Passwords do not match', { severity: 'error' })
     return
   }
-  // Persist
   profileExtras.value = {
     email: form.value.email,
     phone: form.value.phone,
@@ -89,6 +87,10 @@ function save() {
   push('Profile updated')
   visible.value = false
 }
+
+function close() {
+  visible.value = false
+}
 </script>
 
 <template>
@@ -97,10 +99,24 @@ function save() {
     modal
     :draggable="false"
     :style="{ width: '560px' }"
-    header="Manage Profile"
+    :show-header="false"
   >
-    <div class="body">
-      <!-- Avatar + photo uploader -->
+    <div class="modal-head">
+      <span class="head-icon">
+        <AppIcon name="manage-accounts" :size="20" />
+      </span>
+      <h2 class="head-title">Manage Profile</h2>
+      <button
+        type="button"
+        class="head-close"
+        aria-label="Close"
+        @click="close"
+      >
+        <AppIcon name="close" :size="14" />
+      </button>
+    </div>
+
+    <div class="modal-body">
       <div class="avatar-row">
         <div class="avatar-wrap" @click="pickPhoto">
           <img
@@ -143,20 +159,12 @@ function save() {
 
         <div class="field">
           <label>Email</label>
-          <InputText
-            v-model="form.email"
-            type="email"
-            placeholder="you@example.com"
-          />
+          <InputText v-model="form.email" type="email" placeholder="you@example.com" />
         </div>
 
         <div class="field">
           <label>Phone Number</label>
-          <InputText
-            v-model="form.phone"
-            type="tel"
-            placeholder="+62 812 3456 7890"
-          />
+          <InputText v-model="form.phone" type="tel" placeholder="+62 812 3456 7890" />
         </div>
 
         <div class="field">
@@ -185,15 +193,59 @@ function save() {
       </div>
     </div>
 
-    <template #footer>
-      <Button label="Cancel" text severity="secondary" @click="visible = false" />
+    <div class="mestore-modal-foot">
+      <Button label="Cancel" text severity="secondary" @click="close" />
       <Button label="Save Changes" icon="pi pi-check" @click="save" />
-    </template>
+    </div>
   </Dialog>
 </template>
 
 <style scoped>
-.body {
+.modal-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border);
+}
+.head-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--primary-tint);
+  color: var(--primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.head-title {
+  flex: 1;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+.head-close {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+.head-close:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.modal-body {
+  padding: 22px;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -206,7 +258,6 @@ function save() {
   padding-bottom: 18px;
   border-bottom: 1px solid var(--border);
 }
-
 .avatar-wrap {
   position: relative;
   width: 72px;
@@ -217,13 +268,11 @@ function save() {
   flex-shrink: 0;
   background: var(--surface-hover);
 }
-
 .avatar-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-
 .avatar-overlay {
   position: absolute;
   inset: 0;
@@ -235,34 +284,28 @@ function save() {
   opacity: 0;
   transition: opacity 120ms;
 }
-
 .avatar-wrap:hover .avatar-overlay {
   opacity: 1;
 }
-
 .file-input {
   display: none;
 }
-
 .avatar-text {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
-
 .avatar-name {
   font-size: 16px;
   font-weight: 600;
   color: var(--text);
 }
-
 .avatar-role {
   font-size: 12px;
   text-transform: capitalize;
   color: var(--text-muted);
   margin-bottom: 6px;
 }
-
 .upload-btn {
   background: transparent;
   border: 1px solid var(--border);
@@ -274,7 +317,6 @@ function save() {
   width: fit-content;
   cursor: pointer;
 }
-
 .upload-btn:hover {
   background: var(--surface-hover);
 }
@@ -284,23 +326,19 @@ function save() {
   grid-template-columns: 1fr 1fr;
   gap: 14px 16px;
 }
-
 .field {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
-
 .field-full {
   grid-column: 1 / -1;
 }
-
 .field label {
   font-size: 12.5px;
   font-weight: 500;
   color: var(--text-muted);
 }
-
 .field :deep(.p-inputtext),
 .field :deep(.p-password),
 .field :deep(.p-password-input) {

@@ -6,6 +6,7 @@ import AppSpinner from '@/components/ui/AppSpinner.vue'
 import AppDetailRow from '@/components/ui/AppDetailRow.vue'
 import StatusPill from '@/components/ui/StatusPill.vue'
 import AvatarInitials from '@/components/ui/AvatarInitials.vue'
+import AppIcon from '@/components/ui/AppIcon.vue'
 import * as productsService from '@/services/api/products.service.js'
 import { formatRupiah } from '@/composables/useFormatters.js'
 
@@ -40,6 +41,10 @@ function edit() {
   emit('edit', id)
 }
 
+function close() {
+  visible.value = false
+}
+
 watch(
   () => [visible.value, props.productId],
   ([open]) => {
@@ -58,41 +63,105 @@ onMounted(() => {
     modal
     :draggable="false"
     :style="{ width: '560px' }"
-    header="Product Detail"
+    :show-header="false"
   >
-    <div v-if="loading" class="loading">
-      <AppSpinner />
+    <div class="modal-head">
+      <span class="head-icon">
+        <AppIcon name="inventory-2" :size="20" />
+      </span>
+      <h2 class="head-title">Product Detail</h2>
+      <button
+        type="button"
+        class="head-close"
+        aria-label="Close"
+        @click="close"
+      >
+        <AppIcon name="close" :size="14" />
+      </button>
     </div>
 
-    <div v-else-if="product" class="body">
-      <div class="product-head">
-        <AvatarInitials :name="product.name" :size="52" tone="neutral" />
-        <div class="product-head-text">
-          <h3 class="product-name">{{ product.name }}</h3>
-          <span class="product-category">{{ product.category }}</span>
+    <div class="modal-body">
+      <div v-if="loading" class="loading">
+        <AppSpinner />
+      </div>
+
+      <div v-else-if="product" class="body">
+        <div class="product-head">
+          <AvatarInitials :name="product.name" :size="52" tone="neutral" />
+          <div class="product-head-text">
+            <h3 class="product-name">{{ product.name }}</h3>
+            <span class="product-category">{{ product.category }}</span>
+          </div>
+          <StatusPill :variant="product.stock <= 8 ? 'warning' : 'success'">
+            {{ product.stock <= 8 ? 'Low stock' : 'In stock' }}
+          </StatusPill>
         </div>
-        <StatusPill :variant="product.stock <= 8 ? 'warning' : 'success'">
-          {{ product.stock <= 8 ? 'Low stock' : 'In stock' }}
-        </StatusPill>
-      </div>
 
-      <div class="details">
-        <AppDetailRow label="SKU" mono>{{ product.sku }}</AppDetailRow>
-        <AppDetailRow label="Unit">{{ product.unit }}</AppDetailRow>
-        <AppDetailRow label="Price" mono>{{ formatRupiah(product.price) }}</AppDetailRow>
-        <AppDetailRow label="Cost" mono>{{ formatRupiah(product.cost) }}</AppDetailRow>
-        <AppDetailRow label="Stock" mono>{{ product.stock }} {{ product.unit }}</AppDetailRow>
+        <div class="details">
+          <AppDetailRow label="SKU" mono>{{ product.sku }}</AppDetailRow>
+          <AppDetailRow label="Unit">{{ product.unit }}</AppDetailRow>
+          <AppDetailRow label="Price" mono>{{ formatRupiah(product.price) }}</AppDetailRow>
+          <AppDetailRow label="Cost" mono>{{ formatRupiah(product.cost) }}</AppDetailRow>
+          <AppDetailRow label="Stock" mono>{{ product.stock }} {{ product.unit }}</AppDetailRow>
+        </div>
       </div>
     </div>
 
-    <template #footer>
-      <Button label="Close" text severity="secondary" @click="visible = false" />
+    <div class="mestore-modal-foot">
+      <Button label="Close" text severity="secondary" @click="close" />
       <Button label="Edit" icon="pi pi-pencil" @click="edit" />
-    </template>
+    </div>
   </Dialog>
 </template>
 
 <style scoped>
+.modal-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border);
+}
+.head-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--primary-tint);
+  color: var(--primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.head-title {
+  flex: 1;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+.head-close {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+.head-close:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.modal-body {
+  padding: 22px;
+}
+
 .loading {
   padding: 40px;
   display: flex;
@@ -112,7 +181,6 @@ onMounted(() => {
   padding-bottom: 16px;
   border-bottom: 1px solid var(--border);
 }
-
 .product-head-text {
   flex: 1;
   display: flex;
@@ -120,7 +188,6 @@ onMounted(() => {
   gap: 2px;
   min-width: 0;
 }
-
 .product-name {
   margin: 0;
   font-size: 17px;
@@ -130,12 +197,10 @@ onMounted(() => {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
 .product-category {
   font-size: 12.5px;
   color: var(--text-muted);
 }
-
 .details {
   display: flex;
   flex-direction: column;

@@ -36,14 +36,14 @@ router.beforeEach(async (to) => {
     auth.role === ROLE.CASHIER &&
     !useShift().hasOpenShift.value
   ) {
-    return { name: 'shift.open' }
+    return { name: 'shift.open', query: { redirect: to.fullPath } }
   }
 
   return true
 })
 
 router.afterEach((to) => {
-  document.title = to.meta.title ? `${to.meta.title} — RetailPOS` : 'RetailPOS'
+  document.title = to.meta.title ? `${to.meta.title} — MeStore` : 'MeStore'
 })
 
 export default router

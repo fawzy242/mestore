@@ -12,6 +12,7 @@ export const routes = [
     redirect: () => ({ name: 'dashboard' }),
   },
 
+  // ---------- AuthLayout ----------
   {
     path: '/',
     component: AuthLayout,
@@ -37,21 +38,25 @@ export const routes = [
     ],
   },
 
+  // ---------- AppLayout ----------
   {
     path: '/',
     component: AppLayout,
     children: [
+      // Dashboard
       {
         path: 'dashboard',
         name: 'dashboard',
         component: () => import('@/features/dashboard/pages/DashboardPage.vue'),
         meta: { requiresAuth: true, title: 'Dashboard' },
       },
+
+      // POS
       {
         path: 'pos',
         name: 'pos',
         component: () => import('@/features/pos/pages/PosPage.vue'),
-        meta: { requiresAuth: true, title: 'POS / Sales' },
+        meta: { requiresAuth: true, title: 'POS / Sales', requiresOpenShift: true },
       },
       {
         path: 'pos/payment',
@@ -65,6 +70,16 @@ export const routes = [
         component: () => import('@/features/pos/pages/TransactionSuccessPage.vue'),
         meta: { requiresAuth: true, title: 'Transaction Complete' },
       },
+
+      // Shift
+      {
+        path: 'shift/open',
+        name: 'shift.open',
+        component: () => import('@/features/shift/pages/ShiftOpenPage.vue'),
+        meta: { requiresAuth: true, title: 'Open Shift' },
+      },
+
+      // Products
       {
         path: 'products',
         name: 'products.list',
@@ -77,12 +92,24 @@ export const routes = [
         component: () => import('@/features/products/pages/ProductDetailPage.vue'),
         meta: { requiresAuth: true, title: 'Product Detail' },
       },
+
+      // Categories
       {
         path: 'categories',
         name: 'categories.list',
         component: () => import('@/features/categories/pages/CategoryListPage.vue'),
         meta: { requiresAuth: true, title: 'Categories' },
       },
+
+      // Product Stock
+      {
+        path: 'stock',
+        name: 'stock.list',
+        component: () => import('@/features/product-stock/pages/ProductStockPage.vue'),
+        meta: { requiresAuth: true, title: 'Product Stock' },
+      },
+
+      // Transactions
       {
         path: 'transactions',
         name: 'transactions.list',
@@ -95,12 +122,72 @@ export const routes = [
         component: () => import('@/features/transactions/pages/TransactionDetailPage.vue'),
         meta: { requiresAuth: true, title: 'Transaction Detail' },
       },
+
+      // Shift Management (view-only)
+      {
+        path: 'shifts',
+        name: 'shifts.list',
+        component: () => import('@/features/shift/pages/ShiftListPage.vue'),
+        meta: { requiresAuth: true, title: 'Shift Management' },
+      },
+
+      // Suppliers
+      {
+        path: 'suppliers',
+        name: 'suppliers.list',
+        component: () => import('@/features/suppliers/pages/SupplierListPage.vue'),
+        meta: { requiresAuth: true, title: 'Suppliers' },
+      },
+
+      // Purchases
+      {
+        path: 'purchases',
+        name: 'purchases.list',
+        component: () => import('@/features/purchases/pages/PurchaseListPage.vue'),
+        meta: { requiresAuth: true, title: 'Purchases' },
+      },
+
+      // Refunds
+      {
+        path: 'refunds',
+        name: 'refunds.list',
+        component: () => import('@/features/refunds/pages/RefundListPage.vue'),
+        meta: { requiresAuth: true, title: 'Refunds' },
+      },
+
+      // Customers (members)
+      {
+        path: 'customers',
+        name: 'customers.list',
+        component: () => import('@/features/customers/pages/CustomerListPage.vue'),
+        meta: { requiresAuth: true, title: 'Customers' },
+      },
+
+      // Discounts & Promotions
+      {
+        path: 'discounts',
+        name: 'discounts.list',
+        component: () => import('@/features/discounts/pages/DiscountListPage.vue'),
+        meta: { requiresAuth: true, title: 'Discount & Promotions' },
+      },
+
+      // Cash In / Out
+      {
+        path: 'cash-movements',
+        name: 'cash-movements.list',
+        component: () => import('@/features/cash-movements/pages/CashMovementListPage.vue'),
+        meta: { requiresAuth: true, title: 'Cash In / Cash Out' },
+      },
+
+      // Reports
       {
         path: 'reports',
         name: 'reports',
         component: () => import('@/features/reports/pages/ReportsPage.vue'),
         meta: { requiresAuth: true, title: 'Reports' },
       },
+
+      // Users
       {
         path: 'users',
         name: 'users.list',

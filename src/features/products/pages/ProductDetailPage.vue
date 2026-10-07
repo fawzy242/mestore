@@ -2,7 +2,6 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Button from 'primevue/button'
-import { useConfirm } from 'primevue/useconfirm'
 import AppPageContainer from '@/components/ui/AppPageContainer.vue'
 import AppCard from '@/components/ui/AppCard.vue'
 import AppDetailRow from '@/components/ui/AppDetailRow.vue'
@@ -12,13 +11,14 @@ import AppAlert from '@/components/ui/AppAlert.vue'
 import ProductFormModal from '../components/ProductFormModal.vue'
 import { useProductDetail } from '../composables/useProductDetail.js'
 import { useToast } from '@/composables/useToast.js'
+import { useConfirm } from '@/composables/useConfirm.js'
 import * as productsService from '@/services/api/products.service.js'
 import { formatRupiah } from '@/composables/useFormatters.js'
 
 const route = useRoute()
 const router = useRouter()
-const confirm = useConfirm()
 const { push } = useToast()
+const { confirmAction } = useConfirm()
 
 const productId = computed(() => route.params.id)
 const { product, loading, error, fetchProduct } = useProductDetail(productId.value)
@@ -29,14 +29,13 @@ function openEdit() {
   modalOpen.value = true
 }
 
-function askDelete() {
-  confirm.require({
+async function askDelete() {
+  await confirmAction({
     header: 'Delete product?',
     message: `Delete "${product.value.name}"? This will permanently remove it from your catalog. This can't be undone.`,
-    icon: 'pi pi-exclamation-triangle',
     acceptLabel: 'Delete',
     rejectLabel: 'Cancel',
-    acceptClass: 'p-button-danger',
+    variant: 'danger',
     accept: async () => {
       await productsService.deleteProduct(product.value.id)
       push('Product deleted')

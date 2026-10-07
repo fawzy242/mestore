@@ -29,8 +29,6 @@ const { form, isSubmitting, isLoading, error, fieldErrors, load, submit } = useC
 
 const icon = ref('local-cafe')
 
-// These five icon names are PROVEN to render — they match the ones used by
-// the Categories table and the useCategoryIcons composable.
 const iconOptions = [
   { value: 'local-cafe', label: 'Beverages' },
   { value: 'lunch-dining', label: 'Snacks & Instant' },
@@ -130,7 +128,7 @@ onMounted(() => {
       </form>
     </div>
 
-    <div class="modal-foot">
+    <div class="mestore-modal-foot">
       <Button label="Cancel" text severity="secondary" @click="close" />
       <Button
         :label="isEdit ? 'Save Changes' : 'Save Category'"
@@ -150,7 +148,6 @@ onMounted(() => {
   padding: 18px 22px;
   border-bottom: 1px solid var(--border);
 }
-
 .head-icon {
   width: 36px;
   height: 36px;
@@ -162,7 +159,6 @@ onMounted(() => {
   justify-content: center;
   flex-shrink: 0;
 }
-
 .head-title {
   flex: 1;
   margin: 0;
@@ -170,7 +166,6 @@ onMounted(() => {
   font-weight: 600;
   color: var(--text);
 }
-
 .head-close {
   width: 32px;
   height: 32px;
@@ -184,7 +179,6 @@ onMounted(() => {
   cursor: pointer;
   transition: background 120ms ease, color 120ms ease;
 }
-
 .head-close:hover {
   background: var(--surface-hover);
   color: var(--text);
@@ -192,14 +186,6 @@ onMounted(() => {
 
 .modal-body {
   padding: 22px;
-}
-
-.modal-foot {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  padding: 14px 22px;
-  border-top: 1px solid var(--border);
 }
 
 .loading {
@@ -213,30 +199,25 @@ onMounted(() => {
   flex-direction: column;
   gap: 16px;
 }
-
 .field {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
-
 .field-head {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
-
 .field label {
   font-size: 12.5px;
   font-weight: 500;
   color: var(--text-muted);
 }
-
 .counter {
   font-size: 11.5px;
   color: var(--text-faint);
 }
-
 .field :deep(.p-inputtext) {
   width: 100%;
 }
@@ -246,8 +227,6 @@ onMounted(() => {
   grid-template-columns: repeat(5, 1fr);
   gap: 8px;
 }
-
-/* Neutral resting state — gray tint, muted icon */
 .icon-btn {
   height: 44px;
   border-radius: var(--radius-md);
@@ -260,19 +239,15 @@ onMounted(() => {
   cursor: pointer;
   transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
 }
-
 .icon-btn:hover {
   background: var(--primary-tint);
   color: var(--primary);
 }
-
-/* Active state — soft red tint + red icon + thin red border */
 .icon-btn.active {
   background: var(--primary-tint);
   color: var(--primary);
   border-color: var(--primary);
 }
-
 .err {
   font-size: 11.5px;
   color: var(--danger);

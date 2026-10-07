@@ -1,14 +1,10 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import Button from 'primevue/button'
-import * as categoriesService from '@/services/api/categories.service.js'
 import AppPageContainer from '@/components/ui/AppPageContainer.vue'
-import AppToolbar from '@/components/ui/AppToolbar.vue'
-import AppSearchInput from '@/components/ui/AppSearchInput.vue'
 import AppSelect from '@/components/ui/AppSelect.vue'
 import KPIBar from '@/components/ui/KPIBar.vue'
 import KPIStat from '@/components/ui/KPIStat.vue'
+import { CrudToolbar, CrudTabs, BulkActionBar } from '@/components/crud/index.js'
 import ProductTable from '../components/ProductTable.vue'
 import ProductFormModal from '../components/ProductFormModal.vue'
 import ProductViewModal from '../components/ProductViewModal.vue'
@@ -16,8 +12,8 @@ import { useProducts } from '../composables/useProducts.js'
 import { useDebouncedSearch } from '@/composables/useDebouncedSearch.js'
 import { useToast } from '@/composables/useToast.js'
 import { useConfirm } from '@/composables/useConfirm.js'
+import * as categoriesService from '@/services/api/categories.service.js'
 
-const router = useRouter()
 const { push } = useToast()
 const { confirmAction } = useConfirm()
 
@@ -34,6 +30,7 @@ const {
   fetchProducts,
   removeProduct,
   bulkSetStatus,
+  bulkDelete,
   applyFilter,
   setStatusTab,
   setSort,
@@ -43,11 +40,28 @@ const {
 const activeTab = ref('Active')
 const selectedKeys = ref([])
 const categoryOptions = ref([{ value: '', label: 'All categories' }])
+const formOpen = ref(false)
+const formId = ref(null)
+const viewOpen = ref(false)
+const viewId = ref(null)
+const refreshing = ref(false)
 
-const formModalOpen = ref(false)
-const formProductId = ref(null)
-const viewModalOpen = ref(false)
-const viewProductId = ref(null)
+const tabs = [
+  { value: 'Active', label: 'Active' },
+  { value: 'Inactive', label: 'Inactive' },
+]
+
+const bulkActions = computed(() =>
+  activeTab.value === 'Active'
+    ? [
+        { key: 'deactivate', label: 'Deactivate', icon: 'pi pi-ban', severity: 'danger' },
+        { key: 'delete', label: 'Delete', icon: 'pi pi-trash', severity: 'danger' },
+      ]
+    : [
+        { key: 'activate', label: 'Activate', icon: 'pi pi-check-circle', severity: 'success' },
+        { key: 'delete', label: 'Delete', icon: 'pi pi-trash', severity: 'danger' },
+      ],
+)
 
 const kpis = computed(() => {
   const lowStock = rows.value.filter((p) => p.stock <= 8).length
@@ -72,14 +86,9 @@ const { value: searchValue } = useDebouncedSearch((v) => {
   applyFilter()
 })
 
-function onCategoryChange(value) {
-  filters.category = value
+function onCategoryChange(v) {
+  filters.category = v
   applyFilter()
-}
-
-function onPageChange(p) {
-  goToPage(p)
-  fetchProducts()
 }
 
 function onTabChange(next) {
@@ -88,25 +97,28 @@ function onTabChange(next) {
   setStatusTab(next)
 }
 
+async function onRefresh() {
+  refreshing.value = true
+  await fetchProducts()
+  refreshing.value = false
+}
+
+function onPageChange(p) {
+  goToPage(p)
+  fetchProducts()
+}
+
 function openAdd() {
-  formProductId.value = null
-  formModalOpen.value = true
+  formId.value = null
+  formOpen.value = true
 }
-
 function openEdit(row) {
-  formProductId.value = row.id
-  formModalOpen.value = true
+  formId.value = row.id
+  formOpen.value = true
 }
-
 function openView(row) {
-  viewProductId.value = row.id
-  viewModalOpen.value = true
-}
-
-function editFromView(id) {
-  viewModalOpen.value = false
-  formProductId.value = id
-  formModalOpen.value = true
+  viewId.value = row.id
+  viewOpen.value = true
 }
 
 async function askDelete(row) {
@@ -124,35 +136,36 @@ async function askDelete(row) {
   })
 }
 
-async function bulkDeactivate() {
+async function onBulkAction(key) {
   if (!selectedKeys.value.length) return
   const count = selectedKeys.value.length
-  await confirmAction({
-    header: 'Deactivate selected products?',
-    message: `Deactivate ${count} selected product(s)? They will no longer appear in the active catalog.`,
-    acceptLabel: 'Deactivate',
-    rejectLabel: 'Cancel',
-    variant: 'danger',
-    accept: async () => {
-      await bulkSetStatus(selectedKeys.value, 'Inactive')
-      push(`${count} products deactivated`)
-      selectedKeys.value = []
-    },
-  })
-}
 
-async function bulkActivate() {
-  if (!selectedKeys.value.length) return
-  const count = selectedKeys.value.length
+  if (key === 'delete') {
+    await confirmAction({
+      header: 'Delete selected?',
+      message: `Delete ${count} product(s)? This cannot be undone.`,
+      acceptLabel: 'Delete',
+      rejectLabel: 'Cancel',
+      variant: 'danger',
+      accept: async () => {
+        await bulkDelete(selectedKeys.value)
+        push(`${count} product${count === 1 ? '' : 's'} deleted`)
+        selectedKeys.value = []
+      },
+    })
+    return
+  }
+
+  const isActivate = key === 'activate'
   await confirmAction({
-    header: 'Activate selected products?',
-    message: `Activate ${count} selected product(s)? They will return to the active catalog.`,
-    acceptLabel: 'Activate',
+    header: isActivate ? 'Activate selected?' : 'Deactivate selected?',
+    message: `${isActivate ? 'Activate' : 'Deactivate'} ${count} product(s)?`,
+    acceptLabel: isActivate ? 'Activate' : 'Deactivate',
     rejectLabel: 'Cancel',
-    variant: 'success',
+    variant: isActivate ? 'success' : 'danger',
     accept: async () => {
-      await bulkSetStatus(selectedKeys.value, 'Active')
-      push(`${count} products activated`)
+      await bulkSetStatus(selectedKeys.value, isActivate ? 'Active' : 'Inactive')
+      push(`${count} product${count === 1 ? '' : 's'} ${isActivate ? 'activated' : 'deactivated'}`)
       selectedKeys.value = []
     },
   })
@@ -169,25 +182,6 @@ onMounted(async () => {
 
 <template>
   <AppPageContainer>
-    <div class="mestore-tabs">
-      <button
-        type="button"
-        class="mestore-tab"
-        :class="{ active: activeTab === 'Active' }"
-        @click="onTabChange('Active')"
-      >
-        Active
-      </button>
-      <button
-        type="button"
-        class="mestore-tab"
-        :class="{ active: activeTab === 'Inactive' }"
-        @click="onTabChange('Inactive')"
-      >
-        Inactive
-      </button>
-    </div>
-
     <KPIBar :columns="4">
       <KPIStat label="Total SKUs" :value="kpis.totalSkus" icon="inventory-2" tone="neutral" />
       <KPIStat label="Low Stock Warnings" :value="kpis.lowStock" icon="warning" tone="warning" />
@@ -195,10 +189,14 @@ onMounted(async () => {
       <KPIStat label="Categories Active" :value="kpis.categories" icon="category" tone="primary" />
     </KPIBar>
 
-    <AppToolbar>
-      <template #search>
-        <AppSearchInput v-model="searchValue" placeholder="Search products, SKU or category…" />
-      </template>
+    <CrudToolbar
+      v-model:search="searchValue"
+      search-placeholder="Search products, SKU or category…"
+      add-label="Add Product"
+      :refreshing="refreshing"
+      @refresh="onRefresh"
+      @add="openAdd"
+    >
       <template #filters>
         <AppSelect
           :model-value="filters.category"
@@ -206,40 +204,16 @@ onMounted(async () => {
           @update:model-value="onCategoryChange"
         />
       </template>
-      <template #actions>
-        <Button label="Add Product" icon="pi pi-plus" @click="openAdd" />
-      </template>
-    </AppToolbar>
+    </CrudToolbar>
 
-    <div v-if="selectedKeys.length" class="bulk-bar">
-      <span class="bulk-count">{{ selectedKeys.length }} selected</span>
-      <Button
-        v-if="activeTab === 'Active'"
-        label="Deactivate"
-        icon="pi pi-ban"
-        severity="danger"
-        outlined
-        size="small"
-        @click="bulkDeactivate"
-      />
-      <Button
-        v-else
-        label="Activate"
-        icon="pi pi-check-circle"
-        severity="success"
-        outlined
-        size="small"
-        @click="bulkActivate"
-      />
-      <Button
-        label="Clear"
-        icon="pi pi-times"
-        text
-        severity="secondary"
-        size="small"
-        @click="selectedKeys = []"
-      />
-    </div>
+    <CrudTabs :model-value="activeTab" :tabs="tabs" @update:model-value="onTabChange" />
+
+    <BulkActionBar
+      :count="selectedKeys.length"
+      :actions="bulkActions"
+      @action="onBulkAction"
+      @clear="selectedKeys = []"
+    />
 
     <ProductTable
       :rows="rows"
@@ -248,7 +222,7 @@ onMounted(async () => {
       :pagination="{ page, pageSize, total, pageCount }"
       :sort-key="sort.key"
       :sort-dir="sort.dir"
-      selectable
+      :selectable="true"
       :selected-keys="selectedKeys"
       @update:selected-keys="(v) => (selectedKeys = v)"
       @view="openView"
@@ -261,41 +235,15 @@ onMounted(async () => {
 
     <p class="page-footer">
       Showing <span class="mono">{{ rows.length }}</span> of
-      <span class="mono">{{ total }}</span> {{ activeTab.toLowerCase() }} items
+      <span class="mono">{{ total }}</span> {{ activeTab.toLowerCase() }} products
     </p>
 
-    <ProductFormModal
-      v-model="formModalOpen"
-      :product-id="formProductId"
-      @saved="onSaved"
-    />
-    <ProductViewModal
-      v-model="viewModalOpen"
-      :product-id="viewProductId"
-      @edit="editFromView"
-    />
+    <ProductFormModal v-model="formOpen" :product-id="formId" @saved="onSaved" />
+    <ProductViewModal v-model="viewOpen" :product-id="viewId" @edit="openEdit" />
   </AppPageContainer>
 </template>
 
 <style scoped>
-.bulk-bar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  background: var(--primary-tint);
-  border: 1px solid var(--primary);
-  border-radius: var(--radius-md);
-  margin-bottom: 12px;
-}
-
-.bulk-count {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--primary);
-  margin-right: auto;
-}
-
 .page-footer {
   text-align: right;
   font-size: 12px;

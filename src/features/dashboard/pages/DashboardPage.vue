@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import Button from 'primevue/button'
 import { Line, Doughnut, Bar } from 'vue-chartjs'
@@ -27,6 +27,7 @@ import AvatarInitials from '@/components/ui/AvatarInitials.vue'
 import MonoChip from '@/components/ui/MonoChip.vue'
 import AppIcon from '@/components/ui/AppIcon.vue'
 import { useDashboard } from '../composables/useDashboard.js'
+import { useChartTheme } from '@/composables/useChartTheme.js'
 import { formatRupiah } from '@/composables/useFormatters.js'
 
 Chart.register(
@@ -43,18 +44,16 @@ Chart.register(
 
 const router = useRouter()
 const { summary, lowStock, recent, loading, error, fetchAll } = useDashboard()
+const { tokens } = useChartTheme()
 
 onMounted(fetchAll)
 
 /* ------------------------------------------------------------------
  * Chart data
  * ------------------------------------------------------------------ */
-
-// Sales trend — last 7 days derived from recent transactions
 const salesTrend = computed(() => {
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
   const values = [0, 0, 0, 0, 0, 0, 0]
-  // Distribute mock totals across the week for visual shape
   const total = summary.value?.todaySales ?? 0
   values[0] = total * 0.6
   values[1] = total * 0.75
@@ -69,13 +68,13 @@ const salesTrend = computed(() => {
       {
         label: 'Sales (Rp)',
         data: values,
-        borderColor: '#C8102E',
-        backgroundColor: 'rgba(200, 16, 46, 0.12)',
+        borderColor: tokens.value.primary,
+        backgroundColor: hexAlpha(tokens.value.primary, 0.12),
         borderWidth: 2,
         tension: 0.35,
         fill: true,
-        pointBackgroundColor: '#C8102E',
-        pointBorderColor: '#ffffff',
+        pointBackgroundColor: tokens.value.primary,
+        pointBorderColor: tokens.value.surface,
         pointBorderWidth: 2,
         pointRadius: 4,
         pointHoverRadius: 6,
@@ -84,14 +83,12 @@ const salesTrend = computed(() => {
   }
 })
 
-// Category breakdown — from products in lowStock + summary
 const categoryBreakdown = computed(() => {
   const map = new Map()
   ;(lowStock.value || []).forEach((p) => {
     const key = p.category || 'Other'
     map.set(key, (map.get(key) || 0) + 1)
   })
-  // Fallback categories so the chart never renders empty
   if (map.size === 0) {
     map.set('Beverages', 3)
     map.set('Snacks & Instant', 4)
@@ -101,28 +98,33 @@ const categoryBreakdown = computed(() => {
   }
   const labels = Array.from(map.keys())
   const data = Array.from(map.values())
-  const palette = ['#C8102E', '#B45309', '#5B5F64', '#8F706C', '#DC2626']
+  const palette = [
+    tokens.value.primary,
+    tokens.value.warning,
+    tokens.value.textMuted,
+    tokens.value.textFaint,
+    '#DC2626',
+  ]
   return {
     labels,
     datasets: [
       {
         data,
         backgroundColor: palette.slice(0, labels.length),
-        borderColor: '#ffffff',
+        borderColor: tokens.value.surface,
         borderWidth: 2,
       },
     ],
   }
 })
 
-// Payment method — mock distribution
 const paymentMethods = computed(() => ({
   labels: ['Cash', 'Card', 'QRIS'],
   datasets: [
     {
       label: 'Transactions',
       data: [78, 15, 7],
-      backgroundColor: ['#C8102E', '#B45309', '#5B5F64'],
+      backgroundColor: [tokens.value.primary, tokens.value.warning, tokens.value.textMuted],
       borderRadius: 6,
       barThickness: 28,
     },
@@ -138,6 +140,12 @@ const lineOptions = computed(() => ({
   plugins: {
     legend: { display: false },
     tooltip: {
+      backgroundColor: tokens.value.surface,
+      titleColor: tokens.value.text,
+      bodyColor: tokens.value.textMuted,
+      borderColor: tokens.value.border,
+      borderWidth: 1,
+      padding: 10,
       callbacks: {
         label: (ctx) => formatRupiah(ctx.parsed.y),
       },
@@ -145,16 +153,18 @@ const lineOptions = computed(() => ({
   },
   scales: {
     x: {
-      grid: { display: false },
-      ticks: { color: 'var(--text-muted)', font: { size: 11 } },
+      grid: { display: false, color: tokens.value.border },
+      ticks: { color: tokens.value.textMuted, font: { size: 11 } },
+      border: { color: tokens.value.border },
     },
     y: {
-      grid: { color: 'var(--border)' },
+      grid: { color: tokens.value.border },
       ticks: {
-        color: 'var(--text-muted)',
+        color: tokens.value.textMuted,
         font: { size: 11 },
         callback: (v) => `${Math.round(v / 1000)}k`,
       },
+      border: { color: tokens.value.border },
     },
   },
 }))
@@ -167,12 +177,20 @@ const doughnutOptions = computed(() => ({
     legend: {
       position: 'bottom',
       labels: {
-        color: 'var(--text-muted)',
+        color: tokens.value.textMuted,
         boxWidth: 10,
         boxHeight: 10,
         padding: 12,
         font: { size: 11 },
       },
+    },
+    tooltip: {
+      backgroundColor: tokens.value.surface,
+      titleColor: tokens.value.text,
+      bodyColor: tokens.value.textMuted,
+      borderColor: tokens.value.border,
+      borderWidth: 1,
+      padding: 10,
     },
   },
 }))
@@ -183,21 +201,44 @@ const barOptions = computed(() => ({
   indexAxis: 'y',
   plugins: {
     legend: { display: false },
+    tooltip: {
+      backgroundColor: tokens.value.surface,
+      titleColor: tokens.value.text,
+      bodyColor: tokens.value.textMuted,
+      borderColor: tokens.value.border,
+      borderWidth: 1,
+      padding: 10,
+    },
   },
   scales: {
     x: {
-      grid: { color: 'var(--border)' },
-      ticks: { color: 'var(--text-muted)', font: { size: 11 } },
+      grid: { color: tokens.value.border },
+      ticks: { color: tokens.value.textMuted, font: { size: 11 } },
+      border: { color: tokens.value.border },
     },
     y: {
       grid: { display: false },
-      ticks: { color: 'var(--text-muted)', font: { size: 11 } },
+      ticks: { color: tokens.value.textMuted, font: { size: 11 } },
+      border: { color: tokens.value.border },
     },
   },
 }))
 
 /* ------------------------------------------------------------------
- * Table columns
+ * Utilities
+ * ------------------------------------------------------------------ */
+function hexAlpha(hex, alpha) {
+  // Convert #RRGGBB → rgba(r,g,b,alpha)
+  const h = hex.replace('#', '')
+  if (h.length !== 6) return hex
+  const r = parseInt(h.slice(0, 2), 16)
+  const g = parseInt(h.slice(2, 4), 16)
+  const b = parseInt(h.slice(4, 6), 16)
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
+}
+
+/* ------------------------------------------------------------------
+ * Tables
  * ------------------------------------------------------------------ */
 const lowStockColumns = [
   { key: 'name', label: 'Product' },
