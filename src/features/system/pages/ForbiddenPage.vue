@@ -11,7 +11,7 @@ function goHome() {
 </script>
 
 <template>
-  <div>
+  <div class="page">
     <div class="status-icon warn">
       <AppIcon name="shield-lock" :size="26" />
     </div>
@@ -28,6 +28,10 @@ function goHome() {
 </template>
 
 <style scoped>
+.page {
+  text-align: center;
+}
+
 .status-icon {
   width: 56px;
   height: 56px;
@@ -37,7 +41,6 @@ function goHome() {
   justify-content: center;
   margin: 0 auto 14px;
 }
-
 .status-icon.warn {
   background: var(--warning-bg);
   color: var(--warning);
@@ -74,5 +77,23 @@ function goHome() {
   width: 100%;
   height: 44px;
   font-weight: 600;
+}
+
+@media (max-width: 480px) {
+  .status-icon {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 12px;
+  }
+  .title {
+    font-size: 18px;
+  }
+  .sub {
+    font-size: 12.5px;
+    margin-bottom: 18px;
+  }
+  .go-btn {
+    height: 42px;
+  }
 }
 </style>

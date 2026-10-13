@@ -14,7 +14,9 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 const visible = computed({ get: () => props.modelValue, set: (v) => emit('update:modelValue', v) })
-function close() { visible.value = false }
+function close() {
+  visible.value = false
+}
 
 function fmtValue(d) {
   if (!d) return ''
@@ -33,13 +35,13 @@ const isApproved = computed(() => props.discount?.Approved === 1)
     :show-header="false"
   >
     <div class="modal-head">
-      <span class="head-icon"><AppIcon name="local-offer" :size="20" /></span>
+      <span class="head-icon"><AppIcon name="sell" :size="20" /></span>
       <h2 class="head-title">Promotion Detail</h2>
       <button type="button" class="head-close" aria-label="Close" @click="close">
         <AppIcon name="close" :size="14" />
       </button>
     </div>
-    <div class="modal-body" v-if="discount">
+    <div v-if="discount" class="modal-body">
       <div class="top-row">
         <h3 class="name">{{ discount.name }}</h3>
         <StatusPill :variant="isApproved ? 'success' : 'warning'">
@@ -83,6 +85,7 @@ const isApproved = computed(() => props.discount?.Approved === 1)
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 .head-title {
   flex: 1;
@@ -102,12 +105,15 @@ const isApproved = computed(() => props.discount?.Approved === 1)
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  flex-shrink: 0;
 }
 .head-close:hover {
   background: var(--surface-hover);
   color: var(--text);
 }
-.modal-body { padding: 22px; }
+.modal-body {
+  padding: 22px;
+}
 .top-row {
   display: flex;
   align-items: center;
@@ -115,11 +121,25 @@ const isApproved = computed(() => props.discount?.Approved === 1)
   padding-bottom: 12px;
   margin-bottom: 8px;
   border-bottom: 1px solid var(--border);
+  gap: 10px;
+  flex-wrap: wrap;
 }
 .name {
   margin: 0;
   font-size: 17px;
   font-weight: 600;
   color: var(--text);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (max-width: 640px) {
+  .modal-body {
+    padding: 16px;
+  }
+  .name {
+    font-size: 15.5px;
+    white-space: normal;
+  }
 }
 </style>

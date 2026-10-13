@@ -64,7 +64,10 @@ onMounted(fetchProduct)
       <AppSpinner v-else-if="loading" />
       <template v-else-if="product">
         <div class="header">
-          <h2 class="title">{{ product.name }}</h2>
+          <div class="title-wrap">
+            <h2 class="title">{{ product.name }}</h2>
+            <span class="subtitle">{{ product.category }}</span>
+          </div>
           <StatusPill :variant="product.stock <= 8 ? 'warning' : 'success'">
             {{ product.stock <= 8 ? 'Low stock' : 'In stock' }}
           </StatusPill>
@@ -96,6 +99,12 @@ onMounted(fetchProduct)
   align-items: center;
   gap: 12px;
   margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.title-wrap {
+  flex: 1;
+  min-width: 0;
 }
 
 .title {
@@ -103,11 +112,34 @@ onMounted(fetchProduct)
   font-size: 20px;
   font-weight: 700;
   color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.subtitle {
+  font-size: 12.5px;
+  color: var(--text-muted);
 }
 
 .actions {
   display: flex;
   gap: 10px;
   margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 480px) {
+  .header {
+    gap: 10px;
+  }
+  .title {
+    font-size: 18px;
+  }
+  .actions {
+    gap: 8px;
+  }
+  .actions > :deep(.p-button) {
+    flex: 1;
+  }
 }
 </style>

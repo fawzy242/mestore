@@ -14,7 +14,9 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'edit'])
 const visible = computed({ get: () => props.modelValue, set: (v) => emit('update:modelValue', v) })
-function close() { visible.value = false }
+function close() {
+  visible.value = false
+}
 function edit() {
   const id = props.customer?.id
   visible.value = false
@@ -24,7 +26,13 @@ const isActive = computed(() => props.customer?.IsActive === 1)
 </script>
 
 <template>
-  <Dialog v-model:visible="visible" modal :draggable="false" :style="{ width: '540px' }" :show-header="false">
+  <Dialog
+    v-model:visible="visible"
+    modal
+    :draggable="false"
+    :style="{ width: '540px' }"
+    :show-header="false"
+  >
     <div class="modal-head">
       <span class="head-icon"><AppIcon name="group" :size="20" /></span>
       <h2 class="head-title">Customer Detail</h2>
@@ -32,7 +40,7 @@ const isActive = computed(() => props.customer?.IsActive === 1)
         <AppIcon name="close" :size="14" />
       </button>
     </div>
-    <div class="modal-body" v-if="customer">
+    <div v-if="customer" class="modal-body">
       <div class="top-row">
         <AvatarInitials :name="customer.name" :size="52" tone="primary" />
         <div class="top-text">
@@ -72,6 +80,7 @@ const isActive = computed(() => props.customer?.IsActive === 1)
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 .head-title {
   flex: 1;
@@ -91,12 +100,15 @@ const isActive = computed(() => props.customer?.IsActive === 1)
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  flex-shrink: 0;
 }
 .head-close:hover {
   background: var(--surface-hover);
   color: var(--text);
 }
-.modal-body { padding: 22px; }
+.modal-body {
+  padding: 22px;
+}
 .top-row {
   display: flex;
   align-items: center;
@@ -104,21 +116,40 @@ const isActive = computed(() => props.customer?.IsActive === 1)
   padding-bottom: 16px;
   margin-bottom: 8px;
   border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
 }
 .top-text {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
 }
 .name {
   margin: 0;
   font-size: 17px;
   font-weight: 600;
   color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .code {
   font-size: 12.5px;
   color: var(--text-muted);
+}
+
+@media (max-width: 640px) {
+  .modal-body {
+    padding: 16px;
+  }
+  .top-row {
+    gap: 10px;
+    padding-bottom: 14px;
+  }
+  .name {
+    font-size: 15.5px;
+    white-space: normal;
+  }
 }
 </style>

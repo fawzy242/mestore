@@ -14,13 +14,21 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 const visible = computed({ get: () => props.modelValue, set: (v) => emit('update:modelValue', v) })
-function close() { visible.value = false }
+function close() {
+  visible.value = false
+}
 
 const isApproved = computed(() => props.movement?.Approved === 1)
 </script>
 
 <template>
-  <Dialog v-model:visible="visible" modal :draggable="false" :style="{ width: '500px' }" :show-header="false">
+  <Dialog
+    v-model:visible="visible"
+    modal
+    :draggable="false"
+    :style="{ width: '500px' }"
+    :show-header="false"
+  >
     <div class="modal-head">
       <span class="head-icon"><AppIcon name="payments" :size="20" /></span>
       <h2 class="head-title">Cash Movement Detail</h2>
@@ -28,7 +36,7 @@ const isApproved = computed(() => props.movement?.Approved === 1)
         <AppIcon name="close" :size="14" />
       </button>
     </div>
-    <div class="modal-body" v-if="movement">
+    <div v-if="movement" class="modal-body">
       <div class="top-row">
         <StatusPill :variant="movement.type === 'in' ? 'success' : 'danger'">
           {{ movement.type === 'in' ? 'Cash In' : 'Cash Out' }}
@@ -70,6 +78,7 @@ const isApproved = computed(() => props.movement?.Approved === 1)
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 .head-title {
   flex: 1;
@@ -89,12 +98,15 @@ const isApproved = computed(() => props.movement?.Approved === 1)
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  flex-shrink: 0;
 }
 .head-close:hover {
   background: var(--surface-hover);
   color: var(--text);
 }
-.modal-body { padding: 22px; }
+.modal-body {
+  padding: 22px;
+}
 .top-row {
   display: flex;
   align-items: center;
@@ -102,11 +114,26 @@ const isApproved = computed(() => props.movement?.Approved === 1)
   padding-bottom: 12px;
   margin-bottom: 8px;
   border-bottom: 1px solid var(--border);
+  gap: 10px;
+  flex-wrap: wrap;
 }
 .amount {
   font-size: 18px;
   font-weight: 700;
 }
-.pos { color: var(--success); }
-.neg { color: var(--danger); }
+.pos {
+  color: var(--success);
+}
+.neg {
+  color: var(--danger);
+}
+
+@media (max-width: 640px) {
+  .modal-body {
+    padding: 16px;
+  }
+  .amount {
+    font-size: 16px;
+  }
+}
 </style>

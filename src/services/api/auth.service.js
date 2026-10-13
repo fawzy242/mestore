@@ -24,7 +24,8 @@ export async function login({ username, password }) {
     throw error
   }
 
-  const { password: _pw, ...user } = found
+  const user = { ...found }
+  delete user.password
   return delay({ token: `demo-token-${found.id}`, user }, 200)
 }
 
@@ -52,7 +53,8 @@ export async function getCurrentUser() {
   const found = DEMO_USERS.find((u) => u.id === id)
   if (!found) return null
 
-  const { password: _pw, ...user } = found
+  const user = { ...found }
+  delete user.password
   return delay(user, 80)
 }
 

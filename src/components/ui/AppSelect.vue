@@ -38,6 +38,7 @@ const hasError = computed(() => Boolean(props.error))
   flex-direction: column;
   gap: 5px;
   min-width: 160px;
+  max-width: 100%;
 }
 
 .field-label {
@@ -53,5 +54,12 @@ const hasError = computed(() => Boolean(props.error))
 .field-error-msg {
   color: var(--danger);
   font-size: 12px;
+}
+
+@media (max-width: 640px) {
+  .field {
+    min-width: 0;
+    width: 100%;
+  }
 }
 </style>

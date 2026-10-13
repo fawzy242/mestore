@@ -85,16 +85,10 @@ function onSort(e) {
   emit('sort-change', e.sortField)
 }
 
-/**
- * Row click handler — skips when the event originated from the checkbox
- * cell or an interactive control. This lets row clicks open the view modal
- * without interfering with selection.
- */
 function onRowClick(e) {
   if (!props.clickableRows) return
   const target = e.originalEvent?.target
   if (target) {
-    // Exempt checkbox cell and any button/input/label descendant
     const exempt = target.closest(
       'button, a, input, select, textarea, label, .p-checkbox, [data-row-click-ignore]',
     )
@@ -113,89 +107,96 @@ function onRowClick(e) {
       </div>
     </Message>
 
-    <DataTable
-      :value="rows"
-      :loading="loading"
-      :lazy="true"
-      :paginator="Boolean(pagination)"
-      :rows="rowsPerPage"
-      :first="first"
-      :total-records="pagination?.total ?? rows.length"
-      :rows-per-page-options="[rowsPerPage]"
-      :sort-field="sortField"
-      :sort-order="sortOrder"
-      :resizable-columns="resizableColumns"
-      :row-hover="clickableRows"
-      removable-sort
-      scrollable
-      class="app-table"
-      @page="onPage"
-      @sort="onSort"
-      @row-click="onRowClick"
-    >
-      <template #empty>
-        <EmptyState :message="emptyMessage" />
-      </template>
+    <!-- Scroll hint for narrow viewports -->
+    <div class="scroll-hint" aria-hidden="true">
+      <span>Swipe horizontally to see all columns</span>
+    </div>
 
-      <Column
-        v-if="selectable"
-        header-style="width: 48px"
-        body-style="width: 48px"
-        data-row-click-ignore
+    <div class="table-scroll">
+      <DataTable
+        :value="rows"
+        :loading="loading"
+        :lazy="true"
+        :paginator="Boolean(pagination)"
+        :rows="rowsPerPage"
+        :first="first"
+        :total-records="pagination?.total ?? rows.length"
+        :rows-per-page-options="[rowsPerPage]"
+        :sort-field="sortField"
+        :sort-order="sortOrder"
+        :resizable-columns="resizableColumns"
+        :row-hover="clickableRows"
+        removable-sort
+        scrollable
+        class="app-table"
+        @page="onPage"
+        @sort="onSort"
+        @row-click="onRowClick"
       >
-        <template #header>
-          <Checkbox
-            :model-value="allSelected"
-            :indeterminate="someSelected"
-            binary
-            @update:model-value="toggleAll"
-          />
+        <template #empty>
+          <EmptyState :message="emptyMessage" />
         </template>
-        <template #body="{ data }">
-          <div data-row-click-ignore @click.stop>
+
+        <Column
+          v-if="selectable"
+          header-style="width: 48px"
+          body-style="width: 48px"
+          data-row-click-ignore
+        >
+          <template #header>
             <Checkbox
-              :model-value="isSelected(data)"
+              :model-value="allSelected"
+              :indeterminate="someSelected"
               binary
-              @update:model-value="(v) => toggleRow(data, v)"
+              @update:model-value="toggleAll"
             />
-          </div>
-        </template>
-      </Column>
+          </template>
+          <template #body="{ data }">
+            <div data-row-click-ignore @click.stop>
+              <Checkbox
+                :model-value="isSelected(data)"
+                binary
+                @update:model-value="(v) => toggleRow(data, v)"
+              />
+            </div>
+          </template>
+        </Column>
 
-      <Column
-        v-for="col in columns"
-        :key="col.key"
-        :field="col.key"
-        :header="col.label"
-        :sortable="col.sortable"
-        :resizable="resizableColumns && col.resizable !== false"
-        :style="{ textAlign: col.align || 'left' }"
-        :header-style="{ textAlign: col.align || 'left' }"
-      >
-        <template #body="{ data }">
-          <slot :name="`cell-${col.key}`" :row="data" :value="data[col.key]">
-            {{
-              typeof col.formatter === 'function'
-                ? col.formatter(data[col.key], data)
-                : data[col.key]
-            }}
-          </slot>
-        </template>
-      </Column>
+        <Column
+          v-for="col in columns"
+          :key="col.key"
+          :field="col.key"
+          :header="col.label"
+          :sortable="col.sortable"
+          :resizable="resizableColumns && col.resizable !== false"
+          :style="{ textAlign: col.align || 'left' }"
+          :header-style="{ textAlign: col.align || 'left' }"
+        >
+          <template #body="{ data }">
+            <slot :name="`cell-${col.key}`" :row="data" :value="data[col.key]">
+              {{
+                typeof col.formatter === 'function'
+                  ? col.formatter(data[col.key], data)
+                  : data[col.key]
+              }}
+            </slot>
+          </template>
+        </Column>
 
-      <Column
-        v-if="$slots['row-actions']"
-        header=""
-        :style="{ textAlign: 'right', width: '1%' }"
-        :resizable="false"
-      >
-        <template #body="{ data }">
-          <div class="row-actions" data-row-click-ignore @click.stop>
-            <slot name="row-actions" :row="data" />
-          </div>
-        </template>
-      </Column>
-    </DataTable>
+        <Column
+          v-if="$slots['row-actions']"
+          header=""
+          :style="{ textAlign: 'right', width: '1%' }"
+          :resizable="false"
+        >
+          <template #body="{ data }">
+            <div class="row-actions" data-row-click-ignore @click.stop>
+              <slot name="row-actions" :row="data" />
+            </div>
+          </template>
+        </Column>
+      </DataTable>
+    </div>
   </div>
 </template>
 
@@ -218,6 +219,7 @@ function onRowClick(e) {
   justify-content: space-between;
   gap: 12px;
   width: 100%;
+  flex-wrap: wrap;
 }
 
 .retry-btn {
@@ -230,11 +232,40 @@ function onRowClick(e) {
   padding: 0;
 }
 
+/* Horizontal scroll container — critical for mobile usability */
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Hint visible only on small screens when scrolling may be needed */
+.scroll-hint {
+  display: none;
+  padding: 6px 12px;
+  background: var(--surface-alt);
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+  letter-spacing: 0.02em;
+}
+
+@media (max-width: 767px) {
+  .scroll-hint {
+    display: block;
+  }
+}
+
 .row-actions {
   display: inline-flex;
   align-items: center;
   gap: 2px;
   justify-content: flex-end;
+}
+
+:deep(.app-table) {
+  min-width: 600px;
 }
 
 :deep(.app-table .p-datatable-header-cell) {
@@ -247,6 +278,7 @@ function onRowClick(e) {
   padding: 12px 14px;
   border-color: var(--border);
   position: relative;
+  white-space: nowrap;
 }
 
 :deep(.app-table .p-datatable-tbody > tr > td) {
@@ -292,5 +324,21 @@ function onRowClick(e) {
 
 :deep(.app-table .p-sortable-column.p-highlight .p-sortable-column-icon) {
   color: var(--primary);
+}
+
+@media (max-width: 767px) {
+  :deep(.app-table .p-datatable-header-cell) {
+    padding: 10px 12px;
+    font-size: 10.5px;
+  }
+  :deep(.app-table .p-datatable-tbody > tr > td) {
+    padding: 10px 12px;
+    font-size: 12.5px;
+  }
+  :deep(.app-table .p-paginator) {
+    padding: 8px 10px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
 }
 </style>

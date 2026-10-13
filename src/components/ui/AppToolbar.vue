@@ -40,9 +40,13 @@
   align-items: center;
   gap: 10px;
   margin-left: auto;
+  flex-shrink: 0;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 767px) {
+  .toolbar-main {
+    width: 100%;
+  }
   .toolbar-actions {
     margin-left: 0;
     width: 100%;

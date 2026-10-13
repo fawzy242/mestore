@@ -151,6 +151,7 @@ function close() {
   gap: 12px;
   padding: 18px 22px;
   border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
 }
 .head-icon {
   width: 36px;
@@ -176,6 +177,7 @@ function close() {
   color: var(--primary);
   padding: 3px 8px;
   border-radius: var(--radius-xs);
+  white-space: nowrap;
 }
 .head-clear {
   margin-left: auto;
@@ -204,6 +206,7 @@ function close() {
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  flex-shrink: 0;
   transition: background 120ms ease, color 120ms ease;
 }
 .head-close:hover {
@@ -240,6 +243,9 @@ function close() {
   font-size: 13.5px;
   font-weight: 600;
   color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .nm-sub {
   font-size: 11.5px;
@@ -345,5 +351,34 @@ function close() {
   color: var(--primary);
   font-size: 20px;
   font-weight: 700;
+}
+
+/* --- Mobile --- */
+@media (max-width: 640px) {
+  .modal-head {
+    gap: 8px;
+    padding: 14px 16px;
+  }
+  .head-title {
+    font-size: 15px;
+  }
+  .head-clear {
+    padding: 4px 8px;
+    font-size: 11.5px;
+  }
+  .modal-body {
+    padding: 6px 16px 12px;
+  }
+  .row {
+    gap: 10px;
+    padding: 10px 0;
+  }
+  .amt {
+    width: 76px;
+    font-size: 12.5px;
+  }
+  .items {
+    max-height: 42vh;
+  }
 }
 </style>

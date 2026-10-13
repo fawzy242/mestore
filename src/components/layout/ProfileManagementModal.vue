@@ -237,6 +237,7 @@ function close() {
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  flex-shrink: 0;
   transition: background 120ms ease, color 120ms ease;
 }
 .head-close:hover {
@@ -249,6 +250,8 @@ function close() {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  max-height: 70vh;
+  overflow-y: auto;
 }
 
 .avatar-row {
@@ -294,11 +297,15 @@ function close() {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
 }
 .avatar-name {
   font-size: 16px;
   font-weight: 600;
   color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .avatar-role {
   font-size: 12px;
@@ -330,6 +337,7 @@ function close() {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
 }
 .field-full {
   grid-column: 1 / -1;
@@ -346,6 +354,21 @@ function close() {
 }
 
 @media (max-width: 600px) {
+  .modal-body {
+    padding: 16px;
+    gap: 16px;
+  }
+  .avatar-row {
+    gap: 14px;
+    padding-bottom: 16px;
+  }
+  .avatar-wrap {
+    width: 60px;
+    height: 60px;
+  }
+  .avatar-name {
+    font-size: 15px;
+  }
   .grid {
     grid-template-columns: 1fr;
   }

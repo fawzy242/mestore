@@ -83,4 +83,17 @@ function confirm() {
   font-size: 13.5px;
   color: var(--text-muted);
 }
+
+@media (max-width: 640px) {
+  .icon-wrap {
+    width: 48px;
+    height: 48px;
+  }
+  .title {
+    font-size: 16px;
+  }
+  .text {
+    font-size: 13px;
+  }
+}
 </style>

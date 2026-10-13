@@ -85,7 +85,6 @@ app.use(ToastService)
 app.use(ConfirmationService)
 
 app.config.errorHandler = (err, _instance, info) => {
-  // eslint-disable-next-line no-console
   console.error('[Uncaught]', info, err)
 }
 

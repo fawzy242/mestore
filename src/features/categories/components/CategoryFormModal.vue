@@ -14,7 +14,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue', 'saved'])
-
 const { push } = useToast()
 
 const visible = computed({
@@ -35,6 +34,11 @@ const iconOptions = [
   { value: 'bakery-dining', label: 'Bakery' },
   { value: 'egg-alt', label: 'Staples' },
   { value: 'cleaning-services', label: 'Household' },
+  { value: 'category', label: 'Other' },
+  { value: 'shopping-bag', label: 'Retail' },
+  { value: 'inventory-2', label: 'Stock' },
+  { value: 'restaurant', label: 'Food' },
+  { value: 'spa', label: 'Wellness' },
 ]
 
 const charCount = computed(() => (form.name || '').length)
@@ -76,12 +80,7 @@ onMounted(() => {
         <AppIcon name="category" :size="20" />
       </span>
       <h2 class="head-title">{{ isEdit ? 'Edit Category' : 'Add Category' }}</h2>
-      <button
-        type="button"
-        class="head-close"
-        aria-label="Close"
-        @click="close"
-      >
+      <button type="button" class="head-close" aria-label="Close" @click="close">
         <AppIcon name="close" :size="14" />
       </button>
     </div>
@@ -177,7 +176,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 120ms ease, color 120ms ease;
+  flex-shrink: 0;
 }
 .head-close:hover {
   background: var(--surface-hover);
@@ -187,13 +186,11 @@ onMounted(() => {
 .modal-body {
   padding: 22px;
 }
-
 .loading {
   padding: 40px;
   text-align: center;
   color: var(--text-muted);
 }
-
 .form {
   display: flex;
   flex-direction: column;
@@ -203,6 +200,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
 }
 .field-head {
   display: flex;
@@ -251,5 +249,21 @@ onMounted(() => {
 .err {
   font-size: 11.5px;
   color: var(--danger);
+}
+
+@media (max-width: 640px) {
+  .modal-body {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 420px) {
+  .icon-picker {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+  .icon-btn {
+    height: 40px;
+  }
 }
 </style>

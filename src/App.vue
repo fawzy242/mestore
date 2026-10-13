@@ -13,6 +13,17 @@ onMounted(() => {
 
 <template>
   <router-view />
-  <Toast position="bottom-center" />
-  <ConfirmDialog :draggable="false" />
+
+  <!-- Global feedback surfaces — always above modals, single instance. -->
+  <Toast
+    position="top-right"
+    group="default"
+    :base-z-index="200"
+  />
+  <Toast
+    position="bottom-center"
+    group="persistent"
+    :base-z-index="200"
+  />
+  <ConfirmDialog :draggable="false" :base-z-index="210" />
 </template>

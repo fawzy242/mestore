@@ -60,13 +60,24 @@ const emit = defineEmits(['update:search', 'refresh', 'add'])
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
 }
-@media (max-width: 640px) {
-  .crud-toolbar-actions {
-    margin-left: 0;
+
+@media (max-width: 767px) {
+  .crud-toolbar-main {
     width: 100%;
   }
-  .crud-toolbar-actions > * {
+  .crud-toolbar-actions {
+    width: 100%;
+    margin-left: 0;
+  }
+  .crud-toolbar-actions > :deep(.p-button:last-child) {
+    flex: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .crud-toolbar-actions > :deep(.p-button:last-child) {
     flex: 1;
   }
 }

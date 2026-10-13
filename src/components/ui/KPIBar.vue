@@ -27,6 +27,8 @@ defineProps({
 @media (max-width: 480px) {
   .kpi-bar {
     grid-template-columns: 1fr;
+    gap: 8px;
+    margin-bottom: 14px;
   }
 }
 </style>

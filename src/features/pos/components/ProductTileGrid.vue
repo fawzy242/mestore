@@ -107,11 +107,15 @@ function stockLabel(product) {
 
 <style scoped>
 /*
- * Grid height = viewport - everything above it on the POS page:
- *   - topbar (60px, exposed as --topbar-h)
- *   - content padding (24px top + 24px bottom = 48px)
- *   - banner + toolbar + category chips (~200px)
- * Using the topbar token so future topbar height changes flow through.
+ * Responsive tile grid:
+ *   ≥1100px → 5–6 columns
+ *   ≥900px  → 4 columns
+ *   ≥640px  → 3 columns
+ *   ≥480px  → 2 columns
+ *   <480px  → 2 columns (compact tiles)
+ *
+ * Grid height = viewport - everything above it. Values reduced on mobile
+ * since the topbar and toolbar are shorter there.
  */
 .grid {
   display: grid;
@@ -120,6 +124,30 @@ function stockLabel(product) {
   max-height: calc(100vh - var(--topbar-h, 60px) - 248px);
   overflow-y: auto;
   padding-right: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    max-height: calc(100vh - var(--topbar-h, 60px) - 300px);
+  }
+}
+
+@media (max-width: 640px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    max-height: calc(100vh - var(--topbar-h, 60px) - 340px);
+    padding-right: 0;
+  }
+}
+
+@media (max-width: 380px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
 }
 
 /* ---- Tile ---- */
@@ -134,6 +162,7 @@ function stockLabel(product) {
   transition: border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
   min-height: 138px;
   position: relative;
+  min-width: 0;
 }
 
 .tile:hover {
@@ -141,7 +170,6 @@ function stockLabel(product) {
   box-shadow: var(--shadow-1);
 }
 
-/* In-cart: subtle tint + thin accent line, NOT a full red border */
 .tile.in-cart {
   background: var(--primary-tint);
   border-color: var(--border);
@@ -158,7 +186,6 @@ function stockLabel(product) {
   background: var(--primary);
 }
 
-/* Out of stock: greyed out, no hover affordance */
 .tile.out-of-stock {
   opacity: 0.55;
   cursor: not-allowed;
@@ -173,13 +200,13 @@ function stockLabel(product) {
   color: var(--text-muted);
 }
 
-/* ---- Tile content ---- */
 .tile-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 6px;
   margin-bottom: 8px;
+  min-width: 0;
 }
 
 .sku {
@@ -187,6 +214,10 @@ function stockLabel(product) {
   color: var(--text-muted);
   font-weight: 500;
   letter-spacing: 0.02em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .tile-name {
@@ -205,6 +236,9 @@ function stockLabel(product) {
   font-size: 11.5px;
   color: var(--text-muted);
   margin-bottom: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .tile-bottom {
@@ -224,7 +258,6 @@ function stockLabel(product) {
   white-space: nowrap;
 }
 
-/* ---- Not-in-cart: single red + ---- */
 .add-btn {
   width: 30px;
   height: 30px;
@@ -240,7 +273,7 @@ function stockLabel(product) {
   font-weight: 500;
   flex-shrink: 0;
   cursor: pointer;
-  transition: background 120ms ease;
+  transition: background 120ms ease, transform 80ms ease;
 }
 
 .add-btn:hover {
@@ -251,7 +284,6 @@ function stockLabel(product) {
   transform: scale(0.96);
 }
 
-/* ---- Out-of-stock chip replaces the + ---- */
 .out-chip {
   display: inline-flex;
   align-items: center;
@@ -267,7 +299,6 @@ function stockLabel(product) {
   flex-shrink: 0;
 }
 
-/* ---- In cart: neutral stepper, no borders except a soft container ---- */
 .stepper {
   display: inline-flex;
   align-items: center;
@@ -325,5 +356,64 @@ function stockLabel(product) {
   padding: 40px 20px;
   color: var(--text-muted);
   font-size: 13px;
+}
+
+/* --- Compact tiles on small screens --- */
+@media (max-width: 640px) {
+  .tile {
+    padding: 11px;
+    min-height: 126px;
+    border-radius: var(--radius-md);
+  }
+  .tile.in-cart::before {
+    top: 11px;
+    bottom: 11px;
+  }
+  .tile-name {
+    font-size: 12.5px;
+    min-height: 32px;
+    -webkit-line-clamp: 2;
+  }
+  .tile-cat {
+    font-size: 10.5px;
+    margin-bottom: 8px;
+  }
+  .tile-bottom {
+    padding-top: 8px;
+    gap: 6px;
+  }
+  .price {
+    font-size: 12px;
+  }
+  .add-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 16px;
+  }
+  .stepper {
+    height: 28px;
+  }
+  .stepper-btn {
+    width: 24px;
+    font-size: 14px;
+  }
+  .stepper-qty {
+    min-width: 20px;
+    font-size: 12px;
+  }
+  .out-chip {
+    height: 28px;
+    font-size: 10.5px;
+    padding: 0 8px;
+  }
+  .sku {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 380px) {
+  .tile-cat {
+    display: none;
+  }
 }
 </style>

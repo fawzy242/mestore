@@ -47,7 +47,9 @@ onMounted(fetchTransaction)
           </div>
         </div>
 
-        <ReceiptBlock :receipt="transaction" />
+        <div class="print-receipt">
+          <ReceiptBlock :receipt="transaction" />
+        </div>
 
         <AppDetailRow label="Payment">{{ transaction.method }}</AppDetailRow>
         <AppDetailRow label="Cashier">{{ transaction.cashier }}</AppDetailRow>
@@ -55,7 +57,7 @@ onMounted(fetchTransaction)
 
         <div class="actions">
           <Button
-            label="Back to Transactions"
+            label="Back"
             icon="pi pi-arrow-left"
             severity="secondary"
             outlined
@@ -81,6 +83,7 @@ onMounted(fetchTransaction)
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .tx-title {
@@ -88,16 +91,34 @@ onMounted(fetchTransaction)
   font-size: 18px;
   font-weight: 600;
   color: var(--text);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .actions {
   display: flex;
   gap: 10px;
   margin-top: 20px;
+  flex-wrap: wrap;
 }
 
 .actions > * {
   flex: 1;
+  min-width: 0;
   justify-content: center;
+}
+
+@media (max-width: 480px) {
+  .tx-title {
+    font-size: 16px;
+  }
+  .actions {
+    flex-direction: column-reverse;
+  }
+  .actions > * {
+    flex: 1 1 auto;
+    width: 100%;
+  }
 }
 </style>

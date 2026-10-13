@@ -15,11 +15,10 @@ import { usePosCatalog } from '../composables/usePosCatalog.js'
 import { useDebouncedSearch } from '@/composables/useDebouncedSearch.js'
 import { usePosCartStore } from '@/stores/posCart.store.js'
 import { useShift } from '@/features/shift/composables/useShift.js'
-import { formatRupiah } from '@/composables/useFormatters.js'
 
 const cart = usePosCartStore()
 const shift = useShift()
-const { products, categories, loading, error, filters, fetchCategories, fetchProducts } =
+const { products, categories, loading, filters, fetchCategories, fetchProducts } =
   usePosCatalog()
 
 const cartModalOpen = ref(false)
@@ -37,8 +36,6 @@ watch(
   () => fetchProducts(),
 )
 
-// Build a `{ [productId]: qty }` map for the tile grid so each tile
-// can render its own quantity stepper.
 const cartQtyMap = computed(() => {
   const map = {}
   for (const item of cart.items) {
@@ -49,14 +46,13 @@ const cartQtyMap = computed(() => {
 
 function addToCart(product) {
   cart.addProduct(product)
-  // Do NOT auto-open the modal — the user must tap the Cart button.
 }
 
 function removeFromCart(product) {
   const item = cart.items.find((i) => i.id === product.id)
   if (!item) return
   if (item.qty <= 1) {
-    cart.setQty(product.id, 0) // removes item
+    cart.setQty(product.id, 0)
   } else {
     cart.setQty(product.id, item.qty - 1)
   }
@@ -74,10 +70,6 @@ function decrement(id) {
   if (item) cart.setQty(id, item.qty - 1)
 }
 
-/**
- * Cart modal → Charge → open Payment modal.
- * Closes the cart modal first (one modal at a time).
- */
 function charge() {
   if (cart.items.length === 0) return
   cartModalOpen.value = false
@@ -89,27 +81,16 @@ function hold() {
   cartModalOpen.value = false
 }
 
-/**
- * Payment modal → Back → reopen the cart modal so the cashier can adjust.
- */
 function onPaymentBack() {
   paymentModalOpen.value = false
   cartModalOpen.value = true
 }
 
-/**
- * Payment modal → successful submit → close Payment, open Success.
- * The receipt is stored inside the cart store by useCheckout.submit(),
- * so the Success modal reads it on open.
- */
 function onPaymentSuccess() {
   paymentModalOpen.value = false
   successModalOpen.value = true
 }
 
-/**
- * Success modal → New Sale → back to a clean POS view.
- */
 function onNewSale() {
   successModalOpen.value = false
 }
@@ -150,6 +131,7 @@ onMounted(async () => {
           :icon="shift.hasOpenShift.value ? 'pi pi-check-circle' : 'pi pi-power-off'"
           :severity="shift.hasOpenShift.value ? 'success' : 'secondary'"
           outlined
+          class="shift-btn"
           @click="openShiftModal"
         />
         <CartButton
@@ -213,7 +195,7 @@ onMounted(async () => {
 .search-wrap {
   position: relative;
   flex: 1;
-  min-width: 260px;
+  min-width: 0;
 }
 
 .search-icon {
@@ -269,5 +251,45 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 900px) {
+  .pos-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .search-wrap {
+    width: 100%;
+  }
+  .toolbar-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .shift-btn {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .toolbar-actions {
+    flex-wrap: wrap;
+  }
+  .shift-btn {
+    order: 2;
+    width: 100%;
+    flex-basis: 100%;
+  }
+  .toolbar-actions :deep(.cart-btn) {
+    order: 1;
+    width: 100%;
+    justify-content: center;
+  }
+  .search-input {
+    height: 42px;
+    font-size: 13.5px;
+  }
 }
 </style>

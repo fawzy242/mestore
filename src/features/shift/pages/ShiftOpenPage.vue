@@ -52,7 +52,6 @@ function openShift() {
 }
 
 onMounted(() => {
-  // If a shift is already open (e.g. user navigated here manually), bounce out.
   if (shift.hasOpenShift.value) redirectAfterOpen()
 })
 </script>
@@ -135,6 +134,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
 }
 .title {
   margin: 0;
@@ -172,12 +172,12 @@ onMounted(() => {
   font-weight: 600;
 }
 .denoms {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   margin-bottom: 20px;
 }
 .denom {
-  flex: 1;
   padding: 10px 12px;
   background: var(--surface-hover);
   border: 1px solid transparent;
@@ -202,5 +202,29 @@ onMounted(() => {
   width: 100%;
   height: 46px;
   font-weight: 600;
+}
+
+@media (max-width: 480px) {
+  .head {
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .head-icon {
+    width: 42px;
+    height: 42px;
+  }
+  .title {
+    font-size: 16.5px;
+  }
+  .sub {
+    font-size: 12px;
+  }
+  .full :deep(input) {
+    height: 42px;
+    font-size: 14px;
+  }
+  .open-btn {
+    height: 44px;
+  }
 }
 </style>

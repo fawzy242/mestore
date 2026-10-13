@@ -71,15 +71,16 @@ onMounted(fetchUser)
             <h2 class="title">{{ user.name }}</h2>
             <span class="username mono">@{{ user.username }}</span>
           </div>
+          <StatusPill :variant="isActive ? 'success' : 'neutral'">
+            {{ isActive ? 'Active' : 'Inactive' }}
+          </StatusPill>
         </div>
 
         <AppDetailRow label="Role">
           {{ user.role.charAt(0).toUpperCase() + user.role.slice(1) }}
         </AppDetailRow>
         <AppDetailRow label="Status">
-          <StatusPill :variant="isActive ? 'success' : 'neutral'">
-            {{ isActive ? 'Active' : 'Inactive' }}
-          </StatusPill>
+          {{ isActive ? 'Active' : 'Inactive' }}
         </AppDetailRow>
 
         <div class="actions">
@@ -105,13 +106,15 @@ onMounted(fetchUser)
   align-items: center;
   gap: 16px;
   margin-bottom: 20px;
+  flex-wrap: wrap;
 }
 
 .header-text {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 2px;
-  min-width: 0;
 }
 
 .title {
@@ -119,6 +122,8 @@ onMounted(fetchUser)
   font-size: 20px;
   font-weight: 700;
   color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .username {
@@ -130,5 +135,18 @@ onMounted(fetchUser)
   display: flex;
   gap: 10px;
   margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 480px) {
+  .header {
+    gap: 12px;
+  }
+  .title {
+    font-size: 18px;
+  }
+  .actions > :deep(.p-button) {
+    flex: 1;
+  }
 }
 </style>

@@ -29,9 +29,7 @@ function close() {
     :show-header="false"
   >
     <div class="modal-head">
-      <span class="head-icon">
-        <AppIcon name="schedule" :size="20" />
-      </span>
+      <span class="head-icon"><AppIcon name="schedule" :size="20" /></span>
       <h2 class="head-title">Shift Detail</h2>
       <button type="button" class="head-close" aria-label="Close" @click="close">
         <AppIcon name="close" :size="14" />
@@ -107,7 +105,7 @@ function close() {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 120ms ease, color 120ms ease;
+  flex-shrink: 0;
 }
 .head-close:hover {
   background: var(--surface-hover);
@@ -125,10 +123,20 @@ function close() {
   padding-bottom: 12px;
   margin-bottom: 8px;
   border-bottom: 1px solid var(--border);
+  gap: 10px;
+  flex-wrap: wrap;
 }
 .shift-id {
   font-size: 14px;
   font-weight: 700;
   color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 640px) {
+  .modal-body {
+    padding: 16px;
+  }
 }
 </style>

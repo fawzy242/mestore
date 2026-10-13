@@ -5,6 +5,7 @@ const props = defineProps({
   modelValue: { type: Boolean, default: false },
   title: { type: String, default: '' },
   dismissible: { type: Boolean, default: true },
+  size: { type: String, default: 'md' }, // sm | md | lg
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -57,8 +58,6 @@ watch(
       previouslyFocused = document.activeElement
       document.addEventListener('keydown', handleKeydown)
       await nextTick()
-      // Prefer the first focusable control inside the dialog; fall back to
-      // the dialog element itself so Tab starts inside the modal.
       const firstFocusable = dialogRef.value?.querySelector(FOCUSABLE)
       ;(firstFocusable || dialogRef.value)?.focus()
     } else {
@@ -78,30 +77,33 @@ onBeforeUnmount(() => document.removeEventListener('keydown', handleKeydown))
 
 <template>
   <Teleport to="body">
-    <div v-if="modelValue" class="modal-overlay" @click.self="close">
-      <div
-        ref="dialogRef"
-        class="modal"
-        role="dialog"
-        aria-modal="true"
-        :aria-label="title || undefined"
-        tabindex="-1"
-      >
-        <header v-if="title || $slots.header" class="modal-header">
-          <slot name="header">
-            <h3 class="modal-title">{{ title }}</h3>
-          </slot>
-        </header>
+    <Transition name="modal-fade">
+      <div v-if="modelValue" class="modal-overlay" @click.self="close">
+        <div
+          ref="dialogRef"
+          class="modal"
+          :class="`modal-${size}`"
+          role="dialog"
+          aria-modal="true"
+          :aria-label="title || undefined"
+          tabindex="-1"
+        >
+          <header v-if="title || $slots.header" class="modal-header">
+            <slot name="header">
+              <h3 class="modal-title">{{ title }}</h3>
+            </slot>
+          </header>
 
-        <div class="modal-body">
-          <slot />
+          <div class="modal-body">
+            <slot />
+          </div>
+
+          <footer v-if="$slots.footer" class="modal-footer">
+            <slot name="footer" />
+          </footer>
         </div>
-
-        <footer v-if="$slots.footer" class="modal-footer">
-          <slot name="footer" />
-        </footer>
       </div>
-    </div>
+    </Transition>
   </Teleport>
 </template>
 
@@ -115,17 +117,29 @@ onBeforeUnmount(() => document.removeEventListener('keydown', handleKeydown))
   justify-content: center;
   z-index: 50;
   padding: 16px;
+  padding-top: calc(16px + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  overflow-y: auto;
 }
 
 .modal {
-  background: var(--color-surface);
-  border-radius: var(--radius-m);
-  box-shadow: var(--shadow-2);
-  width: 360px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-3);
+  width: 100%;
   max-width: 100%;
   padding: 22px;
   outline: none;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
 }
+
+.modal-sm { max-width: 420px; }
+.modal-md { max-width: 520px; }
+.modal-lg { max-width: 720px; }
 
 .modal-header {
   margin-bottom: 8px;
@@ -134,11 +148,13 @@ onBeforeUnmount(() => document.removeEventListener('keydown', handleKeydown))
 .modal-title {
   margin: 0;
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 600;
+  color: var(--text);
 }
 
 .modal-body {
-  color: var(--color-ink);
+  color: var(--text);
+  flex: 1;
 }
 
 .modal-footer {
@@ -146,5 +162,46 @@ onBeforeUnmount(() => document.removeEventListener('keydown', handleKeydown))
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Transition */
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+  transition: opacity 140ms ease;
+}
+.modal-fade-enter-active .modal,
+.modal-fade-leave-active .modal {
+  transition: transform 160ms ease, opacity 140ms ease;
+}
+.modal-fade-enter-from,
+.modal-fade-leave-to {
+  opacity: 0;
+}
+.modal-fade-enter-from .modal,
+.modal-fade-leave-to .modal {
+  transform: translateY(8px) scale(0.98);
+}
+
+/* Full-screen on mobile — avoids cramped modals on small viewports */
+@media (max-width: 640px) {
+  .modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+  .modal {
+    max-width: 100%;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    max-height: 92vh;
+    padding: 20px 18px;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  }
+  .modal-footer {
+    flex-direction: column-reverse;
+  }
+  .modal-footer > * {
+    width: 100%;
+  }
 }
 </style>

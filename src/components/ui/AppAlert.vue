@@ -34,14 +34,18 @@ const classes = computed(() => ['alert', `alert-${props.variant}`])
   align-items: center;
   gap: 10px;
   padding: 10px 14px;
-  border-radius: var(--radius-s);
+  border-radius: var(--radius-md);
   font-size: 13px;
   border: 1px solid transparent;
   margin-bottom: 12px;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .alert-message {
   flex: 1;
+  min-width: 0;
+  word-break: break-word;
 }
 
 .alert-retry {
@@ -51,25 +55,34 @@ const classes = computed(() => ['alert', `alert-${props.variant}`])
   border: none;
   color: inherit;
   cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
 }
 
 .alert-error {
-  background: var(--color-primary-tint);
-  color: var(--color-primary);
+  background: var(--danger-bg);
+  color: var(--danger);
 }
 
 .alert-warning {
-  background: var(--color-warning-bg);
-  color: var(--color-warning);
+  background: var(--warning-bg);
+  color: var(--warning);
 }
 
 .alert-success {
-  background: var(--color-success-bg);
-  color: var(--color-success);
+  background: var(--success-bg);
+  color: var(--success);
 }
 
 .alert-info {
-  background: var(--color-primary-tint);
-  color: var(--color-ink-soft);
+  background: var(--primary-tint);
+  color: var(--text-muted);
+}
+
+@media (max-width: 640px) {
+  .alert {
+    font-size: 12.5px;
+    padding: 9px 12px;
+  }
 }
 </style>

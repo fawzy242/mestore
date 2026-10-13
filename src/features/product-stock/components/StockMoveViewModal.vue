@@ -13,13 +13,21 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 const visible = computed({ get: () => props.modelValue, set: (v) => emit('update:modelValue', v) })
-function close() { visible.value = false }
+function close() {
+  visible.value = false
+}
 
 const isApproved = computed(() => props.move?.Approved === 1)
 </script>
 
 <template>
-  <Dialog v-model:visible="visible" modal :draggable="false" :style="{ width: '520px' }" :show-header="false">
+  <Dialog
+    v-model:visible="visible"
+    modal
+    :draggable="false"
+    :style="{ width: '520px' }"
+    :show-header="false"
+  >
     <div class="modal-head">
       <span class="head-icon"><AppIcon name="tune" :size="20" /></span>
       <h2 class="head-title">Stock Move Detail</h2>
@@ -50,12 +58,77 @@ const isApproved = computed(() => props.move?.Approved === 1)
 </template>
 
 <style scoped>
-.modal-head { display: flex; align-items: center; gap: 12px; padding: 18px 22px; border-bottom: 1px solid var(--border); }
-.head-icon { width: 36px; height: 36px; border-radius: var(--radius-md); background: var(--primary-tint); color: var(--primary); display: inline-flex; align-items: center; justify-content: center; }
-.head-title { flex: 1; margin: 0; font-size: 16px; font-weight: 600; color: var(--text); }
-.head-close { width: 32px; height: 32px; border-radius: var(--radius-md); background: transparent; border: none; color: var(--text-muted); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
-.head-close:hover { background: var(--surface-hover); color: var(--text); }
-.modal-body { padding: 22px; }
-.top-row { display: flex; align-items: center; justify-content: space-between; padding-bottom: 12px; margin-bottom: 8px; border-bottom: 1px solid var(--border); }
-.product-name { font-size: 14px; font-weight: 700; color: var(--text); }
+.modal-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border);
+}
+.head-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--primary-tint);
+  color: var(--primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.head-title {
+  flex: 1;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+.head-close {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.head-close:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+.modal-body {
+  padding: 22px;
+}
+.top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 12px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.product-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 640px) {
+  .modal-body {
+    padding: 16px;
+  }
+  .product-name {
+    font-size: 13.5px;
+    white-space: normal;
+  }
+}
 </style>

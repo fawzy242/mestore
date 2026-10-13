@@ -21,22 +21,32 @@ defineProps({
   font-weight: 500;
   line-height: 1.4;
   white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .variant-neutral {
-  background: var(--color-surface-container);
-  color: var(--color-ink-soft);
+  background: var(--surface-hover);
+  color: var(--text-muted);
 }
 .variant-primary {
-  background: var(--color-primary-tint);
-  color: var(--color-primary-container);
+  background: var(--primary-tint);
+  color: var(--primary);
 }
 .variant-success {
-  background: var(--color-success-bg);
-  color: var(--color-success);
+  background: var(--success-bg);
+  color: var(--success);
 }
 .variant-warning {
-  background: var(--color-warning-bg);
-  color: var(--color-warning);
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+
+@media (max-width: 640px) {
+  .mono-chip {
+    font-size: 11.5px;
+    padding: 2px 6px;
+  }
 }
 </style>

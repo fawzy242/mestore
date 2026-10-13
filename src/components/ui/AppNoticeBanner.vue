@@ -36,6 +36,7 @@ defineEmits(['dismiss'])
   margin-bottom: 14px;
   border: 1px solid transparent;
   transition: background-color 150ms ease, color 150ms ease;
+  min-width: 0;
 }
 .notice-info {
   background: var(--info-bg);
@@ -67,6 +68,8 @@ defineEmits(['dismiss'])
 .msg {
   flex: 1;
   line-height: 1.35;
+  min-width: 0;
+  word-break: break-word;
 }
 .close {
   font-size: 12px;
@@ -75,8 +78,16 @@ defineEmits(['dismiss'])
   background: transparent;
   border: none;
   color: inherit;
+  flex-shrink: 0;
 }
 .close:hover {
   opacity: 1;
+}
+
+@media (max-width: 640px) {
+  .notice {
+    font-size: 12px;
+    padding: 7px 10px;
+  }
 }
 </style>

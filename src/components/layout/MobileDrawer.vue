@@ -74,17 +74,20 @@ onBeforeUnmount(() => {
   background: rgba(0, 0, 0, 0.45);
   z-index: 45;
   display: flex;
+  overflow: hidden;
 }
 
 .drawer {
-  max-width: 90vw;
+  max-width: 88vw;
   height: 100%;
   display: flex;
   overflow: hidden;
+  box-shadow: var(--shadow-3);
 }
 
 .drawer :deep(.sidebar) {
   width: var(--sidebar-w);
+  max-width: 88vw;
 }
 
 .drawer-fade-enter-active,
@@ -92,8 +95,18 @@ onBeforeUnmount(() => {
   transition: opacity 0.18s ease;
 }
 
+.drawer-fade-enter-active .drawer,
+.drawer-fade-leave-active .drawer {
+  transition: transform 0.22s cubic-bezier(0.2, 0, 0, 1);
+}
+
 .drawer-fade-enter-from,
 .drawer-fade-leave-to {
   opacity: 0;
+}
+
+.drawer-fade-enter-from .drawer,
+.drawer-fade-leave-to .drawer {
+  transform: translateX(-100%);
 }
 </style>

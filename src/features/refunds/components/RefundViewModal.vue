@@ -14,13 +14,21 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 const visible = computed({ get: () => props.modelValue, set: (v) => emit('update:modelValue', v) })
-function close() { visible.value = false }
+function close() {
+  visible.value = false
+}
 
 const isApproved = computed(() => props.refund?.Approved === 1)
 </script>
 
 <template>
-  <Dialog v-model:visible="visible" modal :draggable="false" :style="{ width: '580px' }" :show-header="false">
+  <Dialog
+    v-model:visible="visible"
+    modal
+    :draggable="false"
+    :style="{ width: '580px' }"
+    :show-header="false"
+  >
     <div class="modal-head">
       <span class="head-icon"><AppIcon name="assignment-return" :size="20" /></span>
       <h2 class="head-title">Refund Detail</h2>
@@ -28,7 +36,7 @@ const isApproved = computed(() => props.refund?.Approved === 1)
         <AppIcon name="close" :size="14" />
       </button>
     </div>
-    <div class="modal-body" v-if="refund">
+    <div v-if="refund" class="modal-body">
       <div class="top-row">
         <span class="mono ref">{{ refund.refNo }}</span>
         <StatusPill :variant="isApproved ? 'success' : 'warning'">
@@ -43,9 +51,9 @@ const isApproved = computed(() => props.refund?.Approved === 1)
       <div class="items-block">
         <div class="items-title">Refunded Items</div>
         <div v-for="(it, i) in refund.items" :key="i" class="item-row">
-          <span>{{ it.name }}</span>
-          <span class="mono">{{ it.qty }} × {{ formatRupiah(it.price) }}</span>
-          <span class="mono item-total">{{ formatRupiah(it.qty * it.price) }}</span>
+          <span class="item-name">{{ it.name }}</span>
+          <span class="item-qty mono">{{ it.qty }} × {{ formatRupiah(it.price) }}</span>
+          <span class="item-total mono">{{ formatRupiah(it.qty * it.price) }}</span>
         </div>
       </div>
 
@@ -77,6 +85,7 @@ const isApproved = computed(() => props.refund?.Approved === 1)
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 .head-title {
   flex: 1;
@@ -96,6 +105,7 @@ const isApproved = computed(() => props.refund?.Approved === 1)
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  flex-shrink: 0;
 }
 .head-close:hover {
   background: var(--surface-hover);
@@ -111,11 +121,17 @@ const isApproved = computed(() => props.refund?.Approved === 1)
   padding-bottom: 12px;
   margin-bottom: 8px;
   border-bottom: 1px solid var(--border);
+  gap: 10px;
+  flex-wrap: wrap;
 }
 .ref {
   font-size: 14px;
   font-weight: 700;
   color: var(--primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 .items-block {
   margin-top: 16px;
@@ -139,10 +155,19 @@ const isApproved = computed(() => props.refund?.Approved === 1)
   grid-template-columns: 2fr 1fr 1fr;
   gap: 10px;
   font-size: 13px;
+  align-items: center;
 }
+.item-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.item-qty,
 .item-total {
   text-align: right;
-  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
 }
 .total-row {
   display: flex;
@@ -155,10 +180,39 @@ const isApproved = computed(() => props.refund?.Approved === 1)
   border: 1px solid var(--border);
   font-size: 14px;
   font-weight: 600;
+  gap: 10px;
 }
 .total-value {
   color: var(--primary);
   font-size: 18px;
   font-weight: 700;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .modal-body {
+    padding: 16px;
+  }
+  .item-row {
+    grid-template-columns: 1fr auto;
+    row-gap: 4px;
+  }
+  .item-name {
+    grid-column: 1 / -1;
+    font-size: 13.5px;
+    font-weight: 500;
+  }
+  .item-qty {
+    text-align: left;
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+  .item-total {
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .total-value {
+    font-size: 16px;
+  }
 }
 </style>

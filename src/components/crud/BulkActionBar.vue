@@ -14,22 +14,25 @@ const emit = defineEmits(['action', 'clear'])
   <Transition name="bulk-fade">
     <div v-if="count > 0" class="bulk-bar">
       <span class="bulk-count">{{ count }} selected</span>
-      <Button
-        v-for="action in actions"
-        :key="action.key"
-        :label="action.label"
-        :icon="action.icon"
-        :severity="action.severity || 'secondary'"
-        :outlined="action.outlined !== false"
-        size="small"
-        @click="emit('action', action.key)"
-      />
+      <div class="bulk-actions">
+        <Button
+          v-for="action in actions"
+          :key="action.key"
+          :label="action.label"
+          :icon="action.icon"
+          :severity="action.severity || 'secondary'"
+          :outlined="action.outlined !== false"
+          size="small"
+          @click="emit('action', action.key)"
+        />
+      </div>
       <Button
         label="Clear"
         icon="pi pi-times"
         text
         severity="secondary"
         size="small"
+        class="bulk-clear"
         @click="emit('clear')"
       />
     </div>
@@ -52,7 +55,17 @@ const emit = defineEmits(['action', 'clear'])
   font-size: 13px;
   font-weight: 600;
   color: var(--primary);
-  margin-right: auto;
+  white-space: nowrap;
+}
+.bulk-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+.bulk-clear {
+  flex-shrink: 0;
 }
 .bulk-fade-enter-active,
 .bulk-fade-leave-active {
@@ -62,5 +75,19 @@ const emit = defineEmits(['action', 'clear'])
 .bulk-fade-leave-to {
   opacity: 0;
   transform: translateY(-4px);
+}
+
+@media (max-width: 640px) {
+  .bulk-bar {
+    gap: 8px;
+  }
+  .bulk-actions {
+    width: 100%;
+    margin-left: 0;
+  }
+  .bulk-actions > :deep(.p-button) {
+    flex: 1;
+    min-width: 0;
+  }
 }
 </style>

@@ -86,7 +86,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <aside class="sidebar" :class="{ collapsed }">
+  <aside class="sidebar" :class="{ collapsed, drawer }">
     <div class="sidebar-header">
       <div class="brand">
         <div class="brand-mark">M</div>
@@ -137,15 +137,19 @@ onMounted(() => {
   flex-direction: column;
   transition: width 180ms ease;
   padding-top: env(safe-area-inset-top, 0px);
+  /* prevent horizontal jitter during collapse */
+  overflow: hidden;
 }
 
 .sidebar.collapsed {
   width: var(--sidebar-w-collapsed);
 }
 
-/* Aligns the sidebar header baseline with the topbar.
- * Height comes from --topbar-h so the two horizontal separator lines
- * render as a single continuous line across the top of the app. */
+.sidebar.drawer {
+  width: var(--sidebar-w);
+  height: 100%;
+}
+
 .sidebar-header {
   height: var(--topbar-h);
   display: flex;
@@ -163,8 +167,6 @@ onMounted(() => {
   gap: 0;
 }
 
-/* When collapsed, the header only has room for one child.
- * Keep the toggle (functional) and hide the brand (decorative). */
 .sidebar.collapsed .brand {
   display: none;
 }
@@ -221,6 +223,7 @@ onMounted(() => {
   padding: 10px 8px;
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .nav-item {
@@ -274,5 +277,14 @@ onMounted(() => {
 .sidebar-footer {
   padding: 8px;
   border-top: 1px solid var(--sidebar-border);
+  padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+}
+
+/* --- Mobile: drawer mode — slightly more comfortable spacing --- */
+@media (max-width: 767px) {
+  .sidebar.drawer .nav-item {
+    padding: 13px 14px;
+    font-size: 14.5px;
+  }
 }
 </style>

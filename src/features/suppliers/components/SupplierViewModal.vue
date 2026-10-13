@@ -13,7 +13,9 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'edit'])
 const visible = computed({ get: () => props.modelValue, set: (v) => emit('update:modelValue', v) })
-function close() { visible.value = false }
+function close() {
+  visible.value = false
+}
 function edit() {
   const id = props.supplier?.id
   visible.value = false
@@ -23,7 +25,13 @@ const isActive = computed(() => props.supplier?.IsActive === 1)
 </script>
 
 <template>
-  <Dialog v-model:visible="visible" modal :draggable="false" :style="{ width: '540px' }" :show-header="false">
+  <Dialog
+    v-model:visible="visible"
+    modal
+    :draggable="false"
+    :style="{ width: '540px' }"
+    :show-header="false"
+  >
     <div class="modal-head">
       <span class="head-icon"><AppIcon name="local-shipping" :size="20" /></span>
       <h2 class="head-title">Supplier Detail</h2>
@@ -31,7 +39,7 @@ const isActive = computed(() => props.supplier?.IsActive === 1)
         <AppIcon name="close" :size="14" />
       </button>
     </div>
-    <div class="modal-body" v-if="supplier">
+    <div v-if="supplier" class="modal-body">
       <div class="top-row">
         <h3 class="name">{{ supplier.name }}</h3>
         <StatusPill :variant="isActive ? 'success' : 'neutral'">
@@ -69,6 +77,7 @@ const isActive = computed(() => props.supplier?.IsActive === 1)
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 .head-title {
   flex: 1;
@@ -88,6 +97,7 @@ const isActive = computed(() => props.supplier?.IsActive === 1)
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  flex-shrink: 0;
 }
 .head-close:hover {
   background: var(--surface-hover);
@@ -100,14 +110,28 @@ const isActive = computed(() => props.supplier?.IsActive === 1)
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
   padding-bottom: 12px;
   margin-bottom: 8px;
   border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
 }
 .name {
   margin: 0;
   font-size: 17px;
   font-weight: 600;
   color: var(--text);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (max-width: 640px) {
+  .modal-body {
+    padding: 16px;
+  }
+  .name {
+    font-size: 15.5px;
+    white-space: normal;
+  }
 }
 </style>

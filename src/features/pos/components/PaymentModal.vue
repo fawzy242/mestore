@@ -74,8 +74,6 @@ function back() {
   emit('back')
 }
 
-// Reset local tender input whenever the modal opens so a previous session
-// doesn't leak into a new one.
 watch(visible, (open) => {
   if (open) {
     tenderedValue.value = null
@@ -237,6 +235,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  flex-shrink: 0;
   transition: background 120ms ease, color 120ms ease;
 }
 .head-close:hover {
@@ -276,11 +275,11 @@ onMounted(() => {
 }
 
 .methods {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 10px;
 }
 .method {
-  flex: 1;
   border: 1.5px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 14px 12px;
@@ -296,6 +295,7 @@ onMounted(() => {
   gap: 6px;
   transition: all 120ms;
   cursor: pointer;
+  min-width: 0;
 }
 .method:hover {
   background: var(--surface-hover);
@@ -331,13 +331,11 @@ onMounted(() => {
 }
 
 .denoms {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
   gap: 8px;
-  flex-wrap: wrap;
 }
 .denom {
-  flex: 1;
-  min-width: 100px;
   padding: 10px 12px;
   background: var(--surface-hover);
   border: 1px solid transparent;
@@ -348,6 +346,7 @@ onMounted(() => {
   color: var(--text);
   transition: all 120ms;
   cursor: pointer;
+  white-space: nowrap;
 }
 .denom:hover {
   background: var(--primary-tint);
@@ -390,5 +389,36 @@ onMounted(() => {
   flex-direction: column;
   align-items: center;
   gap: 10px;
+}
+
+/* --- Mobile --- */
+@media (max-width: 640px) {
+  .modal-head {
+    padding: 14px 16px;
+    gap: 10px;
+  }
+  .head-title {
+    font-size: 15px;
+  }
+  .modal-body {
+    padding: 16px;
+    gap: 12px;
+  }
+  .methods {
+    gap: 8px;
+  }
+  .method {
+    padding: 12px 8px;
+    font-size: 12px;
+  }
+  .line.total {
+    font-size: 17px;
+  }
+  .total-value {
+    font-size: 19px;
+  }
+  .change-value {
+    font-size: 20px;
+  }
 }
 </style>

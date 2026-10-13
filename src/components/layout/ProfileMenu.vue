@@ -150,7 +150,9 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', handleDocClick))
   transition: background 120ms;
   cursor: pointer;
   border: none;
+  max-width: 240px;
 }
+
 .profile-chip:hover {
   background: var(--surface-hover);
 }
@@ -160,6 +162,9 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', handleDocClick))
   font-weight: 600;
   color: var(--text);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .profile-role {
@@ -171,11 +176,13 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', handleDocClick))
   background: var(--primary-tint);
   padding: 2px 8px;
   border-radius: var(--radius-full);
+  white-space: nowrap;
 }
 
 .chev {
   color: var(--text-muted);
   transition: transform 150ms;
+  flex-shrink: 0;
 }
 .chev.rotated {
   transform: rotate(180deg);
@@ -186,6 +193,7 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', handleDocClick))
   top: calc(100% + 8px);
   right: 0;
   min-width: 300px;
+  max-width: min(360px, calc(100vw - 16px));
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -212,6 +220,7 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', handleDocClick))
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
 }
 
 .profile-detail {
@@ -225,12 +234,18 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', handleDocClick))
   font-size: 14px;
   font-weight: 600;
   color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .profile-username {
   font-size: 12px;
   color: var(--text-muted);
   font-family: 'JetBrains Mono', monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .profile-role-pill {
@@ -255,17 +270,20 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', handleDocClick))
 .shift-row {
   display: flex;
   gap: 10px;
+  min-width: 0;
 }
 
 .shift-icon {
   color: var(--text-muted);
   margin-top: 2px;
+  flex-shrink: 0;
 }
 
 .shift-detail {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
 }
 
 .shift-status {
@@ -280,6 +298,8 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', handleDocClick))
 .shift-meta {
   font-size: 12px;
   color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .menu-item {
@@ -314,5 +334,39 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', handleDocClick))
 .profile-fade-leave-to {
   opacity: 0;
   transform: translateY(-4px);
+}
+
+/* --- Mobile: hide name/role, keep avatar + chevron; anchor menu to viewport --- */
+@media (max-width: 640px) {
+  .profile-chip {
+    gap: 6px;
+    padding: 4px 6px 4px 4px;
+    max-width: 60px;
+  }
+  .profile-name,
+  .profile-role {
+    display: none;
+  }
+
+  .profile-menu {
+    /* Fixed positioning on mobile so it never overflows the viewport,
+       no matter where the chip sits in the top bar. */
+    position: fixed;
+    top: calc(var(--topbar-h, 60px) + 6px);
+    left: 8px;
+    right: 8px;
+    min-width: 0;
+    max-width: none;
+    width: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .menu-section {
+    padding: 8px 10px;
+  }
+  .profile-fullname {
+    font-size: 13.5px;
+  }
 }
 </style>

@@ -100,7 +100,13 @@ onMounted(async () => {
 </script>
 
 <template>
-  <Dialog v-model:visible="visible" modal :draggable="false" :style="{ width: '720px' }" :show-header="false">
+  <Dialog
+    v-model:visible="visible"
+    modal
+    :draggable="false"
+    :style="{ width: '720px' }"
+    :show-header="false"
+  >
     <div class="modal-head">
       <span class="head-icon"><AppIcon name="shopping-basket" :size="20" /></span>
       <h2 class="head-title">{{ isEdit ? 'Edit Purchase' : 'New Purchase' }}</h2>
@@ -148,6 +154,14 @@ onMounted(async () => {
           <div class="items-head">
             <span class="items-title">Items</span>
             <Button label="Add Item" icon="pi pi-plus" size="small" outlined @click="addItem" />
+          </div>
+
+          <div class="item-head-row">
+            <span>Name</span>
+            <span>Qty</span>
+            <span>Price</span>
+            <span class="ar">Total</span>
+            <span></span>
           </div>
 
           <div v-for="(item, i) in form.items" :key="i" class="item-row">
@@ -223,6 +237,7 @@ onMounted(async () => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 .head-title {
   flex: 1;
@@ -242,13 +257,17 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  flex-shrink: 0;
 }
 .head-close:hover {
   background: var(--surface-hover);
   color: var(--text);
 }
+
 .modal-body {
   padding: 22px;
+  max-height: 70vh;
+  overflow-y: auto;
 }
 .loading {
   padding: 40px;
@@ -264,6 +283,7 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
 }
 .field.full,
 .full {
@@ -279,6 +299,7 @@ onMounted(async () => {
 .field :deep(.p-datepicker) {
   width: 100%;
 }
+
 .items-block {
   display: flex;
   flex-direction: column;
@@ -292,6 +313,7 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
 }
 .items-title {
   font-size: 12.5px;
@@ -300,12 +322,26 @@ onMounted(async () => {
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
+
+.item-head-row,
 .item-row {
   display: grid;
-  grid-template-columns: 2fr 90px 130px 120px 36px;
+  grid-template-columns: 2fr 80px 120px 120px 36px;
   gap: 8px;
   align-items: center;
 }
+
+.item-head-row {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  padding: 0 2px;
+}
+.item-head-row .ar {
+  text-align: right;
+}
+
 .item-name :deep(input),
 .item-qty :deep(input),
 .item-price :deep(input) {
@@ -315,7 +351,11 @@ onMounted(async () => {
   text-align: right;
   font-weight: 600;
   font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
+
 .total-row {
   display: flex;
   align-items: center;
@@ -336,13 +376,70 @@ onMounted(async () => {
   font-size: 11.5px;
   color: var(--danger);
 }
+
+/* --- Tablet: shrink item columns --- */
 @media (max-width: 700px) {
   .form {
     grid-template-columns: 1fr;
   }
+  .item-head-row,
   .item-row {
-    grid-template-columns: 1fr 60px 90px 80px 30px;
+    grid-template-columns: 1.4fr 60px 90px 90px 30px;
+    gap: 6px;
+  }
+  .item-total {
     font-size: 12px;
+  }
+}
+
+/* --- Mobile: item rows become two-line cards --- */
+@media (max-width: 480px) {
+  .modal-body {
+    padding: 16px;
+  }
+  .item-head-row {
+    display: none;
+  }
+  .item-row {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      'name name'
+      'qty price'
+      'total remove';
+    gap: 8px;
+    padding: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+  }
+  .item-row .item-name {
+    grid-area: name;
+  }
+  .item-row .item-qty {
+    grid-area: qty;
+  }
+  .item-row .item-price {
+    grid-area: price;
+  }
+  .item-row .item-total {
+    grid-area: total;
+    text-align: left;
+    align-self: center;
+    padding-left: 2px;
+  }
+  .item-row > :deep(.p-button) {
+    grid-area: remove;
+    justify-self: end;
+  }
+  .items-block {
+    padding: 10px;
+  }
+  .total-row {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+  .total-value {
+    font-size: 16px;
   }
 }
 </style>

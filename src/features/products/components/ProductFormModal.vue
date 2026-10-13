@@ -18,7 +18,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue', 'saved'])
-
 const { push } = useToast()
 
 const visible = computed({
@@ -27,9 +26,8 @@ const visible = computed({
 })
 
 const isEdit = computed(() => Boolean(props.productId))
-const { form, isSubmitting, isLoading, error, fieldErrors, load, submit } = useProductForm(
-  props.productId,
-)
+const { form, isSubmitting, isLoading, error, fieldErrors, load, submit } =
+  useProductForm(props.productId)
 
 const categoryOptions = ref([])
 
@@ -84,12 +82,7 @@ onMounted(() => {
         <AppIcon name="inventory-2" :size="20" />
       </span>
       <h2 class="head-title">{{ isEdit ? 'Edit Product' : 'Add Product' }}</h2>
-      <button
-        type="button"
-        class="head-close"
-        aria-label="Close"
-        @click="close"
-      >
+      <button type="button" class="head-close" aria-label="Close" @click="close">
         <AppIcon name="close" :size="14" />
       </button>
     </div>
@@ -228,6 +221,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  flex-shrink: 0;
   transition: background 120ms ease, color 120ms ease;
 }
 .head-close:hover {
@@ -238,13 +232,11 @@ onMounted(() => {
 .modal-body {
   padding: 22px;
 }
-
 .loading {
   padding: 40px;
   text-align: center;
   color: var(--text-muted);
 }
-
 .form {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -254,6 +246,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
 }
 .field.full {
   grid-column: 1 / -1;
@@ -274,8 +267,12 @@ onMounted(() => {
 }
 
 @media (max-width: 640px) {
+  .modal-body {
+    padding: 16px;
+  }
   .form {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
 }
 </style>

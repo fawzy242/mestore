@@ -42,6 +42,7 @@ const iconTone = computed(() => `icon-${props.tone}`)
   justify-content: space-between;
   gap: 12px;
   transition: background-color 150ms ease, border-color 150ms ease;
+  min-width: 0;
 }
 
 .kpi-text {
@@ -57,6 +58,9 @@ const iconTone = computed(() => `icon-${props.tone}`)
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .kpi-value {
@@ -65,6 +69,9 @@ const iconTone = computed(() => `icon-${props.tone}`)
   font-weight: 700;
   line-height: 1.15;
   color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .kpi-value .unit {
@@ -112,5 +119,29 @@ const iconTone = computed(() => `icon-${props.tone}`)
 .icon-warning {
   background: var(--warning-bg);
   color: var(--warning);
+}
+
+@media (max-width: 640px) {
+  .kpi {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+  .kpi-value {
+    font-size: 19px;
+  }
+  .kpi-icon {
+    width: 34px;
+    height: 34px;
+  }
+}
+
+@media (max-width: 380px) {
+  .kpi-value {
+    font-size: 17px;
+  }
+  .kpi-icon {
+    width: 30px;
+    height: 30px;
+  }
 }
 </style>

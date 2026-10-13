@@ -40,4 +40,16 @@ defineProps({
   padding: 16px 20px;
   border-top: 1px solid var(--border);
 }
+
+@media (max-width: 640px) {
+  .card.padded .card-body {
+    padding: 16px;
+  }
+  .card.padded .card-header {
+    padding: 14px 16px;
+  }
+  .card.padded .card-footer {
+    padding: 14px 16px;
+  }
+}
 </style>

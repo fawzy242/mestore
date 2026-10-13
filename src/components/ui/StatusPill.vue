@@ -22,6 +22,9 @@ defineProps({
   font-weight: 600;
   letter-spacing: 0.02em;
   white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
   transition: background-color 150ms ease, color 150ms ease;
 }
 .pill-success {
@@ -43,5 +46,13 @@ defineProps({
 .pill-info {
   background: var(--info-bg);
   color: var(--info);
+}
+
+@media (max-width: 640px) {
+  .pill {
+    height: 20px;
+    padding: 0 6px;
+    font-size: 10.5px;
+  }
 }
 </style>

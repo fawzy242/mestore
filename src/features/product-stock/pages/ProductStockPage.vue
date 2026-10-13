@@ -197,7 +197,11 @@ onMounted(async () => {
       @add="openAdd"
     >
       <template #filters>
-        <AppSelect :model-value="filters.status" :options="statusOptions" @update:model-value="onStatusChange" />
+        <AppSelect
+          :model-value="filters.status"
+          :options="statusOptions"
+          @update:model-value="onStatusChange"
+        />
       </template>
     </CrudToolbar>
 
@@ -269,5 +273,18 @@ onMounted(async () => {
   font-size: 12px;
   color: var(--text-muted);
   margin-top: 10px;
+}
+
+@media (max-width: 640px) {
+  .section-title {
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+  .section-title:not(:first-child) {
+    margin-top: 22px;
+  }
+  .page-footer {
+    text-align: center;
+  }
 }
 </style>

@@ -73,12 +73,7 @@ onMounted(() => {
         <AppIcon name="category" :size="20" />
       </span>
       <h2 class="head-title">Category Detail</h2>
-      <button
-        type="button"
-        class="head-close"
-        aria-label="Close"
-        @click="close"
-      >
+      <button type="button" class="head-close" aria-label="Close" @click="close">
         <AppIcon name="close" :size="14" />
       </button>
     </div>
@@ -155,23 +150,20 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 120ms ease, color 120ms ease;
+  flex-shrink: 0;
 }
 .head-close:hover {
   background: var(--surface-hover);
   color: var(--text);
 }
-
 .modal-body {
   padding: 22px;
 }
-
 .loading {
   padding: 40px;
   display: flex;
   justify-content: center;
 }
-
 .body {
   display: flex;
   flex-direction: column;
@@ -183,6 +175,7 @@ onMounted(() => {
   gap: 14px;
   padding-bottom: 16px;
   border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
 }
 .icon-square {
   width: 52px;
@@ -200,12 +193,16 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
 }
 .cat-name {
   margin: 0;
   font-size: 17px;
   font-weight: 600;
   color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .cat-meta {
   font-size: 12.5px;
@@ -214,5 +211,22 @@ onMounted(() => {
 .details {
   display: flex;
   flex-direction: column;
+}
+
+@media (max-width: 640px) {
+  .modal-body {
+    padding: 16px;
+  }
+  .cat-head {
+    gap: 10px;
+    padding-bottom: 14px;
+  }
+  .icon-square {
+    width: 44px;
+    height: 44px;
+  }
+  .cat-name {
+    font-size: 15.5px;
+  }
 }
 </style>

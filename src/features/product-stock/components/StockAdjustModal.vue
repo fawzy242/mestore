@@ -49,7 +49,13 @@ function close() {
 </script>
 
 <template>
-  <Dialog v-model:visible="visible" modal :draggable="false" :style="{ width: '480px' }" :show-header="false">
+  <Dialog
+    v-model:visible="visible"
+    modal
+    :draggable="false"
+    :style="{ width: '480px' }"
+    :show-header="false"
+  >
     <div class="modal-head">
       <span class="head-icon"><AppIcon name="tune" :size="20" /></span>
       <h2 class="head-title">Adjust Stock</h2>
@@ -125,6 +131,7 @@ function close() {
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  flex-shrink: 0;
 }
 .head-close:hover {
   background: var(--surface-hover);
@@ -153,15 +160,20 @@ function close() {
 }
 .info-label {
   color: var(--text-muted);
+  flex-shrink: 0;
 }
 .info-value {
   color: var(--text);
   font-weight: 600;
+  text-align: right;
+  min-width: 0;
+  word-break: break-word;
 }
 .field {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
 }
 .field label {
   font-size: 12.5px;
@@ -173,5 +185,10 @@ function close() {
 }
 .full :deep(input) {
   width: 100%;
+}
+@media (max-width: 640px) {
+  .modal-body {
+    padding: 16px;
+  }
 }
 </style>

@@ -41,39 +41,48 @@ const hasError = computed(() => Boolean(props.error))
 <style scoped>
 .field {
   margin-bottom: 16px;
+  min-width: 0;
 }
 
 .field-label {
   display: block;
   font-size: 12.5px;
-  color: var(--color-ink-soft);
+  color: var(--text-muted);
   margin-bottom: 5px;
   font-weight: 500;
 }
 
 .field-input {
   width: 100%;
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-s);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   padding: 10px 12px;
   font-size: 14px;
-  background: var(--color-surface);
-  color: var(--color-ink);
+  background: var(--surface);
+  color: var(--text);
+  transition: border-color 120ms ease, box-shadow 120ms ease;
 }
 
 .field-input:focus {
-  outline: 2px solid var(--color-focus);
-  outline-offset: 0;
-  border-color: var(--color-focus);
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-ring);
 }
 
 .field-error .field-input {
-  border-color: var(--color-danger);
+  border-color: var(--danger);
 }
 
 .field-error-msg {
-  color: var(--color-danger);
+  color: var(--danger);
   font-size: 12px;
   margin-top: 4px;
+}
+
+@media (max-width: 640px) {
+  .field-input {
+    font-size: 13.5px;
+    padding: 10px;
+  }
 }
 </style>

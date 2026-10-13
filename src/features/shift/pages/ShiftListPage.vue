@@ -96,4 +96,10 @@ onMounted(fetchShifts)
   color: var(--text-muted);
   margin-top: 10px;
 }
+
+@media (max-width: 640px) {
+  .page-footer {
+    text-align: center;
+  }
+}
 </style>

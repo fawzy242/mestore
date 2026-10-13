@@ -14,7 +14,7 @@ function reload() {
 </script>
 
 <template>
-  <div>
+  <div class="page">
     <div class="status-icon neutral">
       <AppIcon name="explore-off" :size="26" />
     </div>
@@ -41,6 +41,10 @@ function reload() {
 </template>
 
 <style scoped>
+.page {
+  text-align: center;
+}
+
 .status-icon {
   width: 56px;
   height: 56px;
@@ -50,7 +54,6 @@ function reload() {
   justify-content: center;
   margin: 0 auto 14px;
 }
-
 .status-icon.neutral {
   background: var(--primary-tint);
   color: var(--primary);
@@ -92,5 +95,23 @@ function reload() {
   width: 100%;
   height: 44px;
   font-weight: 600;
+}
+
+@media (max-width: 480px) {
+  .status-icon {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 12px;
+  }
+  .title {
+    font-size: 17px;
+  }
+  .sub {
+    font-size: 12.5px;
+    margin-bottom: 18px;
+  }
+  .go-btn {
+    height: 42px;
+  }
 }
 </style>

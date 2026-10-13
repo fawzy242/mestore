@@ -2,7 +2,7 @@
 import InputText from 'primevue/inputtext'
 import AppIcon from './AppIcon.vue'
 
-const props = defineProps({
+defineProps({
   modelValue: { type: String, default: '' },
   placeholder: { type: String, default: 'Search…' },
 })
@@ -40,6 +40,7 @@ function clear() {
   position: relative;
   flex: 1;
   min-width: 200px;
+  max-width: 100%;
 }
 
 .search-icon {
@@ -79,5 +80,15 @@ function clear() {
 .search-clear:hover {
   background: var(--surface-hover);
   color: var(--text);
+}
+
+@media (max-width: 640px) {
+  .search {
+    min-width: 0;
+    width: 100%;
+  }
+  .search-input {
+    font-size: 13px;
+  }
 }
 </style>

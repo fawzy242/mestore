@@ -1,6 +1,5 @@
 <script setup>
 import { onMounted, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
 import Button from 'primevue/button'
 import DatePicker from 'primevue/datepicker'
 import Select from 'primevue/select'
@@ -13,7 +12,6 @@ import { useTransactions } from '../composables/useTransactions.js'
 import { useDebouncedSearch } from '@/composables/useDebouncedSearch.js'
 import { useToast } from '@/composables/useToast.js'
 
-const router = useRouter()
 const { push } = useToast()
 const { rows, loading, error, filters, fetchTransactions, isCashier } = useTransactions()
 
@@ -66,46 +64,45 @@ onMounted(async () => {
     <p v-if="isCashier" class="flow-note">Showing your own transactions only.</p>
 
     <div class="filter-card">
-      <div class="filter-group">
-        <div class="filter-item date-item">
-          <AppIcon name="calendar-today" :size="18" class="filter-icon" />
-          <div class="filter-text">
-            <span class="filter-label">Date Range</span>
-            <DatePicker
-              v-model="dateRange"
-              selection-mode="range"
-              :show-icon="false"
-              :manual-input="false"
-              placeholder="Select dates"
-              date-format="d M, yy"
-              class="date-picker"
-            />
-          </div>
+      <div class="filter-item">
+        <AppIcon name="calendar-today" :size="18" class="filter-icon" />
+        <div class="filter-text">
+          <span class="filter-label">Date Range</span>
+          <DatePicker
+            v-model="dateRange"
+            selection-mode="range"
+            :show-icon="false"
+            :manual-input="false"
+            placeholder="Select dates"
+            date-format="d M, yy"
+            class="filter-datepicker"
+          />
         </div>
+      </div>
 
-        <div v-if="!isCashier" class="filter-item">
-          <AppIcon name="badge" :size="18" class="filter-icon" />
-          <div class="filter-text">
-            <span class="filter-label">Cashier</span>
-            <Select
-              v-model="filters.cashier"
-              :options="cashierOptions"
-              option-label="label"
-              option-value="value"
-              class="filter-select"
-            />
-          </div>
+      <div v-if="!isCashier" class="filter-item">
+        <AppIcon name="badge" :size="18" class="filter-icon" />
+        <div class="filter-text">
+          <span class="filter-label">Cashier</span>
+          <Select
+            v-model="filters.cashier"
+            :options="cashierOptions"
+            option-label="label"
+            option-value="value"
+            class="filter-select"
+          />
         </div>
+      </div>
 
-        <div class="filter-search">
-          <span class="search-wrap">
-            <AppIcon name="search" :size="18" class="search-icon" />
-            <InputText
-              v-model="searchValue"
-              placeholder="Search receipt no…"
-              class="search-input"
-            />
-          </span>
+      <div class="filter-item filter-item-search">
+        <AppIcon name="search" :size="18" class="filter-icon" />
+        <div class="filter-text">
+          <span class="filter-label">Search</span>
+          <InputText
+            v-model="searchValue"
+            placeholder="Receipt no…"
+            class="filter-search-input"
+          />
         </div>
       </div>
 
@@ -164,15 +161,6 @@ onMounted(async () => {
   flex-wrap: wrap;
 }
 
-.filter-group {
-  display: flex;
-  align-items: stretch;
-  gap: 10px;
-  flex: 1;
-  flex-wrap: wrap;
-  min-width: 0;
-}
-
 .filter-item {
   display: flex;
   align-items: center;
@@ -181,6 +169,11 @@ onMounted(async () => {
   padding: 6px 12px;
   border-radius: var(--radius-md);
   min-width: 0;
+}
+
+.filter-item-search {
+  flex: 1;
+  min-width: 200px;
 }
 
 .filter-icon {
@@ -193,6 +186,7 @@ onMounted(async () => {
   flex-direction: column;
   gap: 2px;
   min-width: 0;
+  flex: 1;
 }
 
 .filter-label {
@@ -203,15 +197,11 @@ onMounted(async () => {
   font-weight: 600;
 }
 
-.date-item {
-  min-width: 240px;
-}
-
-.date-picker {
+.filter-datepicker {
   min-width: 200px;
 }
 
-.date-picker :deep(.p-datepicker-input) {
+.filter-datepicker :deep(.p-datepicker-input) {
   border: none;
   background: transparent;
   padding: 0;
@@ -222,7 +212,7 @@ onMounted(async () => {
   box-shadow: none;
 }
 
-.date-picker :deep(.p-datepicker-input:focus) {
+.filter-datepicker :deep(.p-datepicker-input:focus) {
   box-shadow: none;
 }
 
@@ -240,44 +230,56 @@ onMounted(async () => {
   color: var(--text);
 }
 
-.filter-search {
-  flex: 1;
-  min-width: 200px;
+.filter-search-input {
+  border: none;
+  background: transparent;
+  padding: 0;
+  height: auto;
+  font-size: 12.5px;
+  font-weight: 500;
+  box-shadow: none;
 }
 
-.search-wrap {
-  position: relative;
-  display: block;
-}
-
-.search-icon {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-muted);
-  pointer-events: none;
-}
-
-.search-input {
-  width: 100%;
-  height: 40px;
-  padding-left: 38px;
+.filter-search-input:focus {
+  box-shadow: none;
 }
 
 .filter-actions {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 1023px) {
+  .filter-item-search {
+    flex-basis: 100%;
+  }
 }
 
 @media (max-width: 640px) {
-  .filter-search {
+  .filter-card {
+    padding: 10px;
+    gap: 10px;
+  }
+  .filter-item {
+    flex-basis: 100%;
+    width: 100%;
+  }
+  .filter-item-search {
+    min-width: 0;
+  }
+  .filter-datepicker,
+  .filter-select {
+    min-width: 0;
     width: 100%;
   }
   .filter-actions {
-    margin-left: 0;
     width: 100%;
+    margin-left: 0;
+  }
+  .filter-actions > :deep(.p-button:last-child) {
+    flex: 1;
   }
 }
 </style>

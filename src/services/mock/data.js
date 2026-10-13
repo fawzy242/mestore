@@ -18,11 +18,9 @@ let stockMoveSeq = 1000
 
 const APPROVED = (extra = {}) => ({ IsActive: 1, IsDelete: 0, Approved: 1, ...extra })
 const PENDING = (extra = {}) => ({ IsActive: 1, IsDelete: 0, Approved: 0, ...extra })
-const REJECTED = (extra = {}) => ({ IsActive: 0, IsDelete: 1, Approved: 0, ...extra })
 
 const ACTIVE = (extra = {}) => ({ IsActive: 1, IsDelete: 0, ...extra })
 const INACTIVE = (extra = {}) => ({ IsActive: 0, IsDelete: 0, ...extra })
-const DELETED = (extra = {}) => ({ IsActive: 0, IsDelete: 1, ...extra })
 
 // ----------------------------------------------------------------------------
 // Categories
@@ -67,31 +65,71 @@ const BASE_PRODUCTS = [
 // Users (Active/Inactive)
 // ----------------------------------------------------------------------------
 const BASE_USERS = [
-  { name: 'Fawzy Admin', username: 'fawzy', role: 'admin', ...ACTIVE() },
-  { name: 'Budi Santoso', username: 'budi', role: 'manager', ...ACTIVE() },
-  { name: 'Siti Rahma', username: 'siti', role: 'cashier', ...ACTIVE() },
-  { name: 'Andi Wijaya', username: 'andi', role: 'cashier', ...INACTIVE() },
-  { name: 'Rina Manager', username: 'rina', role: 'manager', ...ACTIVE() },
-  { name: 'Dewi Kasir', username: 'dewi', role: 'cashier', ...ACTIVE() },
-  { name: 'Agus Kasir', username: 'agus', role: 'cashier', ...INACTIVE() },
-  { name: 'Lina Admin', username: 'lina', role: 'admin', ...ACTIVE() },
-  { name: 'Hendra Manager', username: 'hendra', role: 'manager', ...ACTIVE() },
-  { name: 'Fitri Kasir', username: 'fitri', role: 'cashier', ...ACTIVE() },
-  { name: 'Bayu Kasir', username: 'bayu', role: 'cashier', ...ACTIVE() },
-  { name: 'Nadia Manager', username: 'nadia', role: 'manager', ...INACTIVE() },
+  { name: 'Fawzy Admin',    username: 'fawzy',  role: 'admin',   ...ACTIVE()   },
+  { name: 'Budi Santoso',   username: 'budi',   role: 'manager', ...ACTIVE()   },
+  { name: 'Siti Rahma',     username: 'siti',   role: 'cashier', ...ACTIVE()   },
+  { name: 'Andi Wijaya',    username: 'andi',   role: 'cashier', ...INACTIVE() },
+  { name: 'Rina Manager',   username: 'rina',   role: 'manager', ...ACTIVE()   },
+  { name: 'Dewi Kasir',     username: 'dewi',   role: 'cashier', ...ACTIVE()   },
+  { name: 'Agus Kasir',     username: 'agus',   role: 'cashier', ...INACTIVE() },
+  { name: 'Lina Admin',     username: 'lina',   role: 'admin',   ...ACTIVE()   },
+  { name: 'Hendra Manager', username: 'hendra', role: 'manager', ...ACTIVE()   },
+  { name: 'Fitri Kasir',    username: 'fitri',  role: 'cashier', ...ACTIVE()   },
+  { name: 'Bayu Kasir',     username: 'bayu',   role: 'cashier', ...ACTIVE()   },
+  { name: 'Nadia Manager',  username: 'nadia',  role: 'manager', ...INACTIVE() },
 ]
 
 // ----------------------------------------------------------------------------
 // Transactions (view-only, no flags)
+// 30 entries spread across the last ~30 days so dashboards and reports
+// have real variation to aggregate.
 // ----------------------------------------------------------------------------
 const BASE_TRANSACTIONS = [
+  // ---- Today (latest) ----
+  { id: 'RC-0193', time: 'Sep 24, 2026, 09:12 AM', cashier: 'Dewi', total: 34000, method: 'QRIS', tendered: 34000, items: [{ name: 'Teh Botol Sosro', qty: 4, price: 5000 }, { name: 'Chitato Sapi 68g', qty: 1, price: 11000 }, { name: 'Kopi Good Day', qty: 3, price: 2500 }] },
   { id: 'RC-0192', time: 'Sep 24, 2026, 10:41 AM', cashier: 'Siti', total: 47500, method: 'Cash', tendered: 50000, items: [{ name: 'Indomie Goreng', qty: 3, price: 3500 }, { name: 'Aqua 600ml', qty: 9, price: 4000 }] },
   { id: 'RC-0191', time: 'Sep 24, 2026, 10:22 AM', cashier: 'Budi', total: 132000, method: 'Cash', tendered: 150000, items: [{ name: 'Beras Premium 5kg', qty: 1, price: 68000 }, { name: 'Minyak Goreng 1L', qty: 1, price: 19500 }, { name: 'Sabun Mandi Lifebuoy', qty: 7, price: 6000 }] },
   { id: 'RC-0190', time: 'Sep 24, 2026, 09:58 AM', cashier: 'Siti', total: 19500, method: 'Cash', tendered: 20000, items: [{ name: 'Minyak Goreng 1L', qty: 1, price: 19500 }] },
+
+  // ---- Yesterday ----
   { id: 'RC-0189', time: 'Sep 23, 2026, 04:12 PM', cashier: 'Budi', total: 8000, method: 'Cash', tendered: 10000, items: [{ name: 'Kopi Kapal Api', qty: 4, price: 2000 }] },
   { id: 'RC-0188', time: 'Sep 23, 2026, 03:44 PM', cashier: 'Dewi', total: 24600, method: 'QRIS', tendered: 24600, items: [{ name: 'Pocari Sweat 500ml', qty: 2, price: 8500 }, { name: 'Chitato Sapi 68g', qty: 1, price: 11000 }] },
   { id: 'RC-0187', time: 'Sep 23, 2026, 02:12 PM', cashier: 'Siti', total: 45500, method: 'Cash', tendered: 50000, items: [{ name: 'Tepung Segitiga 1kg', qty: 1, price: 13500 }, { name: 'Sarden ABC 155g', qty: 2, price: 12500 }, { name: 'Kecap ABC 275ml', qty: 1, price: 8500 }] },
   { id: 'RC-0186', time: 'Sep 23, 2026, 11:35 AM', cashier: 'Fitri', total: 34500, method: 'Card', tendered: 34500, items: [{ name: 'Roti Sisir', qty: 2, price: 14000 }, { name: 'Susu Ultra 250ml', qty: 1, price: 6500 }] },
+  { id: 'RC-0185', time: 'Sep 23, 2026, 10:05 AM', cashier: 'Siti', total: 61500, method: 'Cash', tendered: 65000, items: [{ name: 'Susu Ultra 250ml', qty: 5, price: 6500 }, { name: 'Roti Sobek Cokelat', qty: 2, price: 12000 }, { name: 'Kopi Kapal Api', qty: 3, price: 2000 }] },
+
+  // ---- 2 days ago ----
+  { id: 'RC-0184', time: 'Sep 22, 2026, 04:50 PM', cashier: 'Bayu', total: 78000, method: 'Card', tendered: 78000, items: [{ name: 'Beras Premium 5kg', qty: 1, price: 68000 }, { name: 'Mie Sedaap Soto', qty: 3, price: 3400 }] },
+  { id: 'RC-0183', time: 'Sep 22, 2026, 02:30 PM', cashier: 'Siti', total: 27500, method: 'Cash', tendered: 30000, items: [{ name: 'Minyak Goreng 1L', qty: 1, price: 19500 }, { name: 'Kopi Good Day', qty: 3, price: 2500 }] },
+  { id: 'RC-0182', time: 'Sep 22, 2026, 11:20 AM', cashier: 'Dewi', total: 42000, method: 'QRIS', tendered: 42000, items: [{ name: 'Indomie Goreng', qty: 6, price: 3500 }, { name: 'Teh Botol Sosro', qty: 4, price: 5000 }] },
+  { id: 'RC-0181', time: 'Sep 22, 2026, 09:05 AM', cashier: 'Fitri', total: 18500, method: 'Cash', tendered: 20000, items: [{ name: 'Pembersih Lantai Super', qty: 1, price: 18500 }] },
+
+  // ---- 3 days ago ----
+  { id: 'RC-0180', time: 'Sep 21, 2026, 05:15 PM', cashier: 'Siti', total: 96000, method: 'Cash', tendered: 100000, items: [{ name: 'Roti Sobek Cokelat', qty: 3, price: 12000 }, { name: 'Susu Ultra 250ml', qty: 6, price: 6500 }, { name: 'Sabun Cuci Rinso', qty: 1, price: 24500 }] },
+  { id: 'RC-0179', time: 'Sep 21, 2026, 03:00 PM', cashier: 'Bayu', total: 21000, method: 'QRIS', tendered: 21000, items: [{ name: 'Aqua 600ml', qty: 3, price: 4000 }, { name: 'Pocari Sweat 500ml', qty: 1, price: 8500 }] },
+  { id: 'RC-0178', time: 'Sep 21, 2026, 12:40 PM', cashier: 'Dewi', total: 55000, method: 'Cash', tendered: 60000, items: [{ name: 'Indomie Goreng', qty: 10, price: 3500 }, { name: 'Kecap ABC 275ml', qty: 2, price: 8500 }] },
+  { id: 'RC-0177', time: 'Sep 21, 2026, 10:10 AM', cashier: 'Siti', total: 32000, method: 'Cash', tendered: 35000, items: [{ name: 'Sarden ABC 155g', qty: 2, price: 12500 }, { name: 'Kopi Kapal Api', qty: 3, price: 2000 }] },
+
+  // ---- 4 days ago ----
+  { id: 'RC-0176', time: 'Sep 20, 2026, 04:00 PM', cashier: 'Fitri', total: 148000, method: 'Card', tendered: 148000, items: [{ name: 'Beras Premium 5kg', qty: 2, price: 68000 }, { name: 'Minyak Goreng 1L', qty: 1, price: 19500 }] },
+  { id: 'RC-0175', time: 'Sep 20, 2026, 01:15 PM', cashier: 'Siti', total: 38500, method: 'Cash', tendered: 40000, items: [{ name: 'Roti Sisir', qty: 2, price: 14000 }, { name: 'Aqua 600ml', qty: 3, price: 4000 }] },
+  { id: 'RC-0174', time: 'Sep 20, 2026, 10:30 AM', cashier: 'Dewi', total: 61000, method: 'QRIS', tendered: 61000, items: [{ name: 'Chitato Sapi 68g', qty: 3, price: 11000 }, { name: 'Teh Botol Sosro', qty: 4, price: 5000 }, { name: 'Kopi Good Day', qty: 5, price: 2500 }] },
+
+  // ---- 5 days ago ----
+  { id: 'RC-0173', time: 'Sep 19, 2026, 05:45 PM', cashier: 'Budi', total: 88000, method: 'Cash', tendered: 90000, items: [{ name: 'Beras Premium 5kg', qty: 1, price: 68000 }, { name: 'Kecap ABC 275ml', qty: 2, price: 8500 }, { name: 'Kopi Kapal Api', qty: 3, price: 2000 }] },
+  { id: 'RC-0172', time: 'Sep 19, 2026, 03:20 PM', cashier: 'Siti', total: 24500, method: 'Cash', tendered: 25000, items: [{ name: 'Sabun Cuci Rinso', qty: 1, price: 24500 }] },
+  { id: 'RC-0171', time: 'Sep 19, 2026, 11:00 AM', cashier: 'Fitri', total: 52000, method: 'QRIS', tendered: 52000, items: [{ name: 'Indomie Goreng', qty: 8, price: 3500 }, { name: 'Mie Sedaap Soto', qty: 6, price: 3400 }, { name: 'Aqua 600ml', qty: 1, price: 4000 }] },
+
+  // ---- 6 days ago ----
+  { id: 'RC-0170', time: 'Sep 18, 2026, 04:30 PM', cashier: 'Dewi', total: 39500, method: 'Cash', tendered: 40000, items: [{ name: 'Roti Sisir', qty: 2, price: 14000 }, { name: 'Susu Ultra 250ml', qty: 1, price: 6500 }, { name: 'Kopi Good Day', qty: 2, price: 2500 }] },
+  { id: 'RC-0169', time: 'Sep 18, 2026, 02:00 PM', cashier: 'Siti', total: 67500, method: 'Card', tendered: 67500, items: [{ name: 'Minyak Goreng 1L', qty: 3, price: 19500 }, { name: 'Indomie Goreng', qty: 2, price: 3500 }] },
+  { id: 'RC-0168', time: 'Sep 18, 2026, 09:45 AM', cashier: 'Bayu', total: 16500, method: 'Cash', tendered: 20000, items: [{ name: 'Pocari Sweat 500ml', qty: 1, price: 8500 }, { name: 'Aqua 600ml', qty: 2, price: 4000 }] },
+
+  // ---- 7–10 days ago ----
+  { id: 'RC-0167', time: 'Sep 17, 2026, 03:15 PM', cashier: 'Siti', total: 73000, method: 'Cash', tendered: 75000, items: [{ name: 'Beras Premium 5kg', qty: 1, price: 68000 }, { name: 'Kopi Kapal Api', qty: 2, price: 2000 }, { name: 'Kopi Kapal Api', qty: 1, price: 2000 }] },
+  { id: 'RC-0166', time: 'Sep 16, 2026, 11:30 AM', cashier: 'Dewi', total: 44500, method: 'QRIS', tendered: 44500, items: [{ name: 'Teh Botol Sosro', qty: 5, price: 5000 }, { name: 'Chitato Sapi 68g', qty: 1, price: 11000 }, { name: 'Susu Ultra 250ml', qty: 1, price: 6500 }] },
+  { id: 'RC-0165', time: 'Sep 15, 2026, 02:45 PM', cashier: 'Fitri', total: 98000, method: 'Card', tendered: 98000, items: [{ name: 'Beras Premium 5kg', qty: 1, price: 68000 }, { name: 'Minyak Goreng 1L', qty: 1, price: 19500 }, { name: 'Kopi Good Day', qty: 4, price: 2500 }] },
+  { id: 'RC-0164', time: 'Sep 14, 2026, 10:00 AM', cashier: 'Siti', total: 28500, method: 'Cash', tendered: 30000, items: [{ name: 'Sarden ABC 155g', qty: 2, price: 12500 }, { name: 'Kopi Kapal Api', qty: 2, price: 2000 }] },
 ]
 
 // ----------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
@@ -16,7 +16,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue', 'saved'])
-
 const { push } = useToast()
 
 const visible = computed({
@@ -76,12 +75,7 @@ onMounted(() => {
         <AppIcon name="person" :size="20" />
       </span>
       <h2 class="head-title">{{ isEdit ? 'Edit User' : 'Add User' }}</h2>
-      <button
-        type="button"
-        class="head-close"
-        aria-label="Close"
-        @click="close"
-      >
+      <button type="button" class="head-close" aria-label="Close" @click="close">
         <AppIcon name="close" :size="14" />
       </button>
     </div>
@@ -211,6 +205,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  flex-shrink: 0;
   transition: background 120ms ease, color 120ms ease;
 }
 .head-close:hover {
@@ -221,13 +216,11 @@ onMounted(() => {
 .modal-body {
   padding: 22px;
 }
-
 .loading {
   padding: 40px;
   text-align: center;
   color: var(--text-muted);
 }
-
 .form {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -237,6 +230,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
 }
 .field.full {
   grid-column: 1 / -1;
@@ -256,12 +250,13 @@ onMounted(() => {
 }
 
 .segmented {
-  display: inline-flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
 }
 .seg {
-  padding: 8px 16px;
-  border-radius: var(--radius-full);
+  padding: 9px 16px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text-muted);
@@ -281,8 +276,12 @@ onMounted(() => {
 }
 
 @media (max-width: 640px) {
+  .modal-body {
+    padding: 16px;
+  }
   .form {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
 }
 </style>

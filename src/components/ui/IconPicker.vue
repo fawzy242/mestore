@@ -47,23 +47,36 @@ const options = computed(() => props.options)
 .picker-btn {
   height: 40px;
   border-radius: var(--radius-md);
-  background: var(--color-surface-container);
-  color: var(--color-ink-soft);
+  background: var(--surface-hover);
+  border: 1px solid transparent;
+  color: var(--text-muted);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 120ms;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+  cursor: pointer;
 }
 .picker-btn:hover {
-  background: var(--color-primary-tint);
-  color: var(--color-primary-container);
+  background: var(--primary-tint);
+  color: var(--primary);
 }
 .picker-btn.active {
-  background: var(--color-primary-container);
-  color: #fff;
+  background: var(--primary-tint);
+  color: var(--primary);
+  border-color: var(--primary);
 }
 .letter {
   font-weight: 700;
   font-size: 14px;
+}
+
+@media (max-width: 420px) {
+  .icon-picker {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+  .picker-btn {
+    height: 38px;
+  }
 }
 </style>

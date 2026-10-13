@@ -27,7 +27,6 @@ export function useDebouncedSearch(onSearch, options = {}) {
       if (!isAbort) {
         // Surface non-abort errors via console only; the composable's own
         // error state is the source of truth for the UI.
-        // eslint-disable-next-line no-console
         console.error('[search]', error)
       }
     }

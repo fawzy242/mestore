@@ -26,7 +26,6 @@ const visible = computed({
 watch(visible, (open) => {
   if (open) {
     receipt.value = cart.consumeLastCompleted()
-    // If there is no receipt to show, silently close.
     if (!receipt.value) visible.value = false
   }
 })
@@ -68,7 +67,7 @@ function goTransactions() {
       </button>
     </div>
 
-    <div class="modal-body" v-if="receipt">
+    <div v-if="receipt" class="modal-body">
       <div class="success-mark">
         <AppIcon name="check" :size="32" />
       </div>
@@ -141,6 +140,7 @@ function goTransactions() {
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  flex-shrink: 0;
   transition: background 120ms ease, color 120ms ease;
 }
 .head-close:hover {
@@ -192,5 +192,26 @@ function goTransactions() {
 }
 .secondary-link:hover {
   color: var(--primary);
+}
+
+@media (max-width: 640px) {
+  .modal-head {
+    padding: 14px 16px;
+    gap: 10px;
+  }
+  .head-title {
+    font-size: 15px;
+  }
+  .modal-body {
+    padding: 18px 16px;
+  }
+  .success-mark {
+    width: 56px;
+    height: 56px;
+    margin-bottom: 12px;
+  }
+  .sub {
+    font-size: 12.5px;
+  }
 }
 </style>

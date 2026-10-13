@@ -1,4 +1,6 @@
-/* MeStore — Base Styles */
+/* ============================================================================
+ * MeStore — Base Styles
+ * ========================================================================== */
 *,
 *::before,
 *::after {
@@ -15,6 +17,8 @@ html {
     /* Reserve the scrollbar gutter so opening a modal never shifts the page. */
     scrollbar-gutter: stable;
     overflow-y: scroll;
+    /* Clip horizontal overflow from any source (fixes the modal sidebar gap). */
+    overflow-x: clip;
     scroll-padding-top: env(safe-area-inset-top, 0px);
 }
 
@@ -27,10 +31,14 @@ body {
     font-size: 14px;
     line-height: 1.5;
     transition: background-color 150ms ease, color 150ms ease;
+    /* Safety net against horizontal scroll from any transient layout shift. */
+    overflow-x: clip;
+    width: 100%;
 }
 
 #app {
     height: 100%;
+    width: 100%;
 }
 
 .mono,
@@ -84,11 +92,20 @@ a {
     }
 }
 
-/* SweetAlert2 — do not remove the browser's reserved scrollbar gutter
- * when the body is locked. This is what prevents the page from jumping. */
-body.swal2-shown {
-    /* Override Swal's default `overflow: hidden` without changing width */
+/* ============================================================================
+ * Modal scroll-lock — neutralize width compensation.
+ *
+ * The app reserves scrollbar space via `html { scrollbar-gutter: stable }`,
+ * so any padding-right added to <body> by PrimeVue Dialog / SweetAlert2
+ * creates a visible gap. Keep the lock, drop the compensation.
+ * ========================================================================== */
+body.p-scrollblock,
+body.p-overflow-hidden,
+body.swal2-shown,
+body.swal2-height-auto {
     padding-right: 0 !important;
+    margin-right: 0 !important;
+    width: 100% !important;
 }
 
 /* SweetAlert container inherits our font */
@@ -98,9 +115,6 @@ body.swal2-shown {
 
 /* ============================================================================
  * Print — receipt only
- * When the user prints from the Transaction Success modal, hide everything
- * except the element marked with `.print-receipt`. This keeps receipts clean
- * on thermal and A4 printers alike.
  * ========================================================================== */
 @media print {
     body * {
@@ -120,12 +134,10 @@ body.swal2-shown {
         background: #ffffff !important;
         color: #000000 !important;
         overflow: visible !important;
-        /* Remove the dashed border for the print output */
         border: none !important;
         box-shadow: none !important;
     }
 
-    /* Tighter page margins than the browser default */
     @page {
         margin: 12mm;
     }

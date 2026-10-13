@@ -33,6 +33,9 @@ defineEmits(['open'])
   font-weight: 600;
   flex-shrink: 0;
   transition: background 120ms;
+  cursor: pointer;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .cart-btn:hover {
@@ -46,13 +49,32 @@ defineEmits(['open'])
   font-size: 12px;
   font-weight: 700;
   font-family: 'JetBrains Mono', monospace;
+  flex-shrink: 0;
 }
 
 .sep {
   opacity: 0.7;
+  flex-shrink: 0;
 }
 
 .total {
   font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 480px) {
+  .cart-btn {
+    padding: 10px 14px;
+    font-size: 13px;
+    justify-content: center;
+  }
+  .sep {
+    display: none;
+  }
+  .total {
+    flex: 1;
+    text-align: right;
+  }
 }
 </style>

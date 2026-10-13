@@ -45,9 +45,18 @@ watch(visible, (open) => {
 })
 
 function save() {
-  if (!productId.value) { push('Select a product', { severity: 'warn' }); return }
-  if (!quantity.value || quantity.value <= 0) { push('Enter a positive quantity', { severity: 'warn' }); return }
-  if (!reason.value.trim()) { push('Enter a reason', { severity: 'warn' }); return }
+  if (!productId.value) {
+    push('Select a product', { severity: 'warn' })
+    return
+  }
+  if (!quantity.value || quantity.value <= 0) {
+    push('Enter a positive quantity', { severity: 'warn' })
+    return
+  }
+  if (!reason.value.trim()) {
+    push('Enter a reason', { severity: 'warn' })
+    return
+  }
   const delta = direction.value === 'in' ? quantity.value : -quantity.value
   emit('saved', {
     productId: productId.value,
@@ -60,7 +69,13 @@ function save() {
 </script>
 
 <template>
-  <Dialog v-model:visible="visible" modal :draggable="false" :style="{ width: '520px' }" :show-header="false">
+  <Dialog
+    v-model:visible="visible"
+    modal
+    :draggable="false"
+    :style="{ width: '520px' }"
+    :show-header="false"
+  >
     <div class="modal-head">
       <span class="head-icon"><AppIcon name="tune" :size="20" /></span>
       <h2 class="head-title">{{ isEdit ? 'Edit Stock Move' : 'Add Stock Move' }}</h2>
@@ -71,13 +86,35 @@ function save() {
     <div class="modal-body">
       <div class="field">
         <label>Product</label>
-        <Select v-model="productId" :options="productOptions" option-label="label" option-value="value" :disabled="isEdit" placeholder="Select product" class="full" />
+        <Select
+          v-model="productId"
+          :options="productOptions"
+          option-label="label"
+          option-value="value"
+          :disabled="isEdit"
+          placeholder="Select product"
+          class="full"
+        />
       </div>
       <div class="field">
         <label>Direction</label>
         <div class="segmented">
-          <button type="button" class="seg" :class="{ active: direction === 'in' }" @click="direction = 'in'">Stock In</button>
-          <button type="button" class="seg" :class="{ active: direction === 'out' }" @click="direction = 'out'">Stock Out</button>
+          <button
+            type="button"
+            class="seg"
+            :class="{ active: direction === 'in' }"
+            @click="direction = 'in'"
+          >
+            Stock In
+          </button>
+          <button
+            type="button"
+            class="seg"
+            :class="{ active: direction === 'out' }"
+            @click="direction = 'out'"
+          >
+            Stock Out
+          </button>
         </div>
       </div>
       <div class="field">
@@ -91,23 +128,107 @@ function save() {
     </div>
     <div class="mestore-modal-foot">
       <Button label="Cancel" text severity="secondary" @click="visible = false" />
-      <Button :label="isEdit ? 'Save Changes' : 'Add Move'" icon="pi pi-check" @click="save" />
+      <Button
+        :label="isEdit ? 'Save Changes' : 'Add Move'"
+        icon="pi pi-check"
+        @click="save"
+      />
     </div>
   </Dialog>
 </template>
 
 <style scoped>
-.modal-head { display: flex; align-items: center; gap: 12px; padding: 18px 22px; border-bottom: 1px solid var(--border); }
-.head-icon { width: 36px; height: 36px; border-radius: var(--radius-md); background: var(--primary-tint); color: var(--primary); display: inline-flex; align-items: center; justify-content: center; }
-.head-title { flex: 1; margin: 0; font-size: 16px; font-weight: 600; color: var(--text); }
-.head-close { width: 32px; height: 32px; border-radius: var(--radius-md); background: transparent; border: none; color: var(--text-muted); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
-.head-close:hover { background: var(--surface-hover); color: var(--text); }
-.modal-body { padding: 22px; display: flex; flex-direction: column; gap: 16px; }
-.field { display: flex; flex-direction: column; gap: 6px; }
-.field label { font-size: 12.5px; font-weight: 500; color: var(--text-muted); }
-.full { width: 100%; }
-.full :deep(input) { width: 100%; }
-.segmented { display: inline-flex; gap: 8px; }
-.seg { padding: 9px 18px; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--surface); color: var(--text-muted); font-size: 13px; font-weight: 500; cursor: pointer; }
-.seg.active { background: var(--primary); color: var(--primary-fg); border-color: var(--primary); }
+.modal-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border);
+}
+.head-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--primary-tint);
+  color: var(--primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.head-title {
+  flex: 1;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+.head-close {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.head-close:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+.modal-body {
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.field label {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+.full {
+  width: 100%;
+}
+.full :deep(input) {
+  width: 100%;
+}
+.segmented {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.seg {
+  padding: 9px 18px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 120ms;
+}
+.seg.active {
+  background: var(--primary);
+  color: var(--primary-fg);
+  border-color: var(--primary);
+}
+@media (max-width: 640px) {
+  .modal-body {
+    padding: 16px;
+  }
+}
 </style>

@@ -1,84 +1,83 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
 import AppPageContainer from '@/components/ui/AppPageContainer.vue'
 import AppAlert from '@/components/ui/AppAlert.vue'
 import AppCard from '@/components/ui/AppCard.vue'
+import AppTable from '@/components/ui/AppTable.vue'
+import EmptyState from '@/components/ui/EmptyState.vue'
 import ReportFilterBar from '../components/ReportFilterBar.vue'
 import ReportStatCard from '../components/ReportStatCard.vue'
-import TopProductsTable from '../components/TopProductsTable.vue'
-import CategoryBreakdownCard from '../components/CategoryBreakdownCard.vue'
-import { useReports } from '../composables/useReports.js'
+import { useReports, REPORT_TYPES } from '../composables/useReports.js'
 import { useToast } from '@/composables/useToast.js'
-import { exportPdf } from '@/composables/useExport.js'
-import { exportXlsx } from '@/composables/useExport.js'
+import { exportPdf, exportXlsx } from '@/composables/useExport.js'
 import { formatRupiah } from '@/composables/useFormatters.js'
 
 const { push } = useToast()
+
 const {
-  range,
-  summary,
-  topProducts,
-  categoryBreakdown,
-  paymentMethods,
-  hourly,
+  reportId,
+  activeReport,
+  params,
+  result,
   loading,
   error,
-  fetchReports,
-  setRange,
+  setReport,
+  run,
 } = useReports()
 
 const exporting = ref('')
 
-const rangeLabel = computed(() => summary.value?.rangeLabel ?? '')
-
-const exportFilenameBase = computed(() => {
-  const slug = range.value.replace(/\s+/g, '-').toLowerCase()
+const filenameBase = computed(() => {
+  const slug = reportId.value
   const stamp = new Date().toISOString().slice(0, 10)
   return `mestore-report-${slug}-${stamp}`
 })
 
-/* ------------------------------------------------------------------
- * Export handlers
- * ------------------------------------------------------------------ */
+function onParamUpdate(key, value) {
+  params[key] = value
+}
+
+async function onRun() {
+  const res = await run()
+  if (res) push(`${res.title} generated`)
+}
+
+function onReset() {
+  setReport(reportId.value)
+  result.value = null
+}
+
+function summaryRowsList() {
+  if (!result.value?.summaryRows) return []
+  return Object.entries(result.value.summaryRows)
+}
+
+function rowsForCsv() {
+  if (!result.value) return []
+  return result.value.rows.map((r) =>
+    result.value.columns.map((c) => {
+      const v = r[c.key]
+      return c.format ? c.format(v) : v
+    }),
+  )
+}
+
 async function onExportCsv() {
+  if (!result.value) {
+    push('Run the report first', { severity: 'warn' })
+    return
+  }
   exporting.value = 'csv'
   try {
-    const sections = []
-    sections.push(['MeStore — Reports Export'])
-    sections.push([`Range: ${rangeLabel.value}`])
-    sections.push([`Generated: ${new Date().toLocaleString('en-GB')}`])
-    sections.push([])
+    const metaRows = summaryRowsList().map(([k, v]) => [k, v])
+    const columnHeaders = result.value.columns.map((c) => c.label)
 
-    sections.push(['Summary'])
-    sections.push(['Metric', 'Value'])
-    if (summary.value) {
-      sections.push(['Total Sales', formatRupiah(summary.value.totalSales)])
-      sections.push(['Total Transactions', summary.value.totalTransactions])
-      sections.push(['Cash Collected', formatRupiah(summary.value.cashCollected)])
-      sections.push(['Average Sale', formatRupiah(summary.value.avgSale)])
-    }
-    sections.push([])
-
-    sections.push(['Top Products'])
-    sections.push(['Product', 'SKU', 'Category', 'Units Sold', 'Revenue'])
-    topProducts.value.forEach((p) => {
-      sections.push([p.name, p.sku, p.category, p.unitsSold, formatRupiah(p.revenue)])
-    })
-    sections.push([])
-
-    sections.push(['Category Breakdown'])
-    sections.push(['Category', 'Units', 'Revenue', 'Share %'])
-    categoryBreakdown.value.forEach((c) => {
-      sections.push([c.name, c.units, formatRupiah(c.revenue), `${c.pct}%`])
-    })
-    sections.push([])
-
-    sections.push(['Payment Methods'])
-    sections.push(['Method', 'Transactions', 'Share %'])
-    paymentMethods.value.forEach((m) => {
-      sections.push([m.name, m.value, `${m.pct}%`])
-    })
-
+    const allRows = [
+      ...metaRows.map(([k, v]) => [k, v]),
+      [],
+      columnHeaders,
+      ...rowsForCsv(),
+    ]
     const escape = (v) => {
       const s = v == null ? '' : String(v)
       if (s.includes('"') || s.includes(',') || s.includes('\n')) {
@@ -86,18 +85,18 @@ async function onExportCsv() {
       }
       return s
     }
-    const csv = sections.map((row) => row.map(escape).join(',')).join('\n')
+    const csv = allRows.map((r) => r.map(escape).join(',')).join('\n')
     const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `${exportFilenameBase.value}.csv`
+    a.download = `${filenameBase.value}.csv`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
-    push('CSV report downloaded')
-  } catch (err) {
+    push('CSV downloaded')
+  } catch {
     push('Failed to export CSV', { severity: 'error' })
   } finally {
     exporting.value = ''
@@ -105,32 +104,27 @@ async function onExportCsv() {
 }
 
 async function onExportXlsx() {
+  if (!result.value) {
+    push('Run the report first', { severity: 'warn' })
+    return
+  }
   exporting.value = 'xlsx'
   try {
-    const columns = [
-      { label: 'Product', key: 'name' },
-      { label: 'SKU', key: 'sku' },
-      { label: 'Category', key: 'category' },
-      { label: 'Units Sold', key: 'unitsSold' },
-      { label: 'Revenue (Rp)', key: 'revenue', format: (v) => Number(v) },
-    ]
-    const meta = {
-      'Report Range': rangeLabel.value,
-      'Generated': new Date().toLocaleString('en-GB'),
-      'Total Sales': summary.value ? formatRupiah(summary.value.totalSales) : '—',
-      'Total Transactions': summary.value?.totalTransactions ?? '—',
-      'Cash Collected': summary.value ? formatRupiah(summary.value.cashCollected) : '—',
-      'Average Sale': summary.value ? formatRupiah(summary.value.avgSale) : '—',
-    }
+    const columns = result.value.columns.map((c) => ({
+      label: c.label,
+      key: c.key,
+      format: c.format,
+    }))
+    const meta = Object.fromEntries(summaryRowsList())
     await exportXlsx(
-      `${exportFilenameBase.value}.xlsx`,
-      'Top Products',
+      `${filenameBase.value}.xlsx`,
+      result.value.title,
       columns,
-      topProducts.value,
+      result.value.rows,
       meta,
     )
-    push('Excel report downloaded')
-  } catch (err) {
+    push('Excel downloaded')
+  } catch {
     push('Failed to export Excel', { severity: 'error' })
   } finally {
     exporting.value = ''
@@ -138,49 +132,66 @@ async function onExportXlsx() {
 }
 
 async function onExportPdf() {
+  if (!result.value) {
+    push('Run the report first', { severity: 'warn' })
+    return
+  }
   exporting.value = 'pdf'
   try {
-    const columns = [
-      { label: 'Product', key: 'name' },
-      { label: 'SKU', key: 'sku' },
-      { label: 'Category', key: 'category' },
-      { label: 'Units', key: 'unitsSold', align: 'right' },
-      { label: 'Revenue', key: 'revenue', align: 'right', format: (v) => formatRupiah(v) },
-    ]
-    const summaryRows = summary.value
-      ? {
-          'Total Sales': formatRupiah(summary.value.totalSales),
-          'Total Transactions': summary.value.totalTransactions,
-          'Cash Collected': formatRupiah(summary.value.cashCollected),
-          'Average Sale': formatRupiah(summary.value.avgSale),
-        }
-      : null
-    await exportPdf(
-      `${exportFilenameBase.value}.pdf`,
-      'Reports & Analytics',
-      `Range: ${rangeLabel.value}`,
-      columns,
-      topProducts.value,
-      summaryRows,
+    const columns = result.value.columns.map((c) => ({
+      label: c.label,
+      key: c.key,
+      align: c.align,
+      format: c.format,
+    }))
+    const summary = Object.fromEntries(
+      summaryRowsList().map(([k, v]) => [
+        k,
+        typeof v === 'number' && /sales|amount|revenue|cash/i.test(k)
+          ? formatRupiah(v)
+          : String(v),
+      ]),
     )
-    push('PDF report downloaded')
-  } catch (err) {
+    await exportPdf(
+      `${filenameBase.value}.pdf`,
+      result.value.title,
+      result.value.subtitle,
+      columns,
+      result.value.rows,
+      summary,
+    )
+    push('PDF downloaded')
+  } catch {
     push('Failed to export PDF', { severity: 'error' })
   } finally {
     exporting.value = ''
   }
 }
 
-onMounted(fetchReports)
+function fmtCell(col, row) {
+  const v = row[col.key]
+  if (col.format) return col.format(v, row)
+  if (typeof v === 'number' && /sales|amount|revenue|cash/i.test(col.key)) {
+    return formatRupiah(v)
+  }
+  return v ?? '—'
+}
 </script>
 
 <template>
   <AppPageContainer>
     <ReportFilterBar
-      :range="range"
-      :range-label="rangeLabel"
+      :report-types="REPORT_TYPES"
+      :report-id="reportId"
+      :report="activeReport"
+      :params="params"
+      :range-label="result?.subtitle || ''"
       :exporting="exporting"
-      @update:range="setRange"
+      :running="loading"
+      @update:report-id="setReport"
+      @update:param="onParamUpdate"
+      @run="onRun"
+      @reset="onReset"
       @export-csv="onExportCsv"
       @export-xlsx="onExportXlsx"
       @export-pdf="onExportPdf"
@@ -191,134 +202,65 @@ onMounted(fetchReports)
       variant="error"
       :message="error.message"
       retry-label="Retry"
-      @retry="fetchReports"
+      @retry="onRun"
     />
 
-    <!-- Stat cards -->
-    <div class="stats-grid">
-      <ReportStatCard
-        label="Total Sales"
-        :value="summary ? formatRupiah(summary.totalSales) : '—'"
-        :sub="`${summary?.totalTransactions ?? 0} transactions`"
-        tone="primary"
-        icon="payments"
-      />
-      <ReportStatCard
-        label="Total Transactions"
-        :value="summary ? String(summary.totalTransactions) : '—'"
-        :sub="summary ? `Avg ${formatRupiah(summary.avgSale)} / sale` : ''"
-        tone="neutral"
-        icon="receipt-long"
-      />
-      <ReportStatCard
-        label="Cash Collected"
-        :value="summary ? formatRupiah(summary.cashCollected) : '—'"
-        sub="Non-cash excluded"
-        tone="success"
-        icon="point-of-sale"
-      />
-      <ReportStatCard
-        label="Categories"
-        :value="String(categoryBreakdown.length)"
-        sub="Active taxonomy"
-        tone="warning"
-        icon="category"
-      />
-    </div>
+    <template v-if="result">
+      <div class="stats-grid">
+        <ReportStatCard
+          v-for="([label, value], i) in summaryRowsList()"
+          :key="label"
+          :label="label"
+          :value="
+            typeof value === 'number' && /sales|amount|revenue|cash|avg/i.test(label)
+              ? formatRupiah(value)
+              : String(value)
+          "
+          :tone="i === 0 ? 'primary' : 'neutral'"
+          :icon="i === 0 ? 'payments' : 'analytics'"
+        />
+      </div>
 
-    <!-- Charts row -->
-    <div class="charts-grid">
       <AppCard padded>
         <div class="card-head">
-          <h3 class="card-title">Top Selling Products</h3>
-          <span class="card-sub">Ranked by revenue</span>
+          <h3 class="card-title">{{ result.title }}</h3>
+          <span class="card-sub">{{ result.subtitle }}</span>
         </div>
 
-        <div class="bars">
-          <div
-            v-for="p in topProducts.slice(0, 5)"
-            :key="p.id"
-            class="bar-row"
+        <AppTable
+          :columns="result.columns"
+          :rows="result.rows"
+          :loading="loading"
+          empty-message="No data for the selected parameters."
+        >
+          <template
+            v-for="col in result.columns"
+            :key="col.key"
+            #[`cell-${col.key}`]="{ row }"
           >
-            <span class="bar-label">{{ p.name }}</span>
-            <span class="bar-track">
-              <span
-                class="bar-fill"
-                :style="{
-                  width: `${Math.round((p.revenue / (topProducts[0]?.revenue || 1)) * 100)}%`,
-                }"
-              ></span>
+            <span :class="{ mono: typeof row[col.key] === 'number' }">
+              {{ fmtCell(col, row) }}
             </span>
-            <span class="bar-value mono">{{ formatRupiah(p.revenue) }}</span>
-          </div>
-        </div>
+          </template>
+        </AppTable>
       </AppCard>
+    </template>
 
-      <AppCard padded>
-        <div class="card-head">
-          <h3 class="card-title">Category Breakdown</h3>
-          <span class="card-sub">Revenue share</span>
-        </div>
-        <CategoryBreakdownCard :categories="categoryBreakdown" />
-      </AppCard>
-    </div>
-
-    <!-- Payment methods -->
-    <AppCard padded class="payment-card">
-      <div class="card-head">
-        <h3 class="card-title">Payment Methods</h3>
-        <span class="card-sub">Transaction count</span>
-      </div>
-      <div class="payment-grid">
-        <div v-for="m in paymentMethods" :key="m.name" class="payment-item">
-          <span class="payment-swatch" :style="{ background: m.color }"></span>
-          <span class="payment-name">{{ m.name }}</span>
-          <span class="payment-value mono">{{ m.value }}</span>
-          <span class="payment-pct mono">{{ m.pct }}%</span>
-        </div>
-      </div>
+    <AppCard v-else padded>
+      <EmptyState
+        icon-name="bar-chart"
+        title="Select a report and run it"
+        message="Choose a report above, adjust the parameters, and press Run Report."
+      />
     </AppCard>
-
-    <!-- Top products table -->
-    <div class="section-head">
-      <h3 class="section-title">Detailed Product Performance</h3>
-      <span class="section-count mono">{{ topProducts.length }} items</span>
-    </div>
-    <TopProductsTable :rows="topProducts" :loading="loading" />
   </AppPageContainer>
 </template>
 
 <style scoped>
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 20px;
-}
-@media (max-width: 1024px) {
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-@media (max-width: 560px) {
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.charts-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-@media (max-width: 900px) {
-  .charts-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.payment-card {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
   margin-bottom: 20px;
 }
 
@@ -331,107 +273,12 @@ onMounted(fetchReports)
 }
 .card-title {
   margin: 0;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--text);
 }
 .card-sub {
   font-size: 11.5px;
-  color: var(--text-muted);
-}
-
-.bars {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.bar-row {
-  display: grid;
-  grid-template-columns: 160px 1fr 130px;
-  align-items: center;
-  gap: 12px;
-  font-size: 12.5px;
-}
-.bar-label {
-  color: var(--text);
-  font-weight: 500;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.bar-track {
-  display: block;
-  height: 8px;
-  background: var(--primary-tint);
-  border-radius: 4px;
-  overflow: hidden;
-}
-.bar-fill {
-  display: block;
-  height: 100%;
-  background: var(--primary);
-}
-.bar-value {
-  text-align: right;
-  color: var(--text);
-  font-weight: 600;
-  font-size: 12px;
-  white-space: nowrap;
-}
-
-.payment-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-}
-@media (max-width: 640px) {
-  .payment-grid {
-    grid-template-columns: 1fr;
-  }
-}
-.payment-item {
-  display: grid;
-  grid-template-columns: 14px 1fr auto auto;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 14px;
-  background: var(--surface-alt);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border);
-  font-size: 13px;
-}
-.payment-swatch {
-  width: 14px;
-  height: 14px;
-  border-radius: 3px;
-}
-.payment-name {
-  font-weight: 500;
-  color: var(--text);
-}
-.payment-value {
-  font-weight: 700;
-  color: var(--text);
-}
-.payment-pct {
-  color: var(--text-muted);
-  font-size: 12px;
-}
-
-.section-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-.section-title {
-  font-size: 15px;
-  font-weight: 600;
-  margin: 0;
-  color: var(--text);
-}
-.section-count {
-  font-size: 12px;
   color: var(--text-muted);
 }
 </style>

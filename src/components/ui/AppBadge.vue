@@ -20,20 +20,31 @@ const classes = computed(() => ['badge', `badge-${props.variant}`])
   font-size: 11.5px;
   font-weight: 500;
   line-height: 1.4;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .badge-success {
-  background: var(--color-success-bg);
-  color: var(--color-success);
+  background: var(--success-bg);
+  color: var(--success);
 }
 
 .badge-warning {
-  background: var(--color-warning-bg);
-  color: var(--color-warning);
+  background: var(--warning-bg);
+  color: var(--warning);
 }
 
 .badge-inactive {
-  background: var(--color-line);
-  color: var(--color-ink-soft);
+  background: var(--surface-hover);
+  color: var(--text-muted);
+}
+
+@media (max-width: 640px) {
+  .badge {
+    font-size: 10.5px;
+    padding: 2px 8px;
+  }
 }
 </style>

@@ -1,7 +1,11 @@
-/* ============================================================
+/* ============================================================================
  * MeStore × PrimeVue — Unified Component Styles
- * One button system. One modal footer layout. One close button.
- * ============================================================ */
+ *
+ *  - One button system (5 variants, one scale)
+ *  - One dialog footer layout
+ *  - One modal scroll-lock fix (no layout shift)
+ *  - Refined toast, inputs, checkbox, datatable
+ * ========================================================================== */
 
 :root,
 :root[data-theme='light'] {
@@ -61,9 +65,33 @@
     --p-datatable-row-hover-background: var(--surface-hover);
 }
 
-/* ============================================================
+/* ============================================================================
+ * MODAL SCROLL-LOCK FIX
+ *
+ * Root cause: PrimeVue Dialog sets `body.p-scrollblock { overflow: hidden;
+ * padding-right: <scrollbarWidth>px }`. Since our app reserves the scrollbar
+ * via `html { scrollbar-gutter: stable; overflow-y: scroll }`, the scrollbar
+ * never disappears — so the padding compensation shifts the entire shell
+ * left and reveals a blank strip on the left edge.
+ *
+ * Fix: neutralize the width compensation. Keep the body locked.
+ * ========================================================================== */
+body.p-scrollblock,
+body.p-overflow-hidden {
+    padding-right: 0 !important;
+    margin-right: 0 !important;
+    width: 100% !important;
+    overflow: hidden !important;
+}
+
+/* PrimeVue's dialog mask shouldn't force any layout reflow either. */
+.p-dialog-mask {
+    overflow: hidden;
+}
+
+/* ============================================================================
  * BUTTON SYSTEM — 5 variants, 1 scale
- * ============================================================ */
+ * ========================================================================== */
 .p-button {
     display: inline-flex;
     align-items: center;
@@ -84,10 +112,19 @@
     cursor: pointer;
     box-shadow: none !important;
     outline: none;
-    transition: background-color 120ms ease, border-color 120ms ease,
-        color 120ms ease;
+    transition:
+        background-color 140ms ease,
+        border-color 140ms ease,
+        color 140ms ease,
+        transform 80ms ease;
     -webkit-appearance: none;
     appearance: none;
+    white-space: nowrap;
+}
+
+/* Prevent layout shift when label changes to a loading spinner */
+.p-button .p-button-label {
+    transition: none;
 }
 
 .p-button:focus,
@@ -101,6 +138,10 @@
 .p-button:focus-visible {
     outline: none !important;
     box-shadow: 0 0 0 3px var(--primary-ring) !important;
+}
+
+.p-button:active:not(:disabled) {
+    transform: translateY(0.5px);
 }
 
 .p-button .p-button-icon,
@@ -119,6 +160,7 @@
     min-height: var(--btn-h-sm);
     padding: 0 var(--btn-px-sm);
     font-size: var(--btn-font-size-sm);
+    gap: 6px;
 }
 
 .p-button.p-button-sm .p-button-icon {
@@ -151,13 +193,13 @@
 }
 
 /* 1. PRIMARY */
-.p-button:not(.p-button-outlined):not(.p-button-text):not(.p-button-link):not(.p-button-danger):not(.p-button-secondary):not(.p-button-success) {
+.p-button:not(.p-button-outlined):not(.p-button-text):not(.p-button-link):not(.p-button-danger):not(.p-button-secondary):not(.p-button-success):not(.p-button-contrast) {
     background: var(--primary);
     border-color: var(--primary);
     color: var(--primary-fg);
 }
 
-.p-button:not(.p-button-outlined):not(.p-button-text):not(.p-button-link):not(.p-button-danger):not(.p-button-secondary):not(.p-button-success):hover:not(:disabled) {
+.p-button:not(.p-button-outlined):not(.p-button-text):not(.p-button-link):not(.p-button-danger):not(.p-button-secondary):not(.p-button-success):not(.p-button-contrast):hover:not(:disabled) {
     background: var(--primary-hover);
     border-color: var(--primary-hover);
 }
@@ -187,12 +229,7 @@
     border-color: var(--border);
 }
 
-/* ------------------------------------------------------------
- * 3. TERTIARY / TEXT — borderless by default
- *    Use only for inline text actions, table row icons, and
- *    small utilities like CLEAR / Refresh that should have no
- *    visual chrome.
- * ---------------------------------------------------------- */
+/* 3. TEXT / TERTIARY */
 .p-button.p-button-text,
 .p-button.p-button-link {
     background: transparent;
@@ -262,16 +299,18 @@
     background: var(--success-bg);
 }
 
+/* Disabled + loading — no layout shift */
 .p-button:disabled,
 .p-button.p-disabled {
     opacity: 0.5;
     cursor: not-allowed;
     box-shadow: none !important;
+    transform: none !important;
 }
 
-/* ============================================================
+/* ============================================================================
  * DIALOG
- * ============================================================ */
+ * ========================================================================== */
 .p-dialog {
     border-radius: var(--radius-lg);
     border: 1px solid var(--border);
@@ -329,13 +368,7 @@
     justify-content: space-between;
 }
 
-/* ------------------------------------------------------------
- * SECONDARY ACTIONS IN FOOTERS
- * Only within modal footers, text buttons get a subtle outline so
- * Cancel / Close / Hold are clearly recognisable as buttons.
- * This does NOT affect text buttons elsewhere in the app
- * (table row actions, CLEAR pill, etc.).
- * ---------------------------------------------------------- */
+/* Secondary actions in footers get a subtle outline */
 .p-dialog .p-dialog-footer>.p-button.p-button-text,
 .p-dialog .p-dialog-footer>.p-button.p-button-link,
 .mestore-modal-foot>.p-button.p-button-text,
@@ -355,7 +388,6 @@
     color: var(--text);
 }
 
-/* Danger-styled footer text buttons keep the danger outline */
 .p-dialog .p-dialog-footer>.p-button.p-button-text.p-button-danger,
 .mestore-modal-foot>.p-button.p-button-text.p-button-danger {
     border-color: var(--danger);
@@ -369,7 +401,7 @@
     color: var(--danger);
 }
 
-/* Close button — remains icon-only, no border */
+/* Close button — icon-only */
 .p-dialog .p-dialog-header-close,
 .p-dialog .p-dialog-header-icon,
 .p-dialog .p-dialog-close-button {
@@ -420,9 +452,9 @@
     stroke: currentColor;
 }
 
-/* ============================================================
+/* ============================================================================
  * INPUTS
- * ============================================================ */
+ * ========================================================================== */
 .p-inputtext,
 .p-select,
 .p-inputnumber-input,
@@ -446,14 +478,170 @@
     outline: none;
 }
 
-/* ============================================================
- * TOAST / DATATABLE / CHECKBOX
- * ============================================================ */
-.p-toast .p-toast-message {
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-2);
+/* ============================================================================
+ * TOAST — refined, consistent, never interferes with dialogs
+ * ========================================================================== */
+.p-toast {
+    z-index: 200 !important;
+    width: 24rem;
+    max-width: calc(100vw - 24px);
 }
 
+.p-toast .p-toast-message {
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-3);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    margin: 0 0 10px 0;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 12px 12px 14px;
+    position: relative;
+    backdrop-filter: saturate(160%) blur(8px);
+}
+
+/* Left accent stripe */
+.p-toast .p-toast-message::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: currentColor;
+    opacity: 0.9;
+}
+
+.p-toast .p-toast-message-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 0;
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.p-toast .p-toast-message-icon {
+    font-size: 18px;
+    margin-top: 1px;
+    flex-shrink: 0;
+}
+
+.p-toast .p-toast-message-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+.p-toast .p-toast-message-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1;
+}
+
+.p-toast .p-toast-summary {
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.3;
+    overflow-wrap: break-word;
+}
+
+.p-toast .p-toast-detail {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    margin: 0;
+    line-height: 1.4;
+    overflow-wrap: break-word;
+}
+
+/* Close button — compact and clearly tappable */
+.p-toast .p-toast-icon-close {
+    width: 22px !important;
+    height: 22px !important;
+    min-width: 22px !important;
+    min-height: 22px !important;
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 120ms ease, color 120ms ease;
+    padding: 0;
+    margin-top: 0;
+}
+
+.p-toast .p-toast-icon-close svg {
+    width: 12px !important;
+    height: 12px !important;
+}
+
+.p-toast .p-toast-icon-close:hover {
+    background: var(--surface-hover);
+    color: var(--text);
+}
+
+/* Severity accents — colors the stripe + icon */
+.p-toast .p-toast-message-success {
+    color: var(--success);
+}
+
+.p-toast .p-toast-message-success .p-toast-message-icon {
+    color: var(--success);
+}
+
+.p-toast .p-toast-message-error {
+    color: var(--danger);
+}
+
+.p-toast .p-toast-message-error .p-toast-message-icon {
+    color: var(--danger);
+}
+
+.p-toast .p-toast-message-warn {
+    color: var(--warning);
+}
+
+.p-toast .p-toast-message-warn .p-toast-message-icon {
+    color: var(--warning);
+}
+
+.p-toast .p-toast-message-info {
+    color: var(--info, var(--primary));
+}
+
+.p-toast .p-toast-message-info .p-toast-message-icon {
+    color: var(--info, var(--primary));
+}
+
+/* Ensure detail text stays neutral regardless of severity accent */
+.p-toast .p-toast-message-success .p-toast-detail,
+.p-toast .p-toast-message-error .p-toast-detail,
+.p-toast .p-toast-message-warn .p-toast-detail,
+.p-toast .p-toast-message-info .p-toast-detail {
+    color: var(--text-muted);
+}
+
+@media (max-width: 640px) {
+    .p-toast {
+        width: auto;
+        left: 12px;
+        right: 12px;
+    }
+}
+/* ============================================================================
+ * DATATABLE / CHECKBOX
+ * ========================================================================== */
 .p-datatable .p-datatable-header-cell {
     background: var(--surface-alt);
     color: var(--text-muted);
@@ -493,9 +681,9 @@
     box-shadow: 0 0 0 3px var(--primary-ring) !important;
 }
 
-/* ============================================================
- * SWEETALERT2
- * ============================================================ */
+/* ============================================================================
+ * SWEETALERT2 — themed
+ * ========================================================================== */
 .swal-mestore-popup {
     border-radius: var(--radius-lg) !important;
     padding: 24px !important;
@@ -521,4 +709,55 @@
 
 .swal2-icon {
     margin: 8px auto 16px !important;
+}
+
+.swal2-container.swal2-shown {
+    padding-right: 0 !important;
+}
+
+/* ============================================================================
+ * MODAL HEAD + FOOTER — responsive
+ * ========================================================================== */
+.modal-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+}
+
+/* Footer: stack buttons on mobile */
+@media (max-width: 640px) {
+
+    .p-dialog .p-dialog-footer,
+    .mestore-modal-foot {
+        flex-direction: column-reverse;
+        align-items: stretch;
+        gap: 8px;
+    }
+
+    .p-dialog .p-dialog-footer>.p-button,
+    .mestore-modal-foot>.p-button {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .mestore-modal-foot.split {
+        flex-direction: column-reverse;
+    }
+
+    .modal-head {
+        padding: 14px 16px;
+        gap: 10px;
+    }
+
+    .modal-head .head-icon {
+        width: 32px;
+        height: 32px;
+    }
+
+    .modal-head .head-title {
+        font-size: 15px;
+    }
 }

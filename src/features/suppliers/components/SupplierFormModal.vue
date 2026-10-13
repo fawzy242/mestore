@@ -14,11 +14,11 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue', 'saved'])
-
 const { push } = useToast()
 const visible = computed({ get: () => props.modelValue, set: (v) => emit('update:modelValue', v) })
 const isEdit = computed(() => Boolean(props.supplierId))
-const { form, isSubmitting, isLoading, error, fieldErrors, load, submit } = useSupplierForm(props.supplierId)
+const { form, isSubmitting, isLoading, error, fieldErrors, load, submit } =
+  useSupplierForm(props.supplierId)
 
 async function onSubmit() {
   const saved = await submit()
@@ -31,14 +31,25 @@ async function onSubmit() {
   }
 }
 
-function close() { visible.value = false }
-
-watch(visible, async (open) => { if (open && isEdit.value) await load() })
-onMounted(() => { if (visible.value && isEdit.value) load() })
+function close() {
+  visible.value = false
+}
+watch(visible, async (open) => {
+  if (open && isEdit.value) await load()
+})
+onMounted(() => {
+  if (visible.value && isEdit.value) load()
+})
 </script>
 
 <template>
-  <Dialog v-model:visible="visible" modal :draggable="false" :style="{ width: '620px' }" :show-header="false">
+  <Dialog
+    v-model:visible="visible"
+    modal
+    :draggable="false"
+    :style="{ width: '620px' }"
+    :show-header="false"
+  >
     <div class="modal-head">
       <span class="head-icon"><AppIcon name="local-shipping" :size="20" /></span>
       <h2 class="head-title">{{ isEdit ? 'Edit Supplier' : 'Add Supplier' }}</h2>
@@ -52,7 +63,11 @@ onMounted(() => { if (visible.value && isEdit.value) load() })
       <form v-else class="form" @submit.prevent="onSubmit">
         <div class="field full">
           <label>Supplier Name *</label>
-          <InputText v-model="form.name" placeholder="e.g. PT Sumber Pangan Nusantara" :class="{ 'p-invalid': fieldErrors.name }" />
+          <InputText
+            v-model="form.name"
+            placeholder="e.g. PT Sumber Pangan Nusantara"
+            :class="{ 'p-invalid': fieldErrors.name }"
+          />
           <small v-if="fieldErrors.name" class="err">{{ fieldErrors.name }}</small>
         </div>
         <div class="field">
@@ -61,7 +76,11 @@ onMounted(() => { if (visible.value && isEdit.value) load() })
         </div>
         <div class="field">
           <label>Phone *</label>
-          <InputText v-model="form.phone" placeholder="+62 811 …" :class="{ 'p-invalid': fieldErrors.phone }" />
+          <InputText
+            v-model="form.phone"
+            placeholder="+62 811 …"
+            :class="{ 'p-invalid': fieldErrors.phone }"
+          />
           <small v-if="fieldErrors.phone" class="err">{{ fieldErrors.phone }}</small>
         </div>
         <div class="field">
@@ -72,13 +91,20 @@ onMounted(() => { if (visible.value && isEdit.value) load() })
           <label>Address</label>
           <InputText v-model="form.address" placeholder="Street address" />
         </div>
-        <Message v-if="error" severity="error" :closable="false" class="full">{{ error.message }}</Message>
+        <Message v-if="error" severity="error" :closable="false" class="full">
+          {{ error.message }}
+        </Message>
       </form>
     </div>
 
     <div class="mestore-modal-foot">
       <Button label="Cancel" text severity="secondary" @click="close" />
-      <Button :label="isEdit ? 'Save Changes' : 'Save Supplier'" icon="pi pi-check" :loading="isSubmitting" @click="onSubmit" />
+      <Button
+        :label="isEdit ? 'Save Changes' : 'Save Supplier'"
+        icon="pi pi-check"
+        :loading="isSubmitting"
+        @click="onSubmit"
+      />
     </div>
   </Dialog>
 </template>
@@ -100,6 +126,7 @@ onMounted(() => { if (visible.value && isEdit.value) load() })
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 .head-title {
   flex: 1;
@@ -119,6 +146,7 @@ onMounted(() => { if (visible.value && isEdit.value) load() })
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  flex-shrink: 0;
 }
 .head-close:hover {
   background: var(--surface-hover);
@@ -141,6 +169,7 @@ onMounted(() => { if (visible.value && isEdit.value) load() })
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
 }
 .field.full {
   grid-column: 1 / -1;
@@ -158,8 +187,12 @@ onMounted(() => { if (visible.value && isEdit.value) load() })
   color: var(--danger);
 }
 @media (max-width: 640px) {
+  .modal-body {
+    padding: 16px;
+  }
   .form {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
 }
 </style>

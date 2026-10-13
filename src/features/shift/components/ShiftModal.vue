@@ -68,7 +68,6 @@ function closeShift() {
   visible.value = false
 }
 
-// Reset inputs when modal opens
 watch(visible, (open) => {
   if (!open) return
   if (isOpen.value) {
@@ -85,10 +84,20 @@ watch(visible, (open) => {
     modal
     :draggable="false"
     :style="{ width: '520px' }"
-    :header="isOpen ? 'Shift Information' : 'Open Shift'"
+    :show-header="false"
   >
-    <!-- Shift is OPEN — show info + close action -->
-    <div v-if="isOpen" class="body">
+    <div class="modal-head">
+      <span class="head-icon" :class="{ open: isOpen }">
+        <AppIcon name="schedule" :size="20" />
+      </span>
+      <h2 class="head-title">{{ isOpen ? 'Shift Information' : 'Open Shift' }}</h2>
+      <button type="button" class="head-close" aria-label="Close" @click="visible = false">
+        <AppIcon name="close" :size="14" />
+      </button>
+    </div>
+
+    <!-- Shift is OPEN — info + close action -->
+    <div v-if="isOpen" class="modal-body">
       <div class="info-card">
         <div class="info-col">
           <span class="info-label">Cashier</span>
@@ -139,7 +148,7 @@ watch(visible, (open) => {
     </div>
 
     <!-- Shift is CLOSED — open a new shift -->
-    <div v-else class="body">
+    <div v-else class="modal-body">
       <Message severity="info" :closable="false" class="mb">
         Open a shift to begin accepting sales. Enter the starting cash in your drawer.
       </Message>
@@ -173,7 +182,7 @@ watch(visible, (open) => {
       </div>
     </div>
 
-    <template #footer>
+    <div class="mestore-modal-foot">
       <Button label="Cancel" text severity="secondary" @click="visible = false" />
       <Button
         v-if="isOpen"
@@ -189,12 +198,60 @@ watch(visible, (open) => {
         icon="pi pi-check"
         @click="openShift"
       />
-    </template>
+    </div>
   </Dialog>
 </template>
 
 <style scoped>
-.body {
+.modal-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border);
+}
+.head-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--primary-tint);
+  color: var(--primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.head-icon.open {
+  background: var(--success-bg);
+  color: var(--success);
+}
+.head-title {
+  flex: 1;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+.head-close {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.head-close:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.modal-body {
+  padding: 22px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -208,18 +265,18 @@ watch(visible, (open) => {
   display: flex;
   justify-content: space-between;
   gap: 12px;
+  flex-wrap: wrap;
 }
-
 .info-col {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
 }
-
 .info-col-right {
   align-items: flex-end;
+  text-align: right;
 }
-
 .info-label {
   font-size: 10.5px;
   text-transform: uppercase;
@@ -227,11 +284,13 @@ watch(visible, (open) => {
   font-weight: 600;
   color: var(--text-muted);
 }
-
 .info-value {
   font-size: 13.5px;
   font-weight: 600;
   color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .summary {
@@ -240,24 +299,22 @@ watch(visible, (open) => {
   padding: 14px;
   background: var(--surface-alt);
 }
-
 .row {
   display: flex;
   justify-content: space-between;
   padding: 6px 0;
   font-size: 13px;
+  gap: 12px;
 }
-
 .lbl {
   color: var(--text-muted);
+  flex-shrink: 0;
 }
-
 .total-row {
   border-top: 1px solid var(--border);
   margin-top: 4px;
   padding-top: 10px;
 }
-
 .total-value {
   color: var(--primary);
   font-weight: 700;
@@ -267,18 +324,16 @@ watch(visible, (open) => {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
 }
-
 .field label {
   font-size: 12.5px;
   font-weight: 500;
   color: var(--text-muted);
 }
-
 .full {
   width: 100%;
 }
-
 .full :deep(input) {
   width: 100%;
   height: 44px;
@@ -288,12 +343,11 @@ watch(visible, (open) => {
 }
 
 .denoms {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
 }
-
 .denom {
-  flex: 1;
   padding: 10px 12px;
   background: var(--surface-hover);
   border: 1px solid transparent;
@@ -305,12 +359,10 @@ watch(visible, (open) => {
   cursor: pointer;
   transition: all 120ms;
 }
-
 .denom:hover {
   background: var(--primary-tint);
   color: var(--primary);
 }
-
 .denom.active {
   background: var(--primary-tint);
   color: var(--primary);
@@ -324,25 +376,22 @@ watch(visible, (open) => {
   padding: 12px 14px;
   border-radius: var(--radius-md);
   background: var(--surface-hover);
+  gap: 12px;
 }
-
 .variance-box.neg {
   background: var(--danger-bg);
   color: var(--danger);
 }
-
 .variance-box.pos {
   background: var(--warning-bg);
   color: var(--warning);
 }
-
 .variance-label {
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
-
 .variance-value {
   font-size: 15px;
   font-weight: 700;
@@ -350,5 +399,34 @@ watch(visible, (open) => {
 
 .mb {
   margin-bottom: 4px;
+}
+
+@media (max-width: 640px) {
+  .modal-body {
+    padding: 16px;
+    gap: 14px;
+  }
+  .info-card {
+    padding: 10px 12px;
+    gap: 10px;
+  }
+  .info-col-right {
+    align-items: flex-start;
+    text-align: left;
+  }
+  .full :deep(input) {
+    height: 42px;
+    font-size: 14px;
+  }
+  .denoms {
+    gap: 6px;
+  }
+  .denom {
+    padding: 9px 8px;
+    font-size: 12px;
+  }
+  .variance-value {
+    font-size: 14px;
+  }
 }
 </style>

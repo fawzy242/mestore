@@ -73,12 +73,7 @@ onMounted(() => {
         <AppIcon name="receipt-long" :size="20" />
       </span>
       <h2 class="head-title">Transaction Detail</h2>
-      <button
-        type="button"
-        class="head-close"
-        aria-label="Close"
-        @click="close"
-      >
+      <button type="button" class="head-close" aria-label="Close" @click="close">
         <AppIcon name="close" :size="14" />
       </button>
     </div>
@@ -94,7 +89,9 @@ onMounted(() => {
           <StatusPill variant="success">Completed</StatusPill>
         </div>
 
-        <ReceiptBlock :receipt="transaction" />
+        <div class="print-receipt">
+          <ReceiptBlock :receipt="transaction" />
+        </div>
 
         <div class="details">
           <AppDetailRow label="Payment">{{ transaction.method }}</AppDetailRow>
@@ -148,7 +145,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 120ms ease, color 120ms ease;
+  flex-shrink: 0;
 }
 .head-close:hover {
   background: var(--surface-hover);
@@ -158,13 +155,11 @@ onMounted(() => {
 .modal-body {
   padding: 22px;
 }
-
 .loading {
   padding: 40px;
   display: flex;
   justify-content: center;
 }
-
 .body {
   display: flex;
   flex-direction: column;
@@ -174,15 +169,28 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
 }
 .tx-title {
   margin: 0;
   font-size: 17px;
   font-weight: 600;
   color: var(--text);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .details {
   display: flex;
   flex-direction: column;
+}
+
+@media (max-width: 640px) {
+  .modal-body {
+    padding: 16px;
+  }
+  .tx-title {
+    font-size: 15.5px;
+  }
 }
 </style>

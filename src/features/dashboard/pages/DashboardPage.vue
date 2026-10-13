@@ -20,11 +20,11 @@ import AppPageContainer from '@/components/ui/AppPageContainer.vue'
 import KPIBar from '@/components/ui/KPIBar.vue'
 import KPIStat from '@/components/ui/KPIStat.vue'
 import AppTable from '@/components/ui/AppTable.vue'
-import StatusPill from '@/components/ui/StatusPill.vue'
 import AppNoticeBanner from '@/components/ui/AppNoticeBanner.vue'
 import AppAlert from '@/components/ui/AppAlert.vue'
 import AvatarInitials from '@/components/ui/AvatarInitials.vue'
 import MonoChip from '@/components/ui/MonoChip.vue'
+import StatusPill from '@/components/ui/StatusPill.vue'
 import AppIcon from '@/components/ui/AppIcon.vue'
 import { useDashboard } from '../composables/useDashboard.js'
 import { useChartTheme } from '@/composables/useChartTheme.js'
@@ -43,92 +43,81 @@ Chart.register(
 )
 
 const router = useRouter()
-const { summary, lowStock, recent, loading, error, fetchAll } = useDashboard()
+const {
+  range,
+  summary,
+  categoryBreakdown,
+  paymentMethods,
+  dailyTrend,
+  cashiers,
+  lowStockItems,
+  recentTransactions,
+  loading,
+  error,
+  fetchDashboard,
+  setRange,
+} = useDashboard()
+
 const { tokens } = useChartTheme()
 
-onMounted(fetchAll)
+onMounted(fetchDashboard)
 
-/* ------------------------------------------------------------------
- * Chart data
- * ------------------------------------------------------------------ */
-const salesTrend = computed(() => {
-  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-  const values = [0, 0, 0, 0, 0, 0, 0]
-  const total = summary.value?.todaySales ?? 0
-  values[0] = total * 0.6
-  values[1] = total * 0.75
-  values[2] = total * 0.9
-  values[3] = total * 0.85
-  values[4] = total
-  values[5] = total * 1.1
-  values[6] = total * 0.8
-  return {
-    labels: days,
-    datasets: [
-      {
-        label: 'Sales (Rp)',
-        data: values,
-        borderColor: tokens.value.primary,
-        backgroundColor: hexAlpha(tokens.value.primary, 0.12),
-        borderWidth: 2,
-        tension: 0.35,
-        fill: true,
-        pointBackgroundColor: tokens.value.primary,
-        pointBorderColor: tokens.value.surface,
-        pointBorderWidth: 2,
-        pointRadius: 4,
-        pointHoverRadius: 6,
-      },
-    ],
-  }
-})
+const rangeOptions = [
+  { value: 'today', label: 'Today' },
+  { value: 'last7', label: '7 days' },
+  { value: 'last30', label: '30 days' },
+  { value: 'last90', label: '90 days' },
+]
 
-const categoryBreakdown = computed(() => {
-  const map = new Map()
-  ;(lowStock.value || []).forEach((p) => {
-    const key = p.category || 'Other'
-    map.set(key, (map.get(key) || 0) + 1)
-  })
-  const labels = Array.from(map.keys())
-  const data = Array.from(map.values())
-  const palette = [
-    tokens.value.primary,
-    tokens.value.warning,
-    tokens.value.textMuted,
-    tokens.value.textFaint,
-    tokens.value.danger,
-  ]
-  return {
-    labels,
-    datasets: [
-      {
-        data,
-        backgroundColor: palette.slice(0, labels.length),
-        borderColor: tokens.value.surface,
-        borderWidth: 2,
-      },
-    ],
-  }
-})
+/* ---------------- Charts ---------------- */
 
-const hasCategoryData = computed(() => categoryBreakdown.value.labels.length > 0)
-
-const paymentMethods = computed(() => ({
-  labels: ['Cash', 'Card', 'QRIS'],
+const salesTrend = computed(() => ({
+  labels: dailyTrend.value.map((d) => d.label),
   datasets: [
     {
-      label: 'Transactions',
-      data: [78, 15, 7],
-      backgroundColor: [tokens.value.primary, tokens.value.warning, tokens.value.textMuted],
-      borderRadius: 6,
-      barThickness: 28,
+      label: 'Sales',
+      data: dailyTrend.value.map((d) => d.total),
+      borderColor: tokens.value.primary,
+      backgroundColor: hexAlpha(tokens.value.primary, 0.12),
+      borderWidth: 2,
+      tension: 0.35,
+      fill: true,
+      pointBackgroundColor: tokens.value.primary,
+      pointBorderColor: tokens.value.surface,
+      pointBorderWidth: 2,
+      pointRadius: 4,
+      pointHoverRadius: 6,
     },
   ],
 }))
 
-/* ------------------------------------------------------------------
- * Chart options
- * ------------------------------------------------------------------ */
+const categoryData = computed(() => ({
+  labels: categoryBreakdown.value.map((c) => c.name),
+  datasets: [
+    {
+      data: categoryBreakdown.value.map((c) => c.revenue),
+      backgroundColor: categoryBreakdown.value.map((c) => c.color),
+      borderColor: tokens.value.surface,
+      borderWidth: 2,
+    },
+  ],
+}))
+const hasCategoryData = computed(() => categoryBreakdown.value.length > 0)
+
+const paymentData = computed(() => ({
+  labels: paymentMethods.value.map((m) => m.name),
+  datasets: [
+    {
+      data: paymentMethods.value.map((m) => m.value),
+      backgroundColor: paymentMethods.value.map((m) => m.color),
+      borderRadius: 6,
+      barThickness: 26,
+    },
+  ],
+}))
+
+/* ---------------- Chart options ---------------- */
+
 const lineOptions = computed(() => ({
   responsive: true,
   maintainAspectRatio: false,
@@ -141,14 +130,12 @@ const lineOptions = computed(() => ({
       borderColor: tokens.value.border,
       borderWidth: 1,
       padding: 10,
-      callbacks: {
-        label: (ctx) => formatRupiah(ctx.parsed.y),
-      },
+      callbacks: { label: (ctx) => formatRupiah(ctx.parsed.y) },
     },
   },
   scales: {
     x: {
-      grid: { display: false, color: tokens.value.border },
+      grid: { display: false },
       ticks: { color: tokens.value.textMuted, font: { size: 11 } },
       border: { color: tokens.value.border },
     },
@@ -186,6 +173,7 @@ const doughnutOptions = computed(() => ({
       borderColor: tokens.value.border,
       borderWidth: 1,
       padding: 10,
+      callbacks: { label: (ctx) => formatRupiah(ctx.parsed) },
     },
   },
 }))
@@ -219,12 +207,8 @@ const barOptions = computed(() => ({
   },
 }))
 
-/* ------------------------------------------------------------------
- * Utilities
- * ------------------------------------------------------------------ */
 function hexAlpha(hex, alpha) {
-  // Convert #RRGGBB → rgba(r,g,b,alpha)
-  const h = hex.replace('#', '')
+  const h = String(hex).replace('#', '')
   if (h.length !== 6) return hex
   const r = parseInt(h.slice(0, 2), 16)
   const g = parseInt(h.slice(2, 4), 16)
@@ -232,9 +216,8 @@ function hexAlpha(hex, alpha) {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`
 }
 
-/* ------------------------------------------------------------------
- * Tables
- * ------------------------------------------------------------------ */
+/* ---------------- Tables ---------------- */
+
 const lowStockColumns = [
   { key: 'name', label: 'Product' },
   { key: 'sku', label: 'SKU' },
@@ -249,28 +232,27 @@ const recentColumns = [
   { key: 'total', label: 'Total', align: 'right' },
 ]
 
-function goNewSale() {
-  router.push({ name: 'pos' })
-}
-function goProducts() {
-  router.push({ name: 'products.list' })
-}
-function goStock() {
-  router.push({ name: 'stock.list' })
-}
-function goTransactions() {
-  router.push({ name: 'transactions.list' })
-}
-function openTx(row) {
-  router.push({ name: 'transactions.detail', params: { id: row.id } })
-}
+const cashierColumns = [
+  { key: 'name', label: 'Cashier' },
+  { key: 'transactions', label: 'Transactions', align: 'right' },
+  { key: 'sales', label: 'Sales', align: 'right' },
+]
+
+/* ---------------- Navigation ---------------- */
+
+const goNewSale = () => router.push({ name: 'pos' })
+const goProducts = () => router.push({ name: 'products.list' })
+const goStock = () => router.push({ name: 'stock.list' })
+const goTransactions = () => router.push({ name: 'transactions.list' })
+const goReports = () => router.push({ name: 'reports' })
+const openTx = (row) => router.push({ name: 'transactions.detail', params: { id: row.id } })
 </script>
 
 <template>
   <AppPageContainer>
     <AppNoticeBanner
       variant="info"
-      message="Shortcuts to POS, low-stock items, and recent transactions."
+      message="Real-time overview of store performance. All numbers reflect the current mock dataset."
     />
 
     <AppAlert
@@ -278,53 +260,82 @@ function openTx(row) {
       variant="error"
       :message="error.message"
       retry-label="Retry"
-      @retry="fetchAll"
+      @retry="fetchDashboard"
     />
+
+    <!-- Range filter + quick actions -->
+    <div class="toolbar">
+      <div class="range-chips">
+        <button
+          v-for="opt in rangeOptions"
+          :key="opt.value"
+          type="button"
+          class="range-chip"
+          :class="{ active: range === opt.value }"
+          @click="setRange(opt.value)"
+        >
+          {{ opt.label }}
+        </button>
+      </div>
+      <div class="quick-actions">
+        <Button
+          label="New Sale"
+          icon="pi pi-plus"
+          size="small"
+          @click="goNewSale"
+        />
+        <Button
+          label="View Products"
+          icon="pi pi-box"
+          severity="secondary"
+          outlined
+          size="small"
+          @click="goProducts"
+        />
+        <Button
+          label="View Reports"
+          icon="pi pi-chart-bar"
+          severity="secondary"
+          outlined
+          size="small"
+          @click="goReports"
+        />
+      </div>
+    </div>
 
     <KPIBar :columns="4">
       <KPIStat
-        label="Today's Sales"
-        :value="summary ? formatRupiah(summary.todaySales) : '—'"
+        label="Total Sales"
+        :value="summary ? formatRupiah(summary.totalSales) : '—'"
         icon="payments"
         tone="primary"
       />
       <KPIStat
-        label="Transactions Today"
-        :value="summary ? summary.todayTransactions : '—'"
+        label="Transactions"
+        :value="summary ? summary.totalTransactions : '—'"
         icon="receipt-long"
         tone="neutral"
       />
       <KPIStat
-        label="Total Products"
-        :value="summary ? summary.totalProducts : '—'"
-        icon="inventory-2"
+        label="Avg. Sale"
+        :value="summary ? formatRupiah(summary.avgSale) : '—'"
+        icon="trending-up"
         tone="neutral"
       />
       <KPIStat
-        label="Low Stock Items"
+        label="Low Stock"
         :value="summary ? summary.lowStockCount : '—'"
         icon="warning"
         tone="warning"
       />
     </KPIBar>
 
-    <div class="cta-row">
-      <Button label="New Sale" icon="pi pi-plus" @click="goNewSale" />
-      <Button
-        label="View Products"
-        icon="pi pi-box"
-        severity="secondary"
-        outlined
-        @click="goProducts"
-      />
-    </div>
-
-    <!-- Charts -->
+    <!-- Charts row -->
     <div class="charts-grid">
       <div class="chart-card chart-wide">
         <div class="chart-head">
-          <h3 class="chart-title">Sales This Week</h3>
-          <span class="chart-sub">Rp per day</span>
+          <h3 class="chart-title">Daily Sales Trend</h3>
+          <span class="chart-sub">Last 7 days · {{ range }}</span>
         </div>
         <div class="chart-body">
           <Line :data="salesTrend" :options="lineOptions" />
@@ -333,12 +344,12 @@ function openTx(row) {
 
       <div class="chart-card">
         <div class="chart-head">
-          <h3 class="chart-title">Category Breakdown</h3>
-          <span class="chart-sub">Low stock by category</span>
+          <h3 class="chart-title">Category Share</h3>
+          <span class="chart-sub">Revenue</span>
         </div>
         <div class="chart-body">
-          <Doughnut v-if="hasCategoryData" :data="categoryBreakdown" :options="doughnutOptions" />
-          <div v-else class="chart-empty">No low stock items</div>
+          <Doughnut v-if="hasCategoryData" :data="categoryData" :options="doughnutOptions" />
+          <div v-else class="chart-empty">No category data</div>
         </div>
       </div>
 
@@ -347,23 +358,23 @@ function openTx(row) {
           <h3 class="chart-title">Payment Methods</h3>
         </div>
         <div class="chart-body chart-body-bar">
-          <Bar :data="paymentMethods" :options="barOptions" />
+          <Bar :data="paymentData" :options="barOptions" />
         </div>
       </div>
     </div>
 
+    <!-- Low stock -->
     <div class="section-head">
       <h3 class="section-title">
         <span class="dot dot-warning"></span> Low stock — needs attention
       </h3>
       <button type="button" class="section-link" @click="goStock">
-        View all
-        <AppIcon name="arrow-right-alt" :size="14" />
+        View all <AppIcon name="arrow-right-alt" :size="14" />
       </button>
     </div>
     <AppTable
       :columns="lowStockColumns"
-      :rows="lowStock"
+      :rows="lowStockItems"
       :loading="loading"
       empty-message="No low-stock items"
     >
@@ -380,22 +391,47 @@ function openTx(row) {
         <MonoChip variant="neutral">{{ row.sku }}</MonoChip>
       </template>
       <template #cell-stock="{ row }">
-        <span class="mono">{{ row.stock }} {{ row.unit }}</span>
+        <StatusPill :variant="row.stock === 0 ? 'danger' : 'warning'">
+          {{ row.stock }} {{ row.unit }}
+        </StatusPill>
       </template>
     </AppTable>
 
+    <!-- Cashier leaderboard -->
+    <div class="section-head">
+      <h3 class="section-title">
+        <span class="dot dot-primary"></span> Cashier performance
+      </h3>
+    </div>
+    <AppTable
+      :columns="cashierColumns"
+      :rows="cashiers"
+      :loading="loading"
+      empty-message="No cashier activity"
+    >
+      <template #cell-name="{ row }">
+        <div class="name-cell">
+          <AvatarInitials :name="row.name" :size="28" tone="primary" />
+          <span class="name-primary">{{ row.name }}</span>
+        </div>
+      </template>
+      <template #cell-sales="{ row }">
+        <span class="mono total">{{ formatRupiah(row.sales) }}</span>
+      </template>
+    </AppTable>
+
+    <!-- Recent transactions -->
     <div class="section-head">
       <h3 class="section-title">
         <span class="dot dot-primary"></span> Recent transactions
       </h3>
       <button type="button" class="section-link" @click="goTransactions">
-        View all
-        <AppIcon name="arrow-right-alt" :size="14" />
+        View all <AppIcon name="arrow-right-alt" :size="14" />
       </button>
     </div>
     <AppTable
       :columns="recentColumns"
-      :rows="recent"
+      :rows="recentTransactions"
       :loading="loading"
       clickable-rows
       empty-message="No transactions yet"
@@ -418,11 +454,58 @@ function openTx(row) {
 </template>
 
 <style scoped>
-.cta-row {
+.toolbar {
   display: flex;
-  gap: 10px;
-  margin-top: 20px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
   flex-wrap: wrap;
+}
+.range-chips {
+  display: inline-flex;
+  gap: 4px;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 3px;
+}
+.range-chip {
+  border: none;
+  background: transparent;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 120ms, color 120ms;
+}
+.range-chip:hover {
+  color: var(--text);
+}
+.range-chip.active {
+  background: var(--surface);
+  color: var(--primary);
+  font-weight: 600;
+  box-shadow: var(--shadow-1);
+}
+.quick-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .toolbar {
+    align-items: stretch;
+  }
+  .quick-actions {
+    width: 100%;
+  }
+  .quick-actions > :deep(.p-button) {
+    flex: 1;
+  }
 }
 
 .charts-grid {
@@ -431,7 +514,6 @@ function openTx(row) {
   gap: 16px;
   margin-top: 24px;
 }
-
 @media (max-width: 1100px) {
   .charts-grid {
     grid-template-columns: 1fr 1fr;
@@ -440,7 +522,6 @@ function openTx(row) {
     grid-column: 1 / -1;
   }
 }
-
 @media (max-width: 700px) {
   .charts-grid {
     grid-template-columns: 1fr;
@@ -455,36 +536,31 @@ function openTx(row) {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  min-width: 0;
 }
-
 .chart-head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: 8px;
 }
-
 .chart-title {
   margin: 0;
   font-size: 14px;
   font-weight: 600;
   color: var(--text);
 }
-
 .chart-sub {
   font-size: 11.5px;
   color: var(--text-muted);
 }
-
 .chart-body {
   position: relative;
   height: 220px;
 }
-
 .chart-body-bar {
   height: 160px;
 }
-
 .chart-empty {
   display: flex;
   align-items: center;
@@ -501,7 +577,6 @@ function openTx(row) {
   gap: 12px;
   margin: 24px 0 12px;
 }
-
 .section-title {
   display: flex;
   align-items: center;
@@ -511,7 +586,6 @@ function openTx(row) {
   margin: 0;
   color: var(--text);
 }
-
 .section-link {
   display: inline-flex;
   align-items: center;
@@ -524,12 +598,11 @@ function openTx(row) {
   padding: 4px 8px;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: background 120ms ease, color 120ms ease;
+  transition: background 120ms ease;
 }
 .section-link:hover {
   background: var(--primary-tint);
 }
-
 .dot {
   width: 8px;
   height: 8px;
@@ -542,20 +615,17 @@ function openTx(row) {
 .dot-primary {
   background: var(--primary);
 }
-
 .name-cell {
   display: flex;
   align-items: center;
   gap: 10px;
   min-width: 0;
 }
-
 .name-text {
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
-
 .name-primary {
   font-weight: 500;
   color: var(--text);
@@ -563,27 +633,22 @@ function openTx(row) {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
 .name-secondary {
   font-size: 11.5px;
   color: var(--text-muted);
 }
-
 .receipt-cell {
   display: inline-flex;
   align-items: center;
   gap: 8px;
 }
-
 .receipt-icon {
   color: var(--text-muted);
 }
-
 .receipt-id {
   color: var(--primary);
   font-weight: 600;
 }
-
 .total {
   font-weight: 700;
 }

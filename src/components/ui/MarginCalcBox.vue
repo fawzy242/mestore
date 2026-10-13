@@ -31,33 +31,47 @@ const marginPct = computed(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   padding: 10px 14px;
   border-radius: var(--radius-md);
-  background: var(--color-surface-container-low);
-  border: 1px solid var(--color-line);
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
   font-size: 13px;
   grid-column: 1 / -1;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 .lbl {
-  color: var(--color-ink-soft);
+  color: var(--text-muted);
   font-weight: 500;
 }
 .values {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
 }
 .amount {
   font-family: 'JetBrains Mono', monospace;
-  color: var(--color-ink);
+  color: var(--text);
   font-weight: 500;
 }
 .pct {
   font-family: 'JetBrains Mono', monospace;
   font-weight: 700;
-  background: var(--color-surface-container);
+  background: var(--surface-hover);
   padding: 2px 8px;
   border-radius: var(--radius-s);
-  color: var(--color-primary-container);
+  color: var(--primary);
+}
+
+@media (max-width: 480px) {
+  .margin-box {
+    padding: 10px 12px;
+    font-size: 12.5px;
+  }
+  .values {
+    gap: 8px;
+  }
 }
 </style>

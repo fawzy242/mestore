@@ -160,11 +160,31 @@ async function submit() {
   font-size: 11px;
   color: var(--text-muted);
   margin-top: 16px;
+  line-height: 1.55;
 }
 
 .hint .mono {
   font-family: 'JetBrains Mono', monospace;
   font-weight: 500;
   color: var(--text);
+}
+
+@media (max-width: 480px) {
+  .gate-logo {
+    width: 46px;
+    height: 46px;
+    font-size: 20px;
+    margin-bottom: 14px;
+  }
+  .title {
+    font-size: 20px;
+  }
+  .sub {
+    font-size: 12.5px;
+    margin-bottom: 20px;
+  }
+  .submit {
+    height: 44px;
+  }
 }
 </style>

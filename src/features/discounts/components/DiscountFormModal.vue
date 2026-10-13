@@ -84,7 +84,7 @@ onMounted(() => {
     :show-header="false"
   >
     <div class="modal-head">
-      <span class="head-icon"><AppIcon name="local-offer" :size="20" /></span>
+      <span class="head-icon"><AppIcon name="sell" :size="20" /></span>
       <h2 class="head-title">{{ isEdit ? 'Edit Promotion' : 'Add Promotion' }}</h2>
       <button type="button" class="head-close" aria-label="Close" @click="close">
         <AppIcon name="close" :size="14" />
@@ -197,6 +197,7 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 .head-title {
   flex: 1;
@@ -216,6 +217,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  flex-shrink: 0;
 }
 .head-close:hover {
   background: var(--surface-hover);
@@ -223,6 +225,8 @@ onMounted(() => {
 }
 .modal-body {
   padding: 22px;
+  max-height: 70vh;
+  overflow-y: auto;
 }
 .loading {
   padding: 40px;
@@ -238,6 +242,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
 }
 .field.full {
   grid-column: 1 / -1;
@@ -258,6 +263,9 @@ onMounted(() => {
   color: var(--danger);
 }
 @media (max-width: 640px) {
+  .modal-body {
+    padding: 16px;
+  }
   .form {
     grid-template-columns: 1fr;
   }

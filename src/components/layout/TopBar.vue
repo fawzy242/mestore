@@ -5,6 +5,7 @@ import { useUiStore } from '@/stores/ui.store.js'
 import AppIcon from '@/components/ui/AppIcon.vue'
 import ThemeToggle from '@/components/ui/ThemeToggle.vue'
 import ProfileMenu from './ProfileMenu.vue'
+import TopBarClock from './TopBarClock.vue'
 
 const route = useRoute()
 const ui = useUiStore()
@@ -31,6 +32,7 @@ const title = computed(() => route.meta?.title || 'MeStore')
     </div>
 
     <div class="topbar-actions">
+      <TopBarClock />
       <ThemeToggle />
       <ProfileMenu />
     </div>
@@ -51,6 +53,8 @@ const title = computed(() => route.meta?.title || 'MeStore')
   top: 0;
   z-index: 30;
   transition: background-color 150ms ease, border-color 150ms ease;
+  padding-top: env(safe-area-inset-top, 0px);
+  height: calc(var(--topbar-h) + env(safe-area-inset-top, 0px));
 }
 
 .title {
@@ -58,6 +62,7 @@ const title = computed(() => route.meta?.title || 'MeStore')
   font-weight: 600;
   margin: 0;
   flex: 1;
+  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -76,6 +81,8 @@ const title = computed(() => route.meta?.title || 'MeStore')
   border-radius: var(--radius-sm);
   color: var(--text-muted);
   background: transparent;
+  border: none;
+  cursor: pointer;
 }
 .menu-btn:hover {
   background: var(--surface-hover);
@@ -92,11 +99,18 @@ const title = computed(() => route.meta?.title || 'MeStore')
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .topbar {
     padding: 0 12px;
+    padding-top: env(safe-area-inset-top, 0px);
+    height: calc(56px + env(safe-area-inset-top, 0px));
+    gap: 10px;
+  }
+  .title {
+    font-size: 15px;
   }
 }
 </style>
