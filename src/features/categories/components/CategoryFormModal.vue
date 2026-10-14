@@ -22,9 +22,8 @@ const visible = computed({
 })
 
 const isEdit = computed(() => Boolean(props.categoryId))
-const { form, isSubmitting, isLoading, error, fieldErrors, load, submit } = useCategoryForm(
-  props.categoryId,
-)
+const { form, isSubmitting, isLoading, error, fieldErrors, load, submit, reset } =
+  useCategoryForm(props.categoryId)
 
 const icon = ref('local-cafe')
 
@@ -59,11 +58,16 @@ function close() {
 }
 
 watch(visible, async (open) => {
-  if (open && isEdit.value) await load()
+  if (!open) return
+  reset()
+  if (isEdit.value) await load()
 })
 
 onMounted(() => {
-  if (visible.value && isEdit.value) load()
+  if (visible.value) {
+    reset()
+    if (isEdit.value) load()
+  }
 })
 </script>
 

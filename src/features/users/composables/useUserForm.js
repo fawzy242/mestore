@@ -3,6 +3,16 @@ import { userSchema } from '../schemas/user.schema.js'
 import * as usersService from '@/services/api/users.service.js'
 import { normalizeApiError } from '@/services/http/apiError.js'
 
+function blankForm() {
+  return {
+    name: '',
+    username: '',
+    password: '',
+    role: 'cashier',
+    status: 'Active',
+  }
+}
+
 export function useUserForm(id = null) {
   const isEdit = Boolean(id)
   const isSubmitting = ref(false)
@@ -10,20 +20,31 @@ export function useUserForm(id = null) {
   const error = ref(null)
   const fieldErrors = reactive({})
 
-  const form = reactive({
-    name: '',
-    username: '',
-    password: '',
-    role: 'cashier',
-    status: 'Active',
-  })
+  const form = reactive(blankForm())
+
+  function clearFieldErrors() {
+    Object.keys(fieldErrors).forEach((k) => delete fieldErrors[k])
+  }
+
+  function reset() {
+    Object.assign(form, blankForm())
+    clearFieldErrors()
+    error.value = null
+  }
 
   async function load() {
     if (!isEdit) return
     isLoading.value = true
+    error.value = null
+    clearFieldErrors()
     try {
       const user = await usersService.getUserById(id)
-      Object.assign(form, user)
+      form.name = user.name
+      form.username = user.username
+      form.role = user.role
+      form.status = user.IsActive === 1 ? 'Active' : 'Inactive'
+      // Never prefill password
+      form.password = ''
     } catch (err) {
       error.value = normalizeApiError(err)
     } finally {
@@ -32,7 +53,7 @@ export function useUserForm(id = null) {
   }
 
   function validate() {
-    Object.keys(fieldErrors).forEach((k) => delete fieldErrors[k])
+    clearFieldErrors()
     const parsed = userSchema.safeParse(form)
     if (!parsed.success) {
       parsed.error.issues.forEach((issue) => {
@@ -41,7 +62,8 @@ export function useUserForm(id = null) {
       })
       return false
     }
-    if (!isEdit && !form.password) {
+    // Required on create only
+    if (!isEdit && (!form.password || form.password.length === 0)) {
       fieldErrors.password = 'Password is required'
       return false
     }
@@ -68,5 +90,5 @@ export function useUserForm(id = null) {
     }
   }
 
-  return { form, isEdit, isSubmitting, isLoading, error, fieldErrors, load, submit }
+  return { form, isEdit, isSubmitting, isLoading, error, fieldErrors, load, submit, reset }
 }

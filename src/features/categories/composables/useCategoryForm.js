@@ -3,17 +3,33 @@ import { categorySchema } from '../schemas/category.schema.js'
 import * as categoriesService from '@/services/api/categories.service.js'
 import { normalizeApiError } from '@/services/http/apiError.js'
 
+function blankForm() {
+  return { name: '' }
+}
+
 export function useCategoryForm(id = null) {
   const isEdit = Boolean(id)
   const isSubmitting = ref(false)
   const isLoading = ref(false)
   const error = ref(null)
   const fieldErrors = reactive({})
-  const form = reactive({ name: '' })
+  const form = reactive(blankForm())
+
+  function clearFieldErrors() {
+    Object.keys(fieldErrors).forEach((k) => delete fieldErrors[k])
+  }
+
+  function reset() {
+    Object.assign(form, blankForm())
+    clearFieldErrors()
+    error.value = null
+  }
 
   async function load() {
     if (!isEdit) return
     isLoading.value = true
+    error.value = null
+    clearFieldErrors()
     try {
       const category = await categoriesService.getCategoryById(id)
       form.name = category.name
@@ -25,7 +41,7 @@ export function useCategoryForm(id = null) {
   }
 
   function validate() {
-    Object.keys(fieldErrors).forEach((k) => delete fieldErrors[k])
+    clearFieldErrors()
     const parsed = categorySchema.safeParse(form)
     if (!parsed.success) {
       parsed.error.issues.forEach((issue) => {
@@ -48,11 +64,12 @@ export function useCategoryForm(id = null) {
         : await categoriesService.createCategory(payload)
     } catch (err) {
       error.value = normalizeApiError(err)
+      if (error.value.fieldErrors) Object.assign(fieldErrors, error.value.fieldErrors)
       return null
     } finally {
       isSubmitting.value = false
     }
   }
 
-  return { form, isEdit, isSubmitting, isLoading, error, fieldErrors, load, submit }
+  return { form, isEdit, isSubmitting, isLoading, error, fieldErrors, load, submit, reset }
 }

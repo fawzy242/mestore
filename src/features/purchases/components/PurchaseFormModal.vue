@@ -22,7 +22,7 @@ const emit = defineEmits(['update:modelValue', 'saved'])
 const { push } = useToast()
 const visible = computed({ get: () => props.modelValue, set: (v) => emit('update:modelValue', v) })
 const isEdit = computed(() => Boolean(props.purchaseId))
-const { form, isSubmitting, isLoading, error, fieldErrors, load, submit, addItem, removeItem } =
+const { form, isSubmitting, isLoading, error, fieldErrors, load, submit, reset, addItem, removeItem } =
   usePurchaseForm(props.purchaseId)
 
 const supplierOptions = ref([])
@@ -32,7 +32,6 @@ async function loadSuppliers() {
   supplierOptions.value = result.items.map((s) => ({ label: s.name, value: s.id }))
 }
 
-// Translate the string date ↔ Date object for the DatePicker.
 const dateProxy = computed({
   get: () => {
     if (!form.date) return null
@@ -79,23 +78,33 @@ function close() {
 watch(visible, async (open) => {
   if (!open) return
   await loadSuppliers()
-  if (isEdit.value) await load()
-  else {
-    if (form.items.length === 0) addItem()
-    if (!form.date) {
-      form.date = new Date().toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      })
-    }
+  reset()
+  if (isEdit.value) {
+    await load()
+  } else {
+    addItem()
+    form.date = new Date().toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    })
   }
 })
 
 onMounted(async () => {
   if (!visible.value) return
   await loadSuppliers()
-  if (isEdit.value) load()
+  reset()
+  if (isEdit.value) {
+    load()
+  } else {
+    addItem()
+    form.date = new Date().toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    })
+  }
 })
 </script>
 
@@ -164,34 +173,61 @@ onMounted(async () => {
             <span></span>
           </div>
 
-          <div v-for="(item, i) in form.items" :key="i" class="item-row">
-            <InputText
-              v-model="item.name"
-              placeholder="Item name"
-              class="item-name"
-              :class="{ 'p-invalid': fieldErrors[`item-name-${i}`] }"
-            />
-            <InputNumber v-model="item.qty" :min="1" placeholder="Qty" class="item-qty" />
-            <InputNumber
-              v-model="item.price"
-              mode="currency"
-              currency="IDR"
-              locale="id-ID"
-              :min="0"
-              class="item-price"
-            />
-            <div class="item-total mono">
-              {{ formatRupiah((item.qty || 0) * (item.price || 0)) }}
+          <div v-for="(item, i) in form.items" :key="i" class="item-row-wrap">
+            <div class="item-row">
+              <InputText
+                v-model="item.name"
+                placeholder="Item name"
+                class="item-name"
+                :class="{ 'p-invalid': fieldErrors[`item-name-${i}`] }"
+              />
+              <InputNumber
+                v-model="item.qty"
+                :min="1"
+                placeholder="Qty"
+                class="item-qty"
+                :class="{ 'p-invalid': fieldErrors[`item-qty-${i}`] }"
+              />
+              <InputNumber
+                v-model="item.price"
+                mode="currency"
+                currency="IDR"
+                locale="id-ID"
+                :min="0"
+                class="item-price"
+                :class="{ 'p-invalid': fieldErrors[`item-price-${i}`] }"
+              />
+              <div class="item-total mono">
+                {{ formatRupiah((item.qty || 0) * (item.price || 0)) }}
+              </div>
+              <Button
+                icon="pi pi-times"
+                severity="danger"
+                text
+                rounded
+                size="small"
+                aria-label="Remove"
+                @click="removeItem(i)"
+              />
             </div>
-            <Button
-              icon="pi pi-times"
-              severity="danger"
-              text
-              rounded
-              size="small"
-              aria-label="Remove"
-              @click="removeItem(i)"
-            />
+            <div
+              v-if="
+                fieldErrors[`item-name-${i}`] ||
+                fieldErrors[`item-qty-${i}`] ||
+                fieldErrors[`item-price-${i}`]
+              "
+              class="item-errors"
+            >
+              <small v-if="fieldErrors[`item-name-${i}`]" class="err">
+                {{ fieldErrors[`item-name-${i}`] }}
+              </small>
+              <small v-if="fieldErrors[`item-qty-${i}`]" class="err">
+                {{ fieldErrors[`item-qty-${i}`] }}
+              </small>
+              <small v-if="fieldErrors[`item-price-${i}`]" class="err">
+                {{ fieldErrors[`item-price-${i}`] }}
+              </small>
+            </div>
           </div>
 
           <small v-if="fieldErrors.items" class="err">{{ fieldErrors.items }}</small>
@@ -263,7 +299,6 @@ onMounted(async () => {
   background: var(--surface-hover);
   color: var(--text);
 }
-
 .modal-body {
   padding: 22px;
   max-height: 70vh;
@@ -330,7 +365,6 @@ onMounted(async () => {
   gap: 8px;
   align-items: center;
 }
-
 .item-head-row {
   font-size: 11px;
   text-transform: uppercase;
@@ -341,7 +375,6 @@ onMounted(async () => {
 .item-head-row .ar {
   text-align: right;
 }
-
 .item-name :deep(input),
 .item-qty :deep(input),
 .item-price :deep(input) {
@@ -354,6 +387,18 @@ onMounted(async () => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.item-row-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.item-errors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  padding-left: 2px;
 }
 
 .total-row {
@@ -377,8 +422,10 @@ onMounted(async () => {
   color: var(--danger);
 }
 
-/* --- Tablet: shrink item columns --- */
 @media (max-width: 700px) {
+  .modal-body {
+    padding: 16px;
+  }
   .form {
     grid-template-columns: 1fr;
   }
@@ -392,11 +439,7 @@ onMounted(async () => {
   }
 }
 
-/* --- Mobile: item rows become two-line cards --- */
 @media (max-width: 480px) {
-  .modal-body {
-    padding: 16px;
-  }
   .item-head-row {
     display: none;
   }

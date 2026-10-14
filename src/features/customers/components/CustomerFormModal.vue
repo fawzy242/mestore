@@ -17,7 +17,7 @@ const emit = defineEmits(['update:modelValue', 'saved'])
 const { push } = useToast()
 const visible = computed({ get: () => props.modelValue, set: (v) => emit('update:modelValue', v) })
 const isEdit = computed(() => Boolean(props.customerId))
-const { form, isSubmitting, isLoading, error, fieldErrors, load, submit } =
+const { form, isSubmitting, isLoading, error, fieldErrors, load, submit, reset } =
   useCustomerForm(props.customerId)
 
 async function onSubmit() {
@@ -34,11 +34,18 @@ async function onSubmit() {
 function close() {
   visible.value = false
 }
+
 watch(visible, async (open) => {
-  if (open && isEdit.value) await load()
+  if (!open) return
+  reset()
+  if (isEdit.value) await load()
 })
+
 onMounted(() => {
-  if (visible.value && isEdit.value) load()
+  if (visible.value) {
+    reset()
+    if (isEdit.value) load()
+  }
 })
 </script>
 
@@ -80,7 +87,13 @@ onMounted(() => {
         </div>
         <div class="field">
           <label>Email</label>
-          <InputText v-model="form.email" type="email" placeholder="customer@email.com" />
+          <InputText
+            v-model="form.email"
+            type="email"
+            placeholder="customer@email.com"
+            :class="{ 'p-invalid': fieldErrors.email }"
+          />
+          <small v-if="fieldErrors.email" class="err">{{ fieldErrors.email }}</small>
         </div>
         <div class="field full">
           <label>Address</label>

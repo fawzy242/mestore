@@ -24,9 +24,8 @@ const visible = computed({
 })
 
 const isEdit = computed(() => Boolean(props.userId))
-const { form, isSubmitting, isLoading, error, fieldErrors, load, submit } = useUserForm(
-  props.userId,
-)
+const { form, isSubmitting, isLoading, error, fieldErrors, load, submit, reset } =
+  useUserForm(props.userId)
 
 const roleOptions = [
   { label: 'Admin', value: 'admin' },
@@ -54,11 +53,16 @@ function setStatus(value) {
 }
 
 watch(visible, async (open) => {
-  if (open && isEdit.value) await load()
+  if (!open) return
+  reset()
+  if (isEdit.value) await load()
 })
 
 onMounted(() => {
-  if (visible.value && isEdit.value) load()
+  if (visible.value) {
+    reset()
+    if (isEdit.value) load()
+  }
 })
 </script>
 
@@ -89,6 +93,7 @@ onMounted(() => {
           <InputText
             v-model="form.name"
             placeholder="e.g. Budi Santoso"
+            maxlength="80"
             :class="{ 'p-invalid': fieldErrors.name }"
           />
           <small v-if="fieldErrors.name" class="err">{{ fieldErrors.name }}</small>
@@ -99,6 +104,7 @@ onMounted(() => {
           <InputText
             v-model="form.username"
             placeholder="e.g. budi"
+            maxlength="40"
             :class="{ 'p-invalid': fieldErrors.username }"
           />
           <small v-if="fieldErrors.username" class="err">{{ fieldErrors.username }}</small>
@@ -110,7 +116,7 @@ onMounted(() => {
             v-model="form.password"
             :feedback="false"
             toggle-mask
-            placeholder="Enter password"
+            placeholder="At least 6 characters"
             :class="{ 'p-invalid': fieldErrors.password }"
             input-class="w-full"
           />
@@ -125,7 +131,9 @@ onMounted(() => {
             option-label="label"
             option-value="value"
             placeholder="Select role"
+            :class="{ 'p-invalid': fieldErrors.role }"
           />
+          <small v-if="fieldErrors.role" class="err">{{ fieldErrors.role }}</small>
         </div>
 
         <div v-if="isEdit" class="field full">
@@ -206,7 +214,6 @@ onMounted(() => {
   justify-content: center;
   cursor: pointer;
   flex-shrink: 0;
-  transition: background 120ms ease, color 120ms ease;
 }
 .head-close:hover {
   background: var(--surface-hover);

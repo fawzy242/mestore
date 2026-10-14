@@ -2,6 +2,16 @@ import { reactive, ref } from 'vue'
 import * as purchasesService from '@/services/api/purchases.service.js'
 import { normalizeApiError } from '@/services/http/apiError.js'
 
+function blankForm() {
+  return {
+    supplierId: '',
+    supplierName: '',
+    items: [],
+    status: 'Pending',
+    date: '',
+  }
+}
+
 export function usePurchaseForm(id = null) {
   const isEdit = Boolean(id)
   const isSubmitting = ref(false)
@@ -9,17 +19,24 @@ export function usePurchaseForm(id = null) {
   const error = ref(null)
   const fieldErrors = reactive({})
 
-  const form = reactive({
-    supplierId: '',
-    supplierName: '',
-    items: [],          // [{ name, qty, price }]
-    status: 'Pending',
-    date: '',           // display string, e.g. "Sep 24, 2026"
-  })
+  const form = reactive(blankForm())
+
+  function clearFieldErrors() {
+    Object.keys(fieldErrors).forEach((k) => delete fieldErrors[k])
+  }
+
+  function reset() {
+    Object.assign(form, blankForm())
+    form.items = []
+    clearFieldErrors()
+    error.value = null
+  }
 
   async function load() {
     if (!isEdit) return
     isLoading.value = true
+    error.value = null
+    clearFieldErrors()
     try {
       const p = await purchasesService.getPurchaseById(id)
       form.supplierId = p.supplierId
@@ -42,8 +59,9 @@ export function usePurchaseForm(id = null) {
   }
 
   function validate() {
-    Object.keys(fieldErrors).forEach((k) => delete fieldErrors[k])
+    clearFieldErrors()
     let ok = true
+
     if (!form.supplierId) {
       fieldErrors.supplierId = 'Supplier is required'
       ok = false
@@ -55,34 +73,40 @@ export function usePurchaseForm(id = null) {
     if (form.items.length === 0) {
       fieldErrors.items = 'Add at least one item'
       ok = false
+    } else {
+      form.items.forEach((it, i) => {
+        if (!it.name?.trim()) {
+          fieldErrors[`item-name-${i}`] = 'Item name is required'
+          ok = false
+        }
+        if (!it.qty || Number(it.qty) <= 0) {
+          fieldErrors[`item-qty-${i}`] = 'Quantity must be greater than 0'
+          ok = false
+        }
+        if (it.price == null || Number(it.price) < 0) {
+          fieldErrors[`item-price-${i}`] = 'Price must be 0 or greater'
+          ok = false
+        }
+      })
     }
-    form.items.forEach((it, i) => {
-      if (!it.name) {
-        fieldErrors[`item-name-${i}`] = 'Required'
-        ok = false
-      }
-      if (!it.qty || it.qty <= 0) {
-        fieldErrors[`item-qty-${i}`] = 'Invalid'
-        ok = false
-      }
-    })
+
     return ok
   }
 
   async function submit() {
+    error.value = null
     if (!validate()) return null
     isSubmitting.value = true
     try {
-      const supplier = form.supplierName
       const total = form.items.reduce(
         (sum, i) => sum + Number(i.qty) * Number(i.price),
         0,
       )
       const payload = {
         supplierId: form.supplierId,
-        supplierName: supplier,
+        supplierName: form.supplierName,
         items: form.items.map((i) => ({
-          name: i.name,
+          name: i.name.trim(),
           qty: Number(i.qty),
           price: Number(i.price),
         })),
@@ -110,6 +134,7 @@ export function usePurchaseForm(id = null) {
     fieldErrors,
     load,
     submit,
+    reset,
     addItem,
     removeItem,
   }

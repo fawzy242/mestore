@@ -20,7 +20,7 @@ const emit = defineEmits(['update:modelValue', 'saved'])
 const { push } = useToast()
 const visible = computed({ get: () => props.modelValue, set: (v) => emit('update:modelValue', v) })
 const isEdit = computed(() => Boolean(props.discountId))
-const { form, isSubmitting, isLoading, error, fieldErrors, load, submit } =
+const { form, isSubmitting, isLoading, error, fieldErrors, load, submit, reset } =
   useDiscountForm(props.discountId)
 
 const typeOptions = [
@@ -68,10 +68,16 @@ function close() {
 }
 
 watch(visible, async (open) => {
-  if (open && isEdit.value) await load()
+  if (!open) return
+  reset()
+  if (isEdit.value) await load()
 })
+
 onMounted(() => {
-  if (visible.value && isEdit.value) load()
+  if (visible.value) {
+    reset()
+    if (isEdit.value) load()
+  }
 })
 </script>
 
@@ -116,6 +122,7 @@ onMounted(() => {
           <InputNumber
             v-model="form.value"
             :min="0"
+            :max="form.type === 'percentage' ? 100 : undefined"
             :class="{ 'p-invalid': fieldErrors.value }"
           />
           <small v-if="fieldErrors.value" class="err">{{ fieldErrors.value }}</small>

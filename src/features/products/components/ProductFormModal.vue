@@ -26,7 +26,7 @@ const visible = computed({
 })
 
 const isEdit = computed(() => Boolean(props.productId))
-const { form, isSubmitting, isLoading, error, fieldErrors, load, submit } =
+const { form, isSubmitting, isLoading, error, fieldErrors, load, submit, reset } =
   useProductForm(props.productId)
 
 const categoryOptions = ref([])
@@ -55,14 +55,15 @@ function close() {
 }
 
 watch(visible, async (open) => {
-  if (open) {
-    await loadCategories()
-    if (isEdit.value) await load()
-  }
+  if (!open) return
+  reset()
+  await loadCategories()
+  if (isEdit.value) await load()
 })
 
 onMounted(() => {
   if (visible.value) {
+    reset()
     loadCategories()
     if (isEdit.value) load()
   }
@@ -96,6 +97,7 @@ onMounted(() => {
           <InputText
             v-model="form.name"
             placeholder="e.g. Indomie Goreng"
+            maxlength="80"
             :class="{ 'p-invalid': fieldErrors.name }"
           />
           <small v-if="fieldErrors.name" class="err">{{ fieldErrors.name }}</small>
@@ -106,6 +108,7 @@ onMounted(() => {
           <InputText
             v-model="form.sku"
             placeholder="e.g. 8991234567"
+            maxlength="40"
             :class="{ 'p-invalid': fieldErrors.sku }"
           />
           <small v-if="fieldErrors.sku" class="err">{{ fieldErrors.sku }}</small>
@@ -161,7 +164,9 @@ onMounted(() => {
             currency="IDR"
             locale="id-ID"
             :min="0"
+            :class="{ 'p-invalid': fieldErrors.cost }"
           />
+          <small v-if="fieldErrors.cost" class="err">{{ fieldErrors.cost }}</small>
         </div>
 
         <MarginCalcBox class="full" :price="form.price" :cost="form.cost" />
@@ -222,7 +227,6 @@ onMounted(() => {
   justify-content: center;
   cursor: pointer;
   flex-shrink: 0;
-  transition: background 120ms ease, color 120ms ease;
 }
 .head-close:hover {
   background: var(--surface-hover);

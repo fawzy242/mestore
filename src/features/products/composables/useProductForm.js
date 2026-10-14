@@ -3,14 +3,8 @@ import { productSchema } from '../schemas/product.schema.js'
 import * as productsService from '@/services/api/products.service.js'
 import { normalizeApiError } from '@/services/http/apiError.js'
 
-export function useProductForm(id = null) {
-  const isEdit = Boolean(id)
-  const isSubmitting = ref(false)
-  const isLoading = ref(false)
-  const error = ref(null)
-  const fieldErrors = reactive({})
-
-  const form = reactive({
+function blankForm() {
+  return {
     name: '',
     sku: '',
     category: '',
@@ -18,11 +12,33 @@ export function useProductForm(id = null) {
     price: '',
     cost: '',
     stock: '',
-  })
+  }
+}
+
+export function useProductForm(id = null) {
+  const isEdit = Boolean(id)
+  const isSubmitting = ref(false)
+  const isLoading = ref(false)
+  const error = ref(null)
+  const fieldErrors = reactive({})
+
+  const form = reactive(blankForm())
+
+  function clearFieldErrors() {
+    Object.keys(fieldErrors).forEach((k) => delete fieldErrors[k])
+  }
+
+  function reset() {
+    Object.assign(form, blankForm())
+    clearFieldErrors()
+    error.value = null
+  }
 
   async function load() {
     if (!isEdit) return
     isLoading.value = true
+    error.value = null
+    clearFieldErrors()
     try {
       const product = await productsService.getProductById(id)
       Object.assign(form, {
@@ -39,7 +55,7 @@ export function useProductForm(id = null) {
   }
 
   function validate() {
-    Object.keys(fieldErrors).forEach((k) => delete fieldErrors[k])
+    clearFieldErrors()
     const normalized = {
       ...form,
       cost: form.cost === '' ? 0 : form.cost,
@@ -73,5 +89,5 @@ export function useProductForm(id = null) {
     }
   }
 
-  return { form, isEdit, isSubmitting, isLoading, error, fieldErrors, load, submit }
+  return { form, isEdit, isSubmitting, isLoading, error, fieldErrors, load, submit, reset }
 }

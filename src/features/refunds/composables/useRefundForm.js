@@ -2,6 +2,17 @@ import { reactive, ref } from 'vue'
 import * as refundsService from '@/services/api/refunds.service.js'
 import { normalizeApiError } from '@/services/http/apiError.js'
 
+function blankForm() {
+  return {
+    originalTxId: '',
+    customerName: '',
+    items: [],
+    reason: '',
+    status: 'Pending',
+    date: '',
+  }
+}
+
 export function useRefundForm(id = null) {
   const isEdit = Boolean(id)
   const isSubmitting = ref(false)
@@ -9,18 +20,24 @@ export function useRefundForm(id = null) {
   const error = ref(null)
   const fieldErrors = reactive({})
 
-  const form = reactive({
-    originalTxId: '',
-    customerName: '',
-    items: [],      // [{ name, qty, price }]
-    reason: '',
-    status: 'Pending',
-    date: '',
-  })
+  const form = reactive(blankForm())
+
+  function clearFieldErrors() {
+    Object.keys(fieldErrors).forEach((k) => delete fieldErrors[k])
+  }
+
+  function reset() {
+    Object.assign(form, blankForm())
+    form.items = []
+    clearFieldErrors()
+    error.value = null
+  }
 
   async function load() {
     if (!isEdit) return
     isLoading.value = true
+    error.value = null
+    clearFieldErrors()
     try {
       const r = await refundsService.getRefundById(id)
       form.originalTxId = r.originalTxId
@@ -44,8 +61,9 @@ export function useRefundForm(id = null) {
   }
 
   function validate() {
-    Object.keys(fieldErrors).forEach((k) => delete fieldErrors[k])
+    clearFieldErrors()
     let ok = true
+
     if (!form.originalTxId.trim()) {
       fieldErrors.originalTxId = 'Original receipt is required'
       ok = false
@@ -53,17 +71,22 @@ export function useRefundForm(id = null) {
     if (form.items.length === 0) {
       fieldErrors.items = 'Add at least one item'
       ok = false
+    } else {
+      form.items.forEach((it, i) => {
+        if (!it.name?.trim()) {
+          fieldErrors[`item-name-${i}`] = 'Item name is required'
+          ok = false
+        }
+        if (!it.qty || Number(it.qty) <= 0) {
+          fieldErrors[`item-qty-${i}`] = 'Quantity must be greater than 0'
+          ok = false
+        }
+        if (it.price == null || Number(it.price) < 0) {
+          fieldErrors[`item-price-${i}`] = 'Price must be 0 or greater'
+          ok = false
+        }
+      })
     }
-    form.items.forEach((it, i) => {
-      if (!it.name) {
-        fieldErrors[`item-name-${i}`] = 'Required'
-        ok = false
-      }
-      if (!it.qty || it.qty <= 0) {
-        fieldErrors[`item-qty-${i}`] = 'Invalid'
-        ok = false
-      }
-    })
     if (!form.reason.trim()) {
       fieldErrors.reason = 'Reason is required'
       ok = false
@@ -72,6 +95,7 @@ export function useRefundForm(id = null) {
   }
 
   async function submit() {
+    error.value = null
     if (!validate()) return null
     isSubmitting.value = true
     try {
@@ -80,15 +104,15 @@ export function useRefundForm(id = null) {
         0,
       )
       const payload = {
-        originalTxId: form.originalTxId,
-        customerName: form.customerName || 'Walk-in',
+        originalTxId: form.originalTxId.trim(),
+        customerName: form.customerName.trim() || 'Walk-in',
         items: form.items.map((i) => ({
-          name: i.name,
+          name: i.name.trim(),
           qty: Number(i.qty),
           price: Number(i.price),
         })),
         amount,
-        reason: form.reason,
+        reason: form.reason.trim(),
         status: form.status,
         date: form.date,
       }
@@ -112,6 +136,7 @@ export function useRefundForm(id = null) {
     fieldErrors,
     load,
     submit,
+    reset,
     addItem,
     removeItem,
   }
